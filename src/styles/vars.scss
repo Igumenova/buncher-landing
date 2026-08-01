@@ -1,0 +1,188 @@
+//fonts-weight
+$light: 300;
+$regular: 400;
+$medium: 500;
+$semi-bold: 600;
+
+//sizes
+$line-height: 16px;
+$min-section-height: max(100vh, 41vw);
+$decoration-line-smaller-dim: 2px;
+$decoration-line-bigger-45-dim: 45px;
+$decoration-line-bigger-35-dim: 35px;
+$decoration-line-bigger-25-dim: 25px;
+$decoration-line-std-margin: 18px;
+$gap-between-numbers: 10vh;
+
+//colors
+$dark-blue: #384D60;
+$dark-blue-filter: brightness(0) saturate(100%) invert(26%) sepia(4%) saturate(4099%) hue-rotate(168deg) brightness(94%) contrast(84%);
+$bright-blue: #1DA1F2;
+$bright-blue-filter: brightness(0) saturate(100%) invert(54%) sepia(69%) saturate(1516%) hue-rotate(175deg) brightness(91%) contrast(110%);
+$pale-blue: #228ed0;
+$light-grey: #F7F8F9;
+$white: #fff;
+$grey: #d3d3d3;
+$fade-black: #1f1f1f;
+
+//transition
+$std-transition-time: 0.5s;
+$small-transition-time: 0.1s;
+$std-transition: all $std-transition-time ease-in-out;
+$small-transition: all $small-transition-time ease-in-out;
+
+@mixin noTextSelection {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+@mixin notDraggable {
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+
+@mixin decorationLine {
+  position: absolute;
+  background-color: $dark-blue;
+  border-radius: 1px;
+}
+
+@mixin transitionStopPropagation {
+  transition: unset;
+  * {
+    transition: unset;
+  }
+}
+
+@mixin coverSectionRecount($height-of-background, $logo-size, $top) {
+  &::before {
+    max-height: calc($top - $logo-size / 2);
+  }
+
+  &__background-container {
+    top: calc($top - $height-of-background / 2);
+  }
+
+  &__logo {
+    width: $logo-size;
+    height: $logo-size;
+  }
+}
+
+@mixin mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin) {
+  &__wrapper {
+    padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
+  }
+
+  &__content-block {
+    padding-top: $phone-upper-margin;
+  }
+
+  &__mask {
+    width: $currentDecorationLen - 2px;
+  }
+
+  &__decoration {
+    &_hor {
+      bottom: $horizontal-line-bottom;
+
+      &_hidden {
+        transform: translateX(calc(-1 * $currentDecorationLen - $decoration-line-std-margin));
+      }
+    }
+
+    &_vert {
+      bottom: $decoration-line-std-margin;
+      left: $wrapper-padding-left;
+    }
+
+    &_square {
+      left: $currentDecorationLen;
+      width: calc($wrapper-padding-left - $currentDecorationLen - $decoration-line-std-margin);
+      height: calc($horizontal-line-bottom - $decoration-line-std-margin + $decoration-line-smaller-dim);
+    }
+
+    &_long {
+      $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+      top: $decoration-line-std-margin;
+      height: calc(100% - $decoration-line-std-margin * 2);
+
+      &:before {
+        width: $decoration-line-smaller-dim;
+        height: $currentDecorationLen;
+        top: calc(-1 * $line-gap);
+      }
+
+      &:after {
+        width: $decoration-line-smaller-dim;
+        height: $currentDecorationLen;
+        bottom: calc(-1 * $line-gap);
+      }
+
+      &_hidden {
+        &:before {
+          transform: translateY(calc($line-gap + $currentDecorationLen));
+        }
+
+        &:after {
+          transform: translateY(calc(-1 * $line-gap - $currentDecorationLen));
+        }
+      }
+    }
+  }
+}
+
+@mixin createKeyFrames_leanSlideAndBounce($startVal, $endVal, $name, $dispersion) {
+  $bounce_len: calc(($endVal - $startVal) * $dispersion);
+  @keyframes #{$name} {
+    0% {
+      transform: translateY($startVal);
+    }
+    30% {
+      transform: translateY(calc($startVal - $bounce_len / 6));
+    }
+    60% {
+      transform: translateY(calc($endVal + $bounce_len));
+    }
+    80% {
+      transform: translateY(calc($endVal - $bounce_len / 6));
+    }
+    100% {
+      transform: translateY($endVal);
+    }
+  }
+}
+
+@media screen and (min-width: 1440px) and (max-width: 1600px) {
+
+}
+
+@media screen and (min-width: 1366px) and (max-width: 1440px) {
+
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1366px) {
+
+}
+
+@media screen and (min-width: 800px) and (max-width: 1024px) {
+
+}
+
+@media screen and (min-width: 600px) and (max-width: 800px) {
+
+}
+
+@media screen and (min-width: 430px) and (max-width: 600px) {
+
+}
+
+@media screen and (min-width: 375px) and (max-width: 430px) {
+
+}
+
+@media screen and (max-width: 375px) {
+
+}

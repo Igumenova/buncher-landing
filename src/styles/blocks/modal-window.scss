@@ -1,0 +1,118 @@
+.modal-window {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity $std-transition-time ease;
+  //display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: $white;
+  z-index: 999;
+
+
+  &_shown {
+    //display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &__header {
+    position: sticky;
+    top: 0;
+    max-width: 1088px;
+    padding: 4vh 30px;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 auto;
+  }
+
+  &__back {
+    cursor: pointer;
+    border-radius: 100%;
+    background-color: $light-grey;
+    height: 44px;
+    width: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    outline: 5px solid $white;
+    border: 1px solid $white;
+    transition: $small-transition;
+    @include noTextSelection();
+    @include notDraggable();
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &:hover {
+      background-color: $dark-blue;
+      border: 1px solid $dark-blue;
+
+      img {
+        filter: brightness(0) saturate(100%) invert(97%) sepia(0%) saturate(10%) hue-rotate(243deg) brightness(102%) contrast(107%);
+      }
+    }
+  }
+
+  &__wrapper {
+    display: flex;
+    max-width: 816px;
+    margin: 0 auto;
+  }
+
+  &__content {
+    flex: 1 1;
+    padding: 0 30px 10vh 30px;
+
+    &_hidden {
+      display: none;
+    }
+
+    * {
+      font-size: 14px;
+      line-height: 16px;
+      font-weight: $regular;
+    }
+
+    p {
+      font-weight: $regular;
+      margin: 0 0 1em 0;
+    }
+
+    h4 {
+      padding-left: 30px;
+      font-weight: $semi-bold;
+      margin: 0 0 1em 0;
+    }
+
+    ul {
+      list-style: disc;
+      padding-left: 1em;
+      margin: 0 0 1em 0;
+    }
+
+    ol {
+      list-style: lower-latin;
+      padding-left: 1em;
+      margin: 0 0 1em 0;
+
+      li {
+        margin: 0 0 1em 0;
+      }
+    }
+
+    li {
+      font-weight: $regular;
+    }
+
+  }
+
+
+}

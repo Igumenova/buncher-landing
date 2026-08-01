@@ -1,0 +1,92 @@
+.button {
+  position: relative;
+  $border-width: 0.1rem;
+  display: flex;
+  justify-content: center;
+  padding: 15px 32px;
+  width: 209px;
+  height: 70px;
+  border-radius: 23px;
+  transition: $std-transition;
+
+  img {
+    transition: $std-transition;
+    font-size: 0.5em;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &__soon {
+    transition: $std-transition;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      height: 56%;
+      width: auto;
+    }
+  }
+
+  &_main {
+    background-color: $bright-blue;
+    border: $border-width solid $white;
+
+    &:hover {
+
+      background-color: $white;
+      border: $border-width solid $bright-blue;
+    }
+  }
+
+  &_secondary {
+    transition: $std-transition;
+    background-color: $light-grey;
+    border: $border-width solid $white;
+
+    img {
+      filter: $bright-blue-filter;
+    }
+
+    &:hover {
+      border: $border-width solid $light-grey;
+    }
+  }
+
+  &:hover {
+    & > img {
+      opacity: 0;
+    }
+
+    .button__soon {
+      opacity: 1;
+    }
+  }
+
+  @media screen and (min-width: 800px) and (max-width: 1366px) {
+    padding: 14px 30px;
+    width: 180px;
+    height: 58px;
+    border-radius: 20px;
+  }
+  @media screen and (min-width: 430px) and (max-width: 800px) {
+    padding: 12px 25px;
+    width: 160px;
+    height: 51px;
+    border-radius: 18px;
+  }
+  @media screen and (max-width: 430px) {
+    padding: 13px 40px 12px 23px;
+    width: 190px;
+    height: 61px;
+    border-radius: 23px;
+  }
+}
+

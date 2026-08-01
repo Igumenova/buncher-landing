@@ -1,0 +1,729 @@
+.section-main {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  z-index: 2;
+  $phone-ratio: 0.4618;
+  $wrapper-padding-left: 197px;
+  $wrapper-padding-right: min(25vw, 489px);
+  $line-right-margin: 30%;
+  $phone-upper-margin: 10vh;
+  $horizontal-line-bottom: 182px;
+  $decoration-line-long-margin: 76%;
+  $currentDecorationLen: $decoration-line-bigger-45-dim;
+  $rotate: 90deg;
+  $decoration-animation-duration: 0.5s;
+  $endAnimation: calc($decoration-animation-duration / 6);
+  $counter-vert-padding: $gap-between-numbers;
+  $counter-ratio: 0.65;
+
+  &__wrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
+    max-width: 100vw;
+    width: 100%;
+    gap: 3vw;
+  }
+
+  &__text-container {
+    transition: unset;
+    mask-image: linear-gradient(rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 10%,
+        rgba(255, 255, 255, 1) 20%,
+        rgba(255, 255, 255, 1) 80%,
+        rgba(255, 255, 255, 0) 90%,
+        rgba(255, 255, 255, 0) 100%);
+    mask-size: 100% 100vh;
+    mask-repeat: no-repeat;
+    mask-position: 0 0;
+    box-sizing: content-box;
+    position: relative;
+    flex: 1 1 100%;
+    max-width: 815px;
+    width: 100%;
+    z-index: 2;
+
+    &:before {
+      display: block;
+      content: '';
+      height: 60vh;
+    }
+
+    &:after {
+      display: block;
+      content: '';
+      height: 60vh;
+    }
+
+    &_small {
+      display: flex;
+      flex-direction: column;
+
+      &:before {
+        height: auto;
+        flex: 0.6 0;
+      }
+
+      &:after {
+        height: auto;
+        flex: 0.8 0;
+      }
+
+      .section-main__text-block {
+        height: auto;
+        flex: 1 1;
+      }
+    }
+
+  }
+
+  &__text-block {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    &:before {
+      content: '';
+      flex: 1 1;
+    }
+
+    &:after {
+      content: '';
+      flex: 1.1 1;
+    }
+  }
+
+  &__text {
+    color: $bright-blue;
+    flex: 0 0 max-content;
+    max-height: 100%;
+  }
+
+  &__content-block {
+    position: sticky;
+    z-index: 3;
+    top: 0;
+    height: $min-section-height;
+    flex: 1 0.66 100%;
+    max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
+    padding-top: $phone-upper-margin;
+    padding-bottom: $phone-upper-margin;
+  }
+
+  &__phone-volume {
+    position: absolute;
+    content: '';
+    display: block;
+    width: 1px;
+    height: 14.77%;
+    right: -1px;
+    top: 18.43%;
+  }
+
+  &__phone-block {
+    position: absolute;
+    content: '';
+    display: block;
+    width: 1px;
+    height: 7.39%;
+    right: -1px;
+    top: 38.05%;
+
+  }
+
+  &__phone-container {
+    position: relative;
+    margin: 0 auto;
+    flex: 1 1 100%;
+    aspect-ratio: $phone-ratio;
+    width: 100%;
+    background-color: transparent;
+  }
+
+  &__outer-flow {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: $white;
+  }
+
+  &__decoration-container {
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100%;
+  }
+
+  &__counter-block {
+    transition: right 0.7s ease-in-out;
+    $offset: 28px;
+    position: absolute;
+    box-sizing: content-box;
+    z-index: 2;
+    aspect-ratio: $counter-ratio;
+    width: calc($wrapper-padding-right + $offset);
+    height: calc(($wrapper-padding-right + $offset) / $counter-ratio); //do not remove, aspect ration doesnt work properly sometimes
+    max-width: calc(85vh * $counter-ratio);
+    max-height: 85vh;
+    right: -50%;
+    top: calc(14vh - $counter-vert-padding);
+
+    padding: $counter-vert-padding 0 $counter-vert-padding 100%;
+
+    mask-image: linear-gradient(rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 1) $counter-vert-padding,
+        rgba(255, 255, 255, 1) calc(100% - $counter-vert-padding),
+        rgba(255, 255, 255, 0) 100%);
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    mask-position: 0 0;
+
+    &_shown {
+      right: 0;
+    }
+  }
+
+  &__arrow-block {
+    position: absolute;
+    z-index: 1;
+    top: 3vh;
+    left: 30%;
+
+    img {
+      width: 20vw;
+    }
+  }
+
+  &__mask {
+    overflow: hidden;
+    position: absolute;
+    left: $decoration-line-std-margin;
+    bottom: $decoration-line-std-margin;
+    width: $currentDecorationLen - 2px;
+    height: 100vh;
+    transform-origin: bottom right;
+    transform: rotate($rotate);
+    opacity: 1;
+
+    &>* {
+      transform: rotate(calc(-1 * $rotate));
+      transform-origin: bottom left;
+    }
+
+    &_animated {
+      animation: rollBack $decoration-animation-duration ease-out forwards;
+      animation-delay: calc($endAnimation / 2);
+      transform: unset;
+
+      * {
+        animation: rollBackAndFade $decoration-animation-duration ease-out forwards;
+        animation-delay: calc($endAnimation / 2);
+        transform: unset;
+      }
+    }
+
+
+    &_hidden {
+      animation-delay: unset;
+      animation: roll $decoration-animation-duration ease-in forwards;
+
+      * {
+        animation-delay: unset;
+        animation: rollAndFade $decoration-animation-duration ease-in forwards;
+        transform: rotate(0);
+      }
+    }
+  }
+
+  &__decoration {
+    position: absolute;
+
+    &_hor {
+      left: $decoration-line-std-margin;
+      bottom: $horizontal-line-bottom;
+      transition: transform $endAnimation ease-out;
+      transition-delay: unset;
+
+      &_hidden {
+        transform: translateX(calc(-1 * $currentDecorationLen - $decoration-line-std-margin));
+        transition-delay: $decoration-animation-duration;
+      }
+    }
+
+    &_vert {
+      bottom: $decoration-line-std-margin;
+      left: $wrapper-padding-left;
+    }
+
+    &_square {
+      left: $currentDecorationLen;
+      bottom: 0;
+      width: calc($wrapper-padding-left - $currentDecorationLen - $decoration-line-std-margin);
+      height: calc($horizontal-line-bottom - $decoration-line-std-margin + $decoration-line-smaller-dim);
+      border-top-right-radius: 80%;
+      border-bottom: none;
+      border-left: none;
+    }
+
+    &_long {
+      $line-transition: transform 0.7s ease-in-out;
+      $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+      top: $decoration-line-std-margin;
+      left: $decoration-line-long-margin;
+      height: calc(100% - $decoration-line-std-margin * 2);
+
+      &:before {
+        content: '';
+        transition: $line-transition;
+        @include decorationLine;
+        width: $decoration-line-smaller-dim;
+        height: $currentDecorationLen;
+        top: calc(-1 * $line-gap);
+      }
+
+      &:after {
+        content: '';
+        transition: $line-transition;
+        @include decorationLine;
+        width: $decoration-line-smaller-dim;
+        height: $currentDecorationLen;
+        bottom: calc(-1 * $line-gap);
+      }
+
+      &_hidden {
+        &:before {
+          transition: $line-transition, opacity 0.1s linear 0.7s;
+          transform: translateY(calc($line-gap + $currentDecorationLen));
+          opacity: 0;
+        }
+
+        &:after {
+          transition: $line-transition, opacity 0.1s linear 0.7s;
+          transform: translateY(calc(-1 * $line-gap - $currentDecorationLen));
+          opacity: 0;
+        }
+      }
+    }
+  }
+
+  @keyframes roll {
+    0% {
+      transform: rotate($rotate);
+    }
+
+    100% {
+      transform: rotate(0);
+    }
+  }
+
+  @keyframes rollAndFade {
+    0% {
+      transform: rotate(calc(-1 * $rotate));
+      opacity: 1;
+    }
+
+    99% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: rotate(0);
+    }
+  }
+
+  @keyframes rollBack {
+    0% {
+      transform: rotate(0);
+    }
+
+    100% {
+      transform: rotate($rotate);
+    }
+  }
+
+  @keyframes rollBackAndFade {
+    0% {
+      transform: rotate(0);
+      opacity: 0;
+    }
+
+    1% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 1;
+      transform: rotate(calc(-1 * $rotate));
+    }
+  }
+
+  @media screen and (min-width: 1440px) and (max-width: 1600px) {
+    $wrapper-padding-left: 146px;
+    $wrapper-padding-right: 20vw;
+    $horizontal-line-bottom: 182px;
+    $phone-upper-margin: 11vh;
+    $currentDecorationLen: $decoration-line-bigger-35-dim;
+
+    &__text-container {
+      max-width: 603px;
+    }
+
+    &__content-block {
+      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 300px);
+    }
+
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+  }
+
+  @media screen and (min-width: 1366px) and (max-width: 1440px) {
+    $wrapper-padding-left: 146px;
+    $wrapper-padding-right: 22vw;
+    $horizontal-line-bottom: 182px;
+    $phone-upper-margin: 11vh;
+    $currentDecorationLen: $decoration-line-bigger-35-dim;
+
+    &__text-container {
+      max-width: 603px;
+    }
+
+    &__content-block {
+      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 300px);
+    }
+
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+  }
+
+  @media screen and (min-width: 1024px) and (max-width: 1366px) {
+    $wrapper-padding-left: 157px;
+    $wrapper-padding-right: 22vw;
+    $horizontal-line-bottom: 182px;
+    $phone-upper-margin: 13vh;
+    $currentDecorationLen: $decoration-line-bigger-35-dim;
+
+    &__text-container {
+      max-width: 553px;
+    }
+
+    &__content-block {
+      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 250px);
+    }
+
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+  }
+
+  @media screen and (min-width: 800px) and (max-width: 1024px) {
+    $wrapper-padding-left: 90px;
+    $wrapper-padding-right: 22vw;
+    $horizontal-line-bottom: 170px;
+    $phone-upper-margin: 13vh;
+    $currentDecorationLen: $decoration-line-bigger-35-dim;
+
+    &__text-container {
+      max-width: 422px;
+    }
+
+    &__content-block {
+      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 250px);
+    }
+
+    &__counter-block {
+      $offset: 32px;
+      width: calc($wrapper-padding-right + $offset);
+      height: calc(($wrapper-padding-right + $offset) / $counter-ratio); //do not remove, aspect ration doesnt work properly sometimes
+    }
+
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+  }
+
+  @media screen and (min-width: 600px) and (max-width: 800px) {
+    $wrapper-padding-left: 90px;
+    $wrapper-padding-right: 22vw;
+    $horizontal-line-bottom: 105px;
+    $phone-upper-margin: 11vh;
+    $currentDecorationLen: $decoration-line-bigger-25-dim;
+
+    &__text-container {
+      max-width: 311px;
+    }
+
+    &__content-block {
+      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 190px);
+    }
+
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+  }
+
+  @media screen and (min-width: 430px) and (max-width: 600px),
+  (orientation: portrait) and (min-width: 600px) {
+    $wrapper-padding-left: 50px;
+    $wrapper-padding-right: 50px;
+    $horizontal-line-bottom: 105px;
+    $phone-upper-margin: min(50px, 6vh);
+    $content-left-margin: max(144px, 23vw);
+    $content-max-width: max(204px, 33vw);
+    $currentDecorationLen: $decoration-line-bigger-25-dim;
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+
+    &__wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 17px;
+      padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
+    }
+
+    &__text-container {
+      flex: 1 1 100%;
+      mask-image: linear-gradient(rgba(255, 255, 255, 0) 5%,
+          rgba(255, 255, 255, 1) 15%,
+          rgba(255, 255, 255, 1) 85%,
+          rgba(255, 255, 255, 0) 95%);
+      order: 2;
+      max-width: 77%;
+    }
+
+    &__content-block {
+      order: 1;
+      max-width: min($content-max-width, calc(50vh * $phone-ratio));
+      flex: 1 1 100%;
+      height: unset;
+      padding-bottom: $phone-upper-margin;
+      margin-left: calc($content-left-margin - $wrapper-padding-left);
+
+    }
+
+    &__phone-container {
+      margin: 0 auto;
+    }
+
+    &__arrow-block {
+      position: absolute;
+      top: 0;
+      left: -36px;
+
+      mask-image: linear-gradient(rgba(255, 255, 255, 1) 0%,
+          rgba(255, 255, 255, 1) 100%);
+      mask-size: 100% 100%;
+      mask-repeat: no-repeat;
+      mask-position: 36px 0;
+
+      img {
+        width: 62.5vw;
+      }
+    }
+
+    &__decoration {
+      &_hor {
+        display: none;
+      }
+
+      &_vert {
+        display: none;
+      }
+
+      &_square {
+        display: none;
+      }
+
+      &_long {
+        $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+        top: $decoration-line-std-margin;
+        height: calc(100% - $decoration-line-std-margin);
+
+        &:before {
+          width: $decoration-line-smaller-dim;
+          height: $currentDecorationLen;
+          top: calc(-1 * $line-gap);
+        }
+
+        &:after {
+          display: none;
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: 375px) and (max-width: 430px) {
+    $wrapper-padding-left: 58px;
+    $wrapper-padding-right: 66px;
+    $phone-upper-margin: min(144px, 12vh);
+    $horizontal-line-bottom: 105px;
+    $content-max-width: min(220px, 50vw);
+    $content-left-margin: 58px;
+    $currentDecorationLen: $decoration-line-bigger-25-dim;
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+
+    &__wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 26px;
+      padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
+    }
+
+    &__text-container {
+      flex: 1 1 100%;
+      mask-image: linear-gradient(rgba(255, 255, 255, 0) 5%,
+          rgba(255, 255, 255, 1) 15%,
+          rgba(255, 255, 255, 1) 85%,
+          rgba(255, 255, 255, 0) 95%);
+      order: 2;
+      max-width: 100%;
+    }
+
+    &__content-block {
+      order: 1;
+      max-width: min($content-max-width, calc(50vh * $phone-ratio));
+      flex: 1 1 100%;
+      height: unset;
+      padding-bottom: 35px;
+      margin-left: calc($content-left-margin - $wrapper-padding-left);
+    }
+
+    &__phone-container {
+      margin: 0 auto;
+    }
+
+    &__arrow-block {
+      position: absolute;
+      top: 0;
+      left: -30vw;
+
+      mask-image: linear-gradient(rgba(255, 255, 255, 1) 0%,
+          rgba(255, 255, 255, 1) 100%);
+      mask-size: 100% 100%;
+      mask-repeat: no-repeat;
+      mask-position: 30vw 0;
+
+      img {
+        width: 100vw;
+      }
+    }
+
+    &__decoration {
+      &_hor {
+        display: none;
+      }
+
+      &_vert {
+        display: none;
+      }
+
+      &_square {
+        display: none;
+      }
+
+      &_long {
+        width: 1px;
+        $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+        top: 0;
+        height: calc(100%);
+
+        &:before {
+          display: none;
+        }
+
+        &:after {
+          display: none;
+        }
+      }
+    }
+  }
+
+  @media screen and (max-width: 375px) {
+    $wrapper-padding-left: 45px;
+    $wrapper-padding-right: 40px;
+    $phone-upper-margin: min(141px, 12vh);
+    $horizontal-line-bottom: 105px;
+    $content-max-width: min(200px, 50vw);
+    $content-left-margin: 64px;
+    $currentDecorationLen: $decoration-line-bigger-25-dim;
+    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+
+    &__wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 9px;
+      padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
+    }
+
+    &__text-container {
+      flex: 1 1 100%;
+      mask-image: linear-gradient(rgba(255, 255, 255, 0) 5%,
+          rgba(255, 255, 255, 1) 15%,
+          rgba(255, 255, 255, 1) 85%,
+          rgba(255, 255, 255, 0) 95%);
+      order: 2;
+      max-width: 100%;
+    }
+
+    &__content-block {
+      order: 1;
+      max-width: min($content-max-width, calc(50vh * $phone-ratio));
+      flex: 1 1 100%;
+      height: unset;
+      padding-bottom: 25px;
+      margin-left: calc($content-left-margin - $wrapper-padding-left);
+    }
+
+    &__phone-container {
+      margin: 0 auto;
+    }
+
+    &__arrow-block {
+      position: absolute;
+      top: 0;
+      left: -30vw;
+
+      mask-image: linear-gradient(rgba(255, 255, 255, 1) 0%,
+          rgba(255, 255, 255, 1) 100%);
+      mask-size: 100% 100%;
+      mask-repeat: no-repeat;
+      mask-position: 30vw 0;
+
+      img {
+        width: 100vw;
+      }
+    }
+
+    &__decoration {
+      &_hor {
+        display: none;
+      }
+
+      &_vert {
+        display: none;
+      }
+
+      &_square {
+        display: none;
+      }
+
+      &_long {
+        width: 1px;
+        $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+        top: 0;
+        height: calc(100%);
+
+        &:before {
+          display: none;
+        }
+
+        &:after {
+          display: none;
+        }
+      }
+    }
+  }
+}

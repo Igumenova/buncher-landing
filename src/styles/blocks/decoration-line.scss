@@ -1,0 +1,37 @@
+.decoration-line {
+  @include decorationLine;
+
+  &_vert {
+    width: $decoration-line-smaller-dim;
+    height: $decoration-line-bigger-45-dim;
+  }
+
+  &_hor {
+    width: $decoration-line-bigger-45-dim;
+    height: $decoration-line-smaller-dim;
+  }
+
+  &_square {
+    background-color: transparent;
+    border: $decoration-line-smaller-dim solid $dark-blue;
+  }
+
+  @media screen and (min-width: 800px) and (max-width: 1600px) {
+    &_vert {
+      height: $decoration-line-bigger-35-dim;
+    }
+
+    &_hor {
+      width: $decoration-line-bigger-35-dim;
+    }
+  }
+  @media screen and (max-width: 800px) {
+    &_vert {
+      height: $decoration-line-bigger-25-dim;
+    }
+
+    &_hor {
+      width: $decoration-line-bigger-25-dim;
+    }
+  }
+}

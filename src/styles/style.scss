@@ -1,0 +1,299 @@
+@import "reset.css";
+@import "vars.scss";
+@import "./blocks/custom-scrollbar.scss";
+@import "./blocks/decoration-line.scss";
+@import "./blocks/header.scss";
+@import "./blocks/section-cover.scss";
+@import "blocks/button";
+@import "blocks/anchor.scss";
+@import "./blocks/section-main.scss";
+@import "./blocks/counter-block.scss";
+@import "./blocks/phone.scss";
+@import "./blocks/section-footer.scss";
+@import "./blocks/modal-window.scss";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: $line-height;
+  background-color: $white;
+  color: $dark-blue;
+  max-width: 100vw;
+  overflow: hidden;
+  image-rendering: smooth;
+}
+
+h1 {
+  font-size: 70px;
+  line-height: 85px;
+  font-weight: $semi-bold;
+}
+
+h2 {
+  font-size: 76px;
+  line-height: 80px;
+  font-weight: $light;
+}
+
+h3 {
+  font-size: 63px;
+  line-height: 83px;
+  font-weight: $semi-bold;
+}
+
+h4 {
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: $semi-bold;
+}
+
+p {
+  font-size: 24px;
+  line-height: 29px;
+  font-weight: $semi-bold;
+}
+
+li {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: $semi-bold;
+}
+
+img {
+  display: block;
+}
+
+section {
+  position: relative;
+  width: 100vw;
+  min-height: $min-section-height;
+  min-height: max(100lvh, 41vw);
+  background-color: $white;
+
+  &:first-child {
+    min-height: max(100svh, 41vw);
+    max-height: max(100svh, 41vw);
+  }
+
+  //& * {
+  //  transition: $std-transition;
+  //  -o-transition: $std-transition;
+  //  -moz-transition: $std-transition;
+  //  -webkit-transition: $std-transition;
+  //}
+}
+
+.noStyle {
+  display: none;
+}
+
+*:focus-visible {
+  outline: 2px solid $dark-blue;
+}
+
+@media screen and (min-width: 1440px) and (max-width: 1600px) {
+  h1 {
+    font-size: 58px;
+    line-height: 71px;
+  }
+
+  h2 {
+    font-size: 54px;
+    line-height: 60px;
+  }
+
+  h3 {
+    font-size: 46px;
+    line-height: 56px;
+  }
+
+  p {
+    font-size: 18px;
+    line-height: 22px;
+  }
+
+  li {
+    font-size: 20px;
+    line-height: 24px;
+  }
+}
+
+@media screen and (min-width: 1366px) and (max-width: 1440px) {
+  h1 {
+    font-size: 50px;
+    line-height: 61px;
+  }
+
+  h2 {
+    font-size: 54px;
+    line-height: 60px;
+  }
+
+  h3 {
+    font-size: 46px;
+    line-height: 56px;
+  }
+
+  p {
+    font-size: 18px;
+    line-height: 22px;
+  }
+
+  li {
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1366px) {
+  h1 {
+    font-size: 48px;
+    line-height: 59px;
+  }
+
+  h2 {
+    font-size: 50px;
+    line-height: 60px;
+  }
+
+  h3 {
+    font-size: 46px;
+    line-height: 56px;
+  }
+
+  p {
+    font-size: 18px;
+    line-height: 22px;
+  }
+
+  li {
+    font-size: 20px;
+    line-height: 24px;
+  }
+}
+
+@media screen and (min-width: 800px) and (max-width: 1024px) {
+  h1 {
+    font-size: 46px;
+    line-height: 56px;
+  }
+
+  h2 {
+    font-size: 40px;
+    line-height: 50px;
+  }
+
+  h3 {
+    font-size: 44px;
+    line-height: 54px;
+  }
+
+  p {
+    font-size: 18px;
+    line-height: 22px;
+  }
+
+  li {
+    font-size: 16px;
+    line-height: 20px;
+  }
+}
+
+@media screen and (min-width: 600px) and (max-width: 800px) {
+  h1 {
+    font-size: 32px;
+    line-height: 39px;
+  }
+
+  h2 {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  h3 {
+    font-size: 30px;
+    line-height: 37px;
+  }
+
+  p {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  li {
+    font-size: 12px;
+    line-height: 15px;
+  }
+}
+
+@media screen and (min-width: 430px) and (max-width: 600px) {
+  h1 {
+    font-size: 32px;
+    line-height: 39px;
+  }
+
+  h2 {
+    font-size: 22px;
+    line-height: 26px;
+  }
+
+  h3 {
+    font-size: 30px;
+    line-height: 37px;
+  }
+
+  p {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  li {
+    font-size: 18px;
+    line-height: 22px;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  h1 {
+    font-size: 24px;
+    line-height: 29px;
+  }
+
+  h2 {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  h3 {
+    font-size: 30px;
+    line-height: 37px;
+  }
+
+  p {
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+  li {
+    font-size: 18px;
+    line-height: 22px;
+  }
+}
+
+@media screen and (max-width: 600px), screen and (orientation: portrait) {
+  li {
+    font-weight: $medium;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  h1 {
+    font-weight: $medium;
+  }
+}
+
