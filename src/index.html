@@ -449,73 +449,33 @@
         </div>
       </section>
       <section id="section-footer" class="section-footer">
-        <div class="section-footer__background">
-          <img
-            loading="lazy"
-            class="section-footer__background-img section-footer__background-img_left"
-            draggable="false"
-            src="img/decorations/footer-background-left.svg"
-            alt=""
-          />
-          <img
-            loading="lazy"
-            class="section-footer__background-img section-footer__background-img_alt"
-            draggable="false"
-            src="img/decorations/footer-background-right-alt.svg"
-            alt=""
-          />
-          <img
-            loading="lazy"
-            class="section-footer__background-img section-footer__background-img_right"
-            draggable="false"
-            src="img/decorations/footer-background-right.svg"
-            alt=""
-          />
-        </div>
-        <div class="section-footer__text-container">
-          <h3 data-key="footerHeader" class="lang">Start with Buncher</h3>
-          <p data-key="footerDescription" class="lang">
-            And create your expert vibe
-          </p>
-        </div>
-        <ul class="section-footer__links">
-          <li>
-            <a class="button button_secondary" href="#">
-              <img
-                loading="lazy"
-                src="./img/store-icons/googlePlayButtonWhite.svg"
-                alt="Get it on Google Play"
+        <div class="section-footer__surface">
+          <form class="section-footer__subscribe-form" id="subscribe-form">
+            <label class="noStyle" for="subscribe-email">Email</label>
+            <div class="section-footer__input-shell">
+              <input
+                class="section-footer__email-input"
+                id="subscribe-email"
+                name="email"
+                type="email"
+                placeholder="your@email.com"
+                autocomplete="email"
+                required
               />
-              <div class="button__soon">
-                <img
-                  class="lang-img"
-                  loading="lazy"
-                  src="img/store-icons/en/soon.png"
-                  alt="Coming soon to the app store"
-                />
-              </div>
-              <span class="noStyle">Get it on Google Play</span>
-            </a>
-          </li>
-          <li>
-            <a class="button button_secondary" href="#">
-              <img
-                loading="lazy"
-                src="./img/store-icons/ruStoreButtonWhite.svg"
-                alt="Скачайте из RuStore"
-              />
-              <div class="button__soon">
-                <img
-                  class="lang-img"
-                  loading="lazy"
-                  src="img/store-icons/en/soon.png"
-                  alt="Coming soon to the app store"
-                />
-              </div>
-              <span class="noStyle">Скачайте из RuStore</span>
-            </a>
-          </li>
-        </ul>
+              <button
+                class="section-footer__submit"
+                type="submit"
+                aria-label="Submit email"
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+            </div>
+            <p class="section-footer__form-caption">
+              Подписаться на обновления, чтобы не пропустить уведомление о
+              релизе
+            </p>
+          </form>
+        </div>
         <footer class="section-footer__footer">
           <div class="section-footer__footer-container">
             <ul class="section-footer__policy-container">
