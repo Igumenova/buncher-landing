@@ -56,21 +56,6 @@ $small-transition: all $small-transition-time ease-in-out;
   }
 }
 
-@mixin coverSectionRecount($height-of-background, $logo-size, $top) {
-  &::before {
-    max-height: calc($top - $logo-size / 2);
-  }
-
-  &__background-container {
-    top: calc($top - $height-of-background / 2);
-  }
-
-  &__logo {
-    width: $logo-size;
-    height: $logo-size;
-  }
-}
-
 @mixin mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin) {
   &__wrapper {
     padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;

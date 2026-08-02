@@ -82,6 +82,14 @@ const scrollAnimationTextSteps = {
   ],
 };
 
+const coverTypingPhrases = {
+  ru: ["Рабочее пространство", "Мессенджер", "нишевый матчмейкер"],
+  en: ["Workspace", "Messenger", "niche matchmaker"],
+};
+
+export const getCoverTypingPhrases = () =>
+  coverTypingPhrases[currentLanguage] ?? coverTypingPhrases.en;
+
 export const getScrollAnimationTextSteps = () =>
   scrollAnimationTextSteps[currentLanguage] ?? scrollAnimationTextSteps.en;
 

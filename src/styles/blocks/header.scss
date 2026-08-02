@@ -7,7 +7,7 @@
   &__container {
     box-sizing: content-box;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: flex-end;
     width: 100%;
     max-width: 1690px;
@@ -81,11 +81,11 @@
     cursor: pointer;
     font-size: 0.8em;
 
-    &:not(&_selected ):hover {
+    &:not(&_selected):hover {
       background-color: $light-grey;
     }
 
-    &:not(&_selected ):active {
+    &:not(&_selected):active {
       background-color: $grey;
     }
 
@@ -208,7 +208,3 @@
     }
   }
 }
-
-
-
-

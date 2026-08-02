@@ -1,98 +1,104 @@
 .section-cover {
   position: relative;
-  $image-proportion: 0.3125;
-  $top: 31vh;
-  $height-of-background: 100vw * $image-proportion;
-  $logo-size: 150px;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: transparent;
-
-  & > * {
-    position: relative;
-    z-index: 3;
-  }
-
-  &::before {
-    content: '';
-    flex: 10 1;
-    max-height: calc($top - $logo-size / 2);
-    min-height: 0;
-  }
-
-  &::after {
-    content: '';
-    flex: 1 1;
-    height: 100%;
-    min-height: 0;
-  }
+  min-height: max(100svh, 41vw);
+  overflow: hidden;
+  background-color: $white;
 
   &__header {
     position: absolute;
-    top: 9vh;
+    z-index: 5;
+    top: clamp(24px, 6vh, 86px);
+    left: 0;
+    width: 100%;
   }
 
-  &__background {
-    background-color: $white;
+  &__content {
     position: absolute;
+    inset: 0;
     z-index: 2;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  &__background-container {
-    position: absolute;
-    top: calc($top - $height-of-background / 2);
-    width: 100%;
     display: flex;
-    justify-content: center;
-
-    img {
-      @include noTextSelection;
-      @include notDraggable;
-      width: 100vw;
-      object-fit: cover;
-    }
-  }
-
-  &__container {
-    position: relative;
-    pointer-events: none;
-    flex: 1 0;
-    width: 100%;
-    max-width: 1300px;
-    display: flex;
-    gap: 39px;
     flex-direction: column;
     align-items: center;
-
-    * {
-      pointer-events: all;
-    }
+    padding: clamp(40px, 6vh, 64px) 0 clamp(22px, 5vh, 80px);
   }
 
-  &__logo {
-    aspect-ratio: 1 / 1;
-    width: $logo-size;
-    height: $logo-size;
-    //max-width: 12vmax;
+  &__background-image {
+    @include noTextSelection;
+    @include notDraggable;
+    align-self: flex-start;
+    width: min(80vw, 1536px);
+    height: auto;
     object-fit: contain;
   }
 
-  h1 {
-    text-align: center;
-    min-height: 3.7em; //as line-height is ~1.22 of font-size. And height is triple this size
+  &__typing-text {
+    min-height: 1.08em;
+    width: 100%;
+    margin-top: clamp(34px, 7vh, 72px);
+    color: #d6e7f2;
+    font-family: Montserrat, sans-serif;
+    font-size: clamp(40px, 4.7vw, 90px);
+    font-weight: 700;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    &::after {
+      content: "";
+      display: inline-block;
+      width: 0.08em;
+      height: 0.85em;
+      margin-left: 0.12em;
+      background-color: $dark-blue;
+      border-radius: 999px;
+      vertical-align: -0.08em;
+      animation: coverTypingCaret 0.8s steps(1) infinite;
+    }
   }
 
-  &__links {
-    margin-top: 25px;
+  &__store-buttons {
+    position: absolute;
+    bottom: 25vh;
+    width: 100%;
     display: flex;
-    gap: 23px;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 2.4vw, 34px);
+    margin: 0;
+  }
+
+  &__store-link {
+    display: block;
+    cursor: default;
+  }
+
+  &__store-icon {
+    display: block;
+    width: clamp(44px, 4.2vw, 76px);
+    height: auto;
+    transition:
+      opacity $small-transition-time ease-out,
+      transform $small-transition-time ease-out;
+
+    .section-cover__store-link:hover & {
+      transform: scale(1.08);
+      opacity: 0.92;
+    }
+  }
+
+  &__tagline {
+    margin-top: auto;
+    color: $dark-blue;
+    font-size: 18px;
+    font-weight: $regular;
+    font-style: normal;
+    line-height: 18px;
+    letter-spacing: 0;
+    text-align: center;
   }
 
   &__decoration {
@@ -102,138 +108,62 @@
     }
   }
 
-  @media screen and (min-width: 1440px) and (max-width: 1600px) {
-    $top: 31vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 120px;
-
-    &__container {
-      max-width: 1180px;
-      gap: 39px;
+  @keyframes coverTypingCaret {
+    50% {
+      opacity: 0;
     }
-    &__links {
-      margin-top: 0;
-      gap: 23px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
   }
 
-  @media screen and (min-width: 1366px) and (max-width: 1440px) {
-    $top: 31vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 120px;
-    &__container {
-      max-width: 992px;
-      gap: 34px;
+  @media screen and (max-width: 1024px) {
+    &__background-image {
+      width: 86vw;
     }
-    &__links {
-      margin-top: 33px;
-      gap: 23px;
+
+    &__typing-text {
+      margin-top: clamp(26px, 5vh, 48px);
+      font-size: clamp(28px, 5vw, 48px);
     }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
+
+    &__store-buttons {
+      bottom: 24vh;
+    }
   }
 
-  @media screen and (min-width: 1024px) and (max-width: 1366px) {
-    $top: 31vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 100px;
-    &__container {
-      max-width: 910px;
-      gap: 29px;
-    }
-    &__links {
-      margin-top: 17px;
-      gap: 18px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
-  }
-
-  @media screen and (min-width: 800px) and (max-width: 1024px) {
-    $top: 31vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 100px;
-    &__container {
-      max-width: min(869px, 90%);
-      gap: 18px;
-    }
-    &__links {
-      margin-top: 17px;
-      gap: 18px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
-  }
-
-  @media screen and (min-width: 600px) and (max-width: 800px) {
-    $top: 31vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 70px;
-    &__container {
-      max-width: min(597px, 90%);
-      gap: 24px;
-    }
-    &__links {
-      margin-top: 9px;
-      gap: 13px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
-  }
-
-  @media screen and (min-width: 430px) and (max-width: 600px) {
-    $top: 31vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 60px;
-    &__container {
-      max-width: min(420px, 90%);
-      gap: 60px;
-    }
-    h1 {
-      min-height: 4.9em;
-    }
-    &__links {
-      margin-top: -21px;
-      gap: 13px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
-  }
-
-  @media screen and (min-width: 375px) and (max-width: 430px) {
-    $top: 37vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 80px;
+  @media screen and (max-width: 600px), screen and (orientation: portrait) {
     &__header {
       top: 5vh;
     }
-    &__container {
-      max-width: min(294px, 90%);
-      gap: 12vh;
+
+    &__content {
+      padding: clamp(76px, 12vh, 120px) 12px 20px;
     }
-    h1 {
-      align-self: start;
-      max-width: 267px;
-      text-align: start;
-      min-height: 6.2em;
-    }
-    &__links {
-      margin-top: -37px;
-      flex-direction: column;
-      gap: 21px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
-    &::before {
+
+    &__background-image {
       width: 100%;
-      background-image: url("/img/decorations/arrow.svg");
-      background-repeat: no-repeat;
-      background-size: 100%;
-      transform: scaleY(-1);
-      max-height: calc($top / 2);
     }
+
+    &__typing-text {
+      margin-top: clamp(22px, 5vh, 40px);
+      font-size: clamp(20px, 5vw, 28px);
+      line-height: 1.2;
+      white-space: normal;
+    }
+
+    &__store-buttons {
+      bottom: 23vh;
+      gap: clamp(10px, 3vw, 14px);
+    }
+
+    &__store-icon {
+      width: clamp(42px, 11vw, 50px);
+    }
+
+    &__tagline {
+      bottom: clamp(16px, 3vh, 22px);
+      font-size: 14px;
+      line-height: 14px;
+    }
+
     &__decoration {
       &_hor {
         opacity: 0;
@@ -242,41 +172,13 @@
   }
 
   @media screen and (max-width: 375px) {
-    $top: 37vh;
-    $image-proportion: 0.3125;
-    $height-of-background: 100vw * $image-proportion;
-    $logo-size: 70px;
-    &__header {
-      top: 5vh;
+    &__store-icon {
+      width: 42px;
     }
-    &__container {
-      max-width: min(294px, 80%);
-      gap: 10vh;
-    }
-    h1 {
-      align-self: start;
-      max-width: 267px;
-      text-align: start;
-      min-height: 6.2em;
-    }
-    &__links {
-      margin-top: -50px;
-      flex-direction: column;
-      gap: 21px;
-    }
-    @include coverSectionRecount($height-of-background, $logo-size, $top);
-    &::before {
-      width: 100%;
-      background-image: url("/img/decorations/arrow.svg");
-      background-repeat: no-repeat;
-      background-size: 100%;
-      transform: scaleY(-1);
-      max-height: calc($top / 2);
-    }
-    &__decoration {
-      &_hor {
-        opacity: 0;
-      }
+
+    &__tagline {
+      font-size: 13px;
+      line-height: 13px;
     }
   }
 }

@@ -1,1118 +1,1945 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="img/favicons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="img/favicons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="img/favicons/favicon-16x16.png"
+    />
+    <link rel="manifest" href="img/favicons/site.webmanifest" />
+    <link
+      rel="mask-icon"
+      href="img/favicons/safari-pinned-tab.svg"
+      color="#5bbad5"
+    />
+    <link rel="shortcut icon" href="img/favicons/favicon.ico" />
+    <meta name="apple-mobile-web-app-title" content="Buncher" />
+    <meta name="application-name" content="Buncher" />
+    <meta name="msapplication-TileColor" content="#2d89ef" />
+    <meta
+      name="msapplication-config"
+      content="img/favicons/browserconfig.xml"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="description"
+      content="An app that helps IT professionals and projects find each other. H3 Buncher is a tool that redefines a hiring and job search process and helps technical teams and IT engineers communicate directly. Chat, find common professional challenges, ideas, interests and each other in new projects. Buncher allows you to create your own expert vibe as well as focus on inclusion. You are in control of the entire process."
+    />
 
-    <link rel="apple-touch-icon" sizes="180x180" href="img/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="img/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="img/favicons/favicon-16x16.png">
-    <link rel="manifest" href="img/favicons/site.webmanifest">
-    <link rel="mask-icon" href="img/favicons/safari-pinned-tab.svg" color="#5bbad5">
-    <link rel="shortcut icon" href="img/favicons/favicon.ico">
-    <meta name="apple-mobile-web-app-title" content="Buncher">
-    <meta name="application-name" content="Buncher">
-    <meta name="msapplication-TileColor" content="#2d89ef">
-    <meta name="msapplication-config" content="img/favicons/browserconfig.xml">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="description" content="An app that helps IT professionals and projects find each other. H3 Buncher is a tool that redefines a hiring and job search process and helps technical teams and IT engineers communicate directly. Chat, find common professional challenges, ideas, interests and each other in new projects. Buncher allows you to create your own expert vibe as well as focus on inclusion. You are in control of the entire process.">
-
-    <meta property="og:site_name" content="Buncher">
-    <meta property="og:title" content="An app that helps IT professionals and projects find each other.">
-    <meta property="og:description" content="Buncher is a tool that redefines a hiring and job search process and helps technical teams and IT engineers communicate directly. Сhat, find common professional challenges, ideas, interests and each other in new projects. Buncher allows you to create your own expert vibe as well as focus on inclusion. You are in control of the entire process.">
-    <meta property="og:image" content="https://www.buncher.app/img/og/preview.png">
+    <meta property="og:site_name" content="Buncher" />
+    <meta
+      property="og:title"
+      content="An app that helps IT professionals and projects find each other."
+    />
+    <meta
+      property="og:description"
+      content="Buncher is a tool that redefines a hiring and job search process and helps technical teams and IT engineers communicate directly. Сhat, find common professional challenges, ideas, interests and each other in new projects. Buncher allows you to create your own expert vibe as well as focus on inclusion. You are in control of the entire process."
+    />
+    <meta
+      property="og:image"
+      content="https://www.buncher.app/img/og/preview.png"
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:url" content="https://www.buncher.app">
-    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.buncher.app" />
+    <meta property="og:type" content="website" />
 
-    <meta property="vk:image" content="https://www.buncher.app/img/og/preview.png">
+    <meta
+      property="vk:image"
+      content="https://www.buncher.app/img/og/preview.png"
+    />
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="www.buncher.app">
-    <meta property="twitter:url" content="https://www.buncher.app/">
-    <meta name="twitter:title" content="Buncher">
-    <meta name="twitter:description" content="An app that helps IT professionals and projects find each other.">
-    <meta name="twitter:image" content="https://www.buncher.app/img/og/preview.png">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="www.buncher.app" />
+    <meta property="twitter:url" content="https://www.buncher.app/" />
+    <meta name="twitter:title" content="Buncher" />
+    <meta
+      name="twitter:description"
+      content="An app that helps IT professionals and projects find each other."
+    />
+    <meta
+      name="twitter:image"
+      content="https://www.buncher.app/img/og/preview.png"
+    />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
 
     <title>Buncher</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="custom-scrollbar" class="custom-scrollbar">
-        <section class="section-cover">
-            <header class="section-cover__header header">
-                <div class="header__container">
-                    <img class="header__logo header__logo_long" src="./img/logo-full.svg" alt="buncher logo" />
-                    <img class="header__logo header__logo_short" src="./img/logo-short.svg" alt="buncher logo" />
-                    <h1 class="noStyle">Buncher</h1>
-                    <div style="cursor: pointer; width: max-content" class="header__language-selector" id="languageSelector" tabindex="0">
-                        <span class="header__selected-option lang" data-key="lang" id="languageSelectedOption">EN</span>
-                        <ul class="header__language-options">
-                            <li class="header__language-option header__language-option_selected" data-lang="en">EN
-                            </li>
-                            <li class="header__language-option" data-lang="ru">РУ</li>
-                        </ul>
-                    </div>
-                </div>
-            </header>
-            <div class="section-cover__background">
-                <div class="section-cover__background-container">
-                    <img loading="lazy" draggable="false" src="img/decorations/background-bunch.svg" alt="">
-                </div>
-                <div class="decoration-line decoration-line_hor section-cover__decoration section-cover__decoration_hor"></div>
-            </div>
-            <div class="section-cover__container">
-                <img class="section-cover__logo" src="./img/logo-small.svg" alt="buncher logo">
-                <h1 class="lang" data-key="coverText">Meet new IT projects and people the way you want</h1>
-                <ul class="section-cover__links">
-                    <li><a class="button button_main" href="#">
-                            <img src="./img/store-icons/googlePlayButtonWhite.svg" alt="Get it on Google Play">
-                            <div class="button__soon">
-                                <img class="lang-img" src="img/store-icons/en/soon.png" alt="Coming soon to the app store">
-                            </div>
-                            <span class="noStyle">Get it on Google Play</span>
-                        </a>
-                    </li>
-                    <li><a class="button button_main" href="#">
-                            <img src="./img/store-icons/ruStoreButtonWhite.svg" alt="Скачайте из RuStore">
-                            <div class="button__soon">
-                                <img class="lang-img" src="img/store-icons/en/soon.png" alt="Coming soon to the app store">
-                            </div>
-                            <span class="noStyle">Скачайте из RuStore</span>
-                        </a></li>
-                </ul>
-            </div>
-        </section>
-        <section id="section-main" class="section-main">
-            <div id="main-wrapper" class="section-main__wrapper">
-                <div id="section-main__text-container" class="section-main__text-container">
-                    <div data-num=1 class="section-main__text-block trackable"></div>
-                    <div data-num=2 class="section-main__text-block trackable"></div>
-                    <div data-num=3 class="section-main__text-block trackable"></div>
-                    <div data-num=4 class="section-main__text-block trackable"></div>
-                    <div data-num=5 class="section-main__text-block trackable"></div>
-                </div>
-                <div id="section-main__content-block" class="section-main__content-block">
-                    <div id="decoration-line-long" class="decoration-line decoration-line_vert section-main__decoration section-main__decoration_long"></div>
-                    <div class="section-main__phone-container">
-                        <img class="section-main__phone-volume" src="img/decorations/vol-dec.svg" alt="">
-                        <img class="section-main__phone-block" src="img/decorations/block-dec.svg" alt="">
-                        <div class="phone">
-                            <div id="phone" class="phone__content phone__content_999-999">
-                                <img loading="lazy" class="phone__item phone__item_logo" src="img/phone-content/11.png" alt="">
-
-                                <div class="phone__wrapper">
-                                    <div class="phone__sec phone__sec-search">
-
-                                        <img loading="lazy" class="lang-img phone__header phone__header-search" src="img/phone-content/en/search-h.png" alt="">
-                                        <img loading="lazy" class="lang-img phone__item phone__item_search-bar-0" src="img/phone-content/en/search-bar-0.png" alt="">
-                                        <img loading="lazy" class="lang-img phone__item phone__item_search-bar-1" src="img/phone-content/en/search-bar-1.png" alt="">
-                                        <div class="phone__item phone__item_cont-content">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_yes" src="img/phone-content/en/31.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_company" src="img/phone-content/en/21.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_dev" src="img/phone-content/en/24.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_front" src="img/phone-content/en/32.png" alt="">
-                                        </div>
-                                        <div class="phone__item phone__item_fade"></div>
-                                        <div class="phone__item phone__item_cont-bottom">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_panel-bottom-inactive" src="img/phone-content/en/22.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_panel-bottom-active" src="img/phone-content/en/23.png" alt="">
-                                        </div>
-                                    </div>
-                                    <div class="phone__sec phone__sec-settings">
-
-                                        <img loading="lazy" class="lang-img phone__header phone__header-settings" src="img/phone-content/en/settings-h.png" alt="">
-                                        <div class="phone__item phone__item_cont-set-content">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_sets-1" src="img/phone-content/en/41.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_sets-2" src="img/phone-content/en/42.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_sets-3" src="img/phone-content/en/43.png" alt="">
-                                            <img loading="lazy" class="lang-img phone__item phone__item_sets-4" src="img/phone-content/en/44.png" alt="">
-                                        </div>
-                                    </div>
-                                    <div class="phone__sec phone__sec-activity">
-                                        <img loading="lazy" class="lang-img phone__header phone__header-settings" src="img/phone-content/en/activity-h.png" alt="">
-                                        <div class="phone__item phone__item_act-2"></div>
-                                        <img loading="lazy" class="lang-img phone__item phone__item_act-1" src="img/phone-content/en/51.png" alt="">
-                                    </div>
-                                </div>
-
-                                <img loading="lazy" class="phone__item phone__item_base phone__item_base-search" src="img/phone-content/search-base.png" alt="">
-                                <img loading="lazy" class="phone__item phone__item_base phone__item_base-settings" src="img/phone-content/settings-base.png" alt="">
-                                <img loading="lazy" class="phone__item phone__item_base phone__item_base-activity" src="img/phone-content/activity-base.png" alt="">
-                                <img loading="lazy" class="lang-img phone__item phone__item_base-chat" src="img/phone-content/en/52.png" alt="">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="section-main__outer-flow">
-                <div class="section-main__decoration-container">
-                    <div id="counter" class="section-main__counter-block">
-                        <div class="counter-block">
-                            <div id="changing-number" class="counter-block__number-container counter-block__number-container_1-1">
-                                <img id="number-1" class="counter-block__number" src="img/decorations/1.svg" alt="">
-                                <img id="number-2" class="counter-block__number" src="img/decorations/2.svg" alt="">
-                                <img id="number-3" class="counter-block__number" src="img/decorations/3.svg" alt="">
-                                <img id="number-4" class="counter-block__number" src="img/decorations/4.svg" alt="">
-                                <img id="number-5" class="counter-block__number" src="img/decorations/5.svg" alt="">
-                            </div>
-                            <img class="counter-block__division" src="img/decorations/division.svg" alt="">
-                            <img class="counter-block__denominator" src="img/decorations/5.svg" alt="">
-                        </div>
-                    </div>
-                    <div class="section-main__arrow-block">
-                        <img loading="lazy" src="img/decorations/arrow.svg" alt="">
-                    </div>
-                    <div class="section-main__mask section-main__mask_trackable section-main__mask_first">
-                        <div class="decoration-line decoration-line_square section-main__decoration section-main__decoration_square"></div>
-                    </div>
-                    <div class="decoration-line decoration-line_hor section-main__decoration section-main__decoration_hor decoration-line_hor_trackable"></div>
-                </div>
-            </div>
-        </section>
-        <section id="section-footer" class="section-footer">
-            <div class="section-footer__background">
-                <img loading="lazy" class="section-footer__background-img section-footer__background-img_left" draggable="false" src="img/decorations/footer-background-left.svg" alt="">
-                <img loading="lazy" class="section-footer__background-img section-footer__background-img_alt" draggable="false" src="img/decorations/footer-background-right-alt.svg" alt="">
-                <img loading="lazy" class="section-footer__background-img section-footer__background-img_right" draggable="false" src="img/decorations/footer-background-right.svg" alt="">
-            </div>
-            <div class="section-footer__text-container">
-                <h3 data-key="footerHeader" class="lang">Start with Buncher</h3>
-                <p data-key="footerDescription" class="lang">And create your expert vibe</p>
-            </div>
-            <ul class="section-footer__links">
-                <li><a class="button button_secondary" href="#">
-                        <img loading="lazy" src="./img/store-icons/googlePlayButtonWhite.svg" alt="Get it on Google Play">
-                        <div class="button__soon">
-                            <img class="lang-img" loading="lazy" src="img/store-icons/en/soon.png" alt="Coming soon to the app store">
-                        </div>
-                        <span class="noStyle">Get it on Google Play</span>
-                    </a>
+      <section class="section-cover">
+        <header class="section-cover__header header">
+          <div class="header__container">
+            <div
+              class="header__language-selector"
+              id="languageSelector"
+              tabindex="0"
+            >
+              <span
+                class="header__selected-option lang"
+                data-key="lang"
+                id="languageSelectedOption"
+                >EN</span
+              >
+              <ul class="header__language-options">
+                <li
+                  class="header__language-option header__language-option_selected"
+                  data-lang="en"
+                >
+                  EN
                 </li>
-                <li><a class="button button_secondary" href="#">
-                        <img loading="lazy" src="./img/store-icons/ruStoreButtonWhite.svg" alt="Скачайте из RuStore">
-                        <div class="button__soon">
-                            <img class="lang-img" loading="lazy" src="img/store-icons/en/soon.png" alt="Coming soon to the app store">
-                        </div>
-                        <span class="noStyle">Скачайте из RuStore</span>
-                    </a></li>
+                <li class="header__language-option" data-lang="ru">РУ</li>
+              </ul>
+            </div>
+          </div>
+        </header>
+        <div class="section-cover__content">
+          <img
+            class="section-cover__background-image"
+            loading="lazy"
+            draggable="false"
+            src="img/decorations/background-bunch.svg"
+            alt=""
+          />
+          <p
+            class="section-cover__typing-text"
+            id="coverTypingText"
+            aria-live="polite"
+          ></p>
+          <ul
+            class="section-cover__store-buttons"
+            aria-label="App stores coming soon"
+          >
+            <li>
+              <a
+                class="section-cover__store-link"
+                aria-label="Google Play coming soon"
+              >
+                <img
+                  class="section-cover__store-icon"
+                  src="img/store-icons/cover-google-play.svg"
+                  alt=""
+                />
+              </a>
+            </li>
+            <li>
+              <a
+                class="section-cover__store-link"
+                aria-label="RuStore coming soon"
+              >
+                <img
+                  class="section-cover__store-icon"
+                  src="img/store-icons/cover-buncher.svg"
+                  alt=""
+                />
+              </a>
+            </li>
+            <li>
+              <a
+                class="section-cover__store-link"
+                aria-label="App Store coming soon"
+              >
+                <img
+                  class="section-cover__store-icon"
+                  src="img/store-icons/cover-app-store.svg"
+                  alt=""
+                />
+              </a>
+            </li>
+          </ul>
+          <p class="section-cover__tagline">Make OpenSource great again</p>
+          <div
+            class="decoration-line decoration-line_hor section-cover__decoration section-cover__decoration_hor"
+          ></div>
+        </div>
+      </section>
+      <section id="section-main" class="section-main">
+        <div id="main-wrapper" class="section-main__wrapper">
+          <div
+            id="section-main__text-container"
+            class="section-main__text-container"
+          >
+            <div data-num="1" class="section-main__text-block trackable"></div>
+            <div data-num="2" class="section-main__text-block trackable"></div>
+            <div data-num="3" class="section-main__text-block trackable"></div>
+            <div data-num="4" class="section-main__text-block trackable"></div>
+            <div data-num="5" class="section-main__text-block trackable"></div>
+          </div>
+          <div
+            id="section-main__content-block"
+            class="section-main__content-block"
+          >
+            <div
+              id="decoration-line-long"
+              class="decoration-line decoration-line_vert section-main__decoration section-main__decoration_long"
+            ></div>
+            <div class="section-main__phone-container">
+              <img
+                class="section-main__phone-volume"
+                src="img/decorations/vol-dec.svg"
+                alt=""
+              />
+              <img
+                class="section-main__phone-block"
+                src="img/decorations/block-dec.svg"
+                alt=""
+              />
+              <div class="phone">
+                <div id="phone" class="phone__content phone__content_999-999">
+                  <img
+                    loading="lazy"
+                    class="phone__item phone__item_logo"
+                    src="img/phone-content/11.png"
+                    alt=""
+                  />
+
+                  <div class="phone__wrapper">
+                    <div class="phone__sec phone__sec-search">
+                      <img
+                        loading="lazy"
+                        class="lang-img phone__header phone__header-search"
+                        src="img/phone-content/en/search-h.png"
+                        alt=""
+                      />
+                      <img
+                        loading="lazy"
+                        class="lang-img phone__item phone__item_search-bar-0"
+                        src="img/phone-content/en/search-bar-0.png"
+                        alt=""
+                      />
+                      <img
+                        loading="lazy"
+                        class="lang-img phone__item phone__item_search-bar-1"
+                        src="img/phone-content/en/search-bar-1.png"
+                        alt=""
+                      />
+                      <div class="phone__item phone__item_cont-content">
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_yes"
+                          src="img/phone-content/en/31.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_company"
+                          src="img/phone-content/en/21.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_dev"
+                          src="img/phone-content/en/24.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_front"
+                          src="img/phone-content/en/32.png"
+                          alt=""
+                        />
+                      </div>
+                      <div class="phone__item phone__item_fade"></div>
+                      <div class="phone__item phone__item_cont-bottom">
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_panel-bottom-inactive"
+                          src="img/phone-content/en/22.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_panel-bottom-active"
+                          src="img/phone-content/en/23.png"
+                          alt=""
+                        />
+                      </div>
+                    </div>
+                    <div class="phone__sec phone__sec-settings">
+                      <img
+                        loading="lazy"
+                        class="lang-img phone__header phone__header-settings"
+                        src="img/phone-content/en/settings-h.png"
+                        alt=""
+                      />
+                      <div class="phone__item phone__item_cont-set-content">
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_sets-1"
+                          src="img/phone-content/en/41.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_sets-2"
+                          src="img/phone-content/en/42.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_sets-3"
+                          src="img/phone-content/en/43.png"
+                          alt=""
+                        />
+                        <img
+                          loading="lazy"
+                          class="lang-img phone__item phone__item_sets-4"
+                          src="img/phone-content/en/44.png"
+                          alt=""
+                        />
+                      </div>
+                    </div>
+                    <div class="phone__sec phone__sec-activity">
+                      <img
+                        loading="lazy"
+                        class="lang-img phone__header phone__header-settings"
+                        src="img/phone-content/en/activity-h.png"
+                        alt=""
+                      />
+                      <div class="phone__item phone__item_act-2"></div>
+                      <img
+                        loading="lazy"
+                        class="lang-img phone__item phone__item_act-1"
+                        src="img/phone-content/en/51.png"
+                        alt=""
+                      />
+                    </div>
+                  </div>
+
+                  <img
+                    loading="lazy"
+                    class="phone__item phone__item_base phone__item_base-search"
+                    src="img/phone-content/search-base.png"
+                    alt=""
+                  />
+                  <img
+                    loading="lazy"
+                    class="phone__item phone__item_base phone__item_base-settings"
+                    src="img/phone-content/settings-base.png"
+                    alt=""
+                  />
+                  <img
+                    loading="lazy"
+                    class="phone__item phone__item_base phone__item_base-activity"
+                    src="img/phone-content/activity-base.png"
+                    alt=""
+                  />
+                  <img
+                    loading="lazy"
+                    class="lang-img phone__item phone__item_base-chat"
+                    src="img/phone-content/en/52.png"
+                    alt=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section-main__outer-flow">
+          <div class="section-main__decoration-container">
+            <div id="counter" class="section-main__counter-block">
+              <div class="counter-block">
+                <div
+                  id="changing-number"
+                  class="counter-block__number-container counter-block__number-container_1-1"
+                >
+                  <img
+                    id="number-1"
+                    class="counter-block__number"
+                    src="img/decorations/1.svg"
+                    alt=""
+                  />
+                  <img
+                    id="number-2"
+                    class="counter-block__number"
+                    src="img/decorations/2.svg"
+                    alt=""
+                  />
+                  <img
+                    id="number-3"
+                    class="counter-block__number"
+                    src="img/decorations/3.svg"
+                    alt=""
+                  />
+                  <img
+                    id="number-4"
+                    class="counter-block__number"
+                    src="img/decorations/4.svg"
+                    alt=""
+                  />
+                  <img
+                    id="number-5"
+                    class="counter-block__number"
+                    src="img/decorations/5.svg"
+                    alt=""
+                  />
+                </div>
+                <img
+                  class="counter-block__division"
+                  src="img/decorations/division.svg"
+                  alt=""
+                />
+                <img
+                  class="counter-block__denominator"
+                  src="img/decorations/5.svg"
+                  alt=""
+                />
+              </div>
+            </div>
+            <div class="section-main__arrow-block">
+              <img loading="lazy" src="img/decorations/arrow.svg" alt="" />
+            </div>
+            <div
+              class="section-main__mask section-main__mask_trackable section-main__mask_first"
+            >
+              <div
+                class="decoration-line decoration-line_square section-main__decoration section-main__decoration_square"
+              ></div>
+            </div>
+            <div
+              class="decoration-line decoration-line_hor section-main__decoration section-main__decoration_hor decoration-line_hor_trackable"
+            ></div>
+          </div>
+        </div>
+      </section>
+      <section id="section-footer" class="section-footer">
+        <div class="section-footer__background">
+          <img
+            loading="lazy"
+            class="section-footer__background-img section-footer__background-img_left"
+            draggable="false"
+            src="img/decorations/footer-background-left.svg"
+            alt=""
+          />
+          <img
+            loading="lazy"
+            class="section-footer__background-img section-footer__background-img_alt"
+            draggable="false"
+            src="img/decorations/footer-background-right-alt.svg"
+            alt=""
+          />
+          <img
+            loading="lazy"
+            class="section-footer__background-img section-footer__background-img_right"
+            draggable="false"
+            src="img/decorations/footer-background-right.svg"
+            alt=""
+          />
+        </div>
+        <div class="section-footer__text-container">
+          <h3 data-key="footerHeader" class="lang">Start with Buncher</h3>
+          <p data-key="footerDescription" class="lang">
+            And create your expert vibe
+          </p>
+        </div>
+        <ul class="section-footer__links">
+          <li>
+            <a class="button button_secondary" href="#">
+              <img
+                loading="lazy"
+                src="./img/store-icons/googlePlayButtonWhite.svg"
+                alt="Get it on Google Play"
+              />
+              <div class="button__soon">
+                <img
+                  class="lang-img"
+                  loading="lazy"
+                  src="img/store-icons/en/soon.png"
+                  alt="Coming soon to the app store"
+                />
+              </div>
+              <span class="noStyle">Get it on Google Play</span>
+            </a>
+          </li>
+          <li>
+            <a class="button button_secondary" href="#">
+              <img
+                loading="lazy"
+                src="./img/store-icons/ruStoreButtonWhite.svg"
+                alt="Скачайте из RuStore"
+              />
+              <div class="button__soon">
+                <img
+                  class="lang-img"
+                  loading="lazy"
+                  src="img/store-icons/en/soon.png"
+                  alt="Coming soon to the app store"
+                />
+              </div>
+              <span class="noStyle">Скачайте из RuStore</span>
+            </a>
+          </li>
+        </ul>
+        <footer class="section-footer__footer">
+          <div class="section-footer__footer-container">
+            <ul class="section-footer__policy-container">
+              <li
+                class="lang modal-open"
+                data-modal="termsOfUse"
+                data-key="termsOfUse"
+                tabindex="0"
+              >
+                Terms and conditions
+              </li>
+              <li
+                class="lang modal-open"
+                data-modal="policy"
+                data-key="policy"
+                tabindex="0"
+              >
+                Privacy policy
+              </li>
             </ul>
-            <footer class="section-footer__footer">
-                <div class="section-footer__footer-container">
-                    <ul class="section-footer__policy-container">
-                        <li class="lang modal-open" data-modal="termsOfUse" data-key="termsOfUse" tabindex="0">Terms and
-                            conditions
-                        </li>
-                        <li class="lang modal-open" data-modal="policy" data-key="policy" tabindex="0">Privacy policy</li>
-                    </ul>
-                    <ul class="section-footer__socials-container">
-                        <!--
+            <ul class="section-footer__socials-container">
+              <!--
                             if you need a link to change it's href with language please follow steps:
                             1. Add class 'lang-link' to <a> tag
                             2. Add data-key with some name to <a> tag
                             3. In file scripts/languageSelector add property in 'lang' object. Key of proprty is data-key of your link.
                             4. In this new property add 2 new properties 'ru' and 'en'. Add your links there
                         -->
-                        <li><a class="section-footer__social-link" href="#">
-                                <img loading="lazy" src="./img/socials/facebook-icon.svg" alt="Facebook icon">
-                                <span class="noStyle">Facebook</span>
-                            </a></li>
-                        <li><a class="section-footer__social-link" href="#">
-                                <img loading="lazy" src="./img/socials/x-icon.svg" alt="X(Twitter) icon">
-                                <span class="noStyle">X(Twitter)</span>
-                            </a></li>
-                        <li><a data-key="linkedIn" class="section-footer__social-link lang-link" href="https://www.linkedin.com/company/buncher-app">
-                                <img loading="lazy" src="./img/socials/linkedIn-icon.svg" alt="LinkedIn icon">
-                                <span class="noStyle">LinkedIn</span>
-                            </a></li>
-                        <li><a class="section-footer__social-link" href="https://vk.com/buncher_app">
-                                <img loading="lazy" src="./img/socials/vk-icon.svg" alt="VK icon">
-                                <span class="noStyle">VK</span>
-                            </a></li>
-                    </ul>
-                </div>
-            </footer>
-        </section>
-        <aside class="modal-window custom-scrollbar" data-modal="policy">
-            <div class="modal-window__header">
-                <div class="modal-window__back" tabindex="-1">
-                    <img src="img/decorations/cross.svg" alt="cross">
-                </div>
-            </div>
-            <div class="modal-window__wrapper">
-                <div data-key="policy" data-lang="en" class="modal-window__content lang-container">
-                    <h4>Privacy Policy</h4>
-                    <p>Thanks for taking the time to read the document. We appreciate that you trust us with your
-                        information, and we intend to maintain that trust at all times.
-                        The current Privacy Policy applies from August 06, 2023.</p>
-                    <h4>1. Data controller</h4>
-                    <p>The trademark and brand name of LLC Buncher™ are considered to be owned by Individual Entrepreneur
-                        Grachev Sergei Aleksandrovich (PSRN 317784700143518, Saint Petersburg, Russia, 192174, Sedova str,
-                        106) which is the company responsible for your information in accordance with this Privacy Policy
-                        (“data controller”)</p>
-                    <p>If you have any legal questions, email us at legal@buncher.app</p>
+              <li>
+                <a class="section-footer__social-link" href="#">
+                  <img
+                    loading="lazy"
+                    src="./img/socials/facebook-icon.svg"
+                    alt="Facebook icon"
+                  />
+                  <span class="noStyle">Facebook</span>
+                </a>
+              </li>
+              <li>
+                <a class="section-footer__social-link" href="#">
+                  <img
+                    loading="lazy"
+                    src="./img/socials/x-icon.svg"
+                    alt="X(Twitter) icon"
+                  />
+                  <span class="noStyle">X(Twitter)</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  data-key="linkedIn"
+                  class="section-footer__social-link lang-link"
+                  href="https://www.linkedin.com/company/buncher-app"
+                >
+                  <img
+                    loading="lazy"
+                    src="./img/socials/linkedIn-icon.svg"
+                    alt="LinkedIn icon"
+                  />
+                  <span class="noStyle">LinkedIn</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  class="section-footer__social-link"
+                  href="https://vk.com/buncher_app"
+                >
+                  <img
+                    loading="lazy"
+                    src="./img/socials/vk-icon.svg"
+                    alt="VK icon"
+                  />
+                  <span class="noStyle">VK</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </footer>
+      </section>
+      <aside class="modal-window custom-scrollbar" data-modal="policy">
+        <div class="modal-window__header">
+          <div class="modal-window__back" tabindex="-1">
+            <img src="img/decorations/cross.svg" alt="cross" />
+          </div>
+        </div>
+        <div class="modal-window__wrapper">
+          <div
+            data-key="policy"
+            data-lang="en"
+            class="modal-window__content lang-container"
+          >
+            <h4>Privacy Policy</h4>
+            <p>
+              Thanks for taking the time to read the document. We appreciate
+              that you trust us with your information, and we intend to maintain
+              that trust at all times. The current Privacy Policy applies from
+              August 06, 2023.
+            </p>
+            <h4>1. Data controller</h4>
+            <p>
+              The trademark and brand name of LLC Buncher™ are considered to be
+              owned by Individual Entrepreneur Grachev Sergei Aleksandrovich
+              (PSRN 317784700143518, Saint Petersburg, Russia, 192174, Sedova
+              str, 106) which is the company responsible for your information in
+              accordance with this Privacy Policy (“data controller”)
+            </p>
+            <p>
+              If you have any legal questions, email us at legal@buncher.app
+            </p>
 
-                    <h4>2. Information We Collect</h4>
-                    <p>In order to ensure the functionality of the matching service and the criteria-based selection of
-                        candidates and teams, we collect some information about you, such as basic profile details and the
-                        types of people (or companies) you’d like to work. We also collect information about your use of our
-                        services such as access logs, as well as information from third parties, like when you access our
-                        services through your social media account</p>
-                    <p>The data provided includes:</p>
-                    <ul>
-                        <li>When you create an account, you provide us with your email address and full name.</li>
-                        <li>When you complete your profile, you may choose to share additional information with us, such as
-                            information about your professional background and interests and other information about you, as
-                            well as content such as photographs. To add certain content, such as images, you can allow us
-                            access to your camera or photo album.
-                        </li>
-                        <li>You can purchase paid options and products using built-in payment systems (Google Pay/Apple
-                            Pay/Yookassa etc) . These payment processors collect and store financial information in
-                            accordance with the Terms of Service Agreement and the Privacy Policy. Buncher does not store
-                            complete card information. It does not act as a payment controller, but only receives
-                            notifications of successful payments.
-                        </li>
-                        <li>If you contact our support team, we collect information that you provide to us during the
-                            interaction.
-                        </li>
-                        <li>We also process the content you post if it is necessary for the safety of the participants in
-                            the communication and the operation of the service.
-                        </li>
-                    </ul>
-                    <p>In addition to the information you may provide us directly, we receive information about you from
-                        others, including:</p>
-                    <ul>
-                        <li>Members may provide information about you as they use our services, for instance as they
-                            interact with you or if they submit a report involving you.
-                        </li>
-                        <li>You may decide to share information with us through your social media account, for instance if
-                            you decide to create and log into your Buncher account via your social media or other account
-                            (Linkedin or Github)
-                        </li>
-                    </ul>
-                    <p>When you use our services, this generates technical data about which features you’ve used, how
-                        you’ve used them and the devices you use to access our services. See below for more details:</p>
-                    <ul>
-                        <li>Your use of the application generates data about your activity on our services (for example,
-                            when you are logged in, features you have used, actions taken, information displayed to you) and
-                            your interactions with other members (for example, members with whom you communicate and
-                            interact, when you exchange messages with them, the number of messages you send and receive).
-                        </li>
-                        <li>We collect information about the devices you use to access our services, including device ID and
-                            type, our app settings and characteristics, app crashes, etc.
-                        </li>
-                        <li>The collection of your geolocation may occur in the background even when you aren’t using the
-                            services
-                        </li>
-                    </ul>
-                    <h4>3. Factors of using Information</h4>
-                    <p>The main reason we use your information is to deliver and improve our services. Additionally, we use
-                        your info to help keep you safe. Read on for a more detailed explanation of the various reasons for
-                        which we use your information, together with practical examples.</p>
-                    <ol>
-                        <li>To administer your account and provide our services to you</li>
-                        <p>Create and manage your account<br>
-                            Provide you with customer support and respond to your requests<br>
-                            Complete your transactions<br>
-                            Communicate with you about our services<br>
-                        </p>
-                        <li>To help you connect with other users</li>
-                        <p>Recommend and show members’ profiles to one another</p>
-                        <li>To improve our services and develop new ones</li>
-                        <p>Understand how members typically use the services to improve them (for instance, we may decide
-                            to change the look and feel or even substantially modify a given feature based on how members
-                            react to it)<br>
-                            Develop new features and services (for example, we may decide to build a new interests-based
-                            feature further to requests received from members).
-                        </p>
-                        <li>To prevent, detect and fight fraud and other illegal or unauthorized activities</li>
-                        <p>Find and address ongoing, suspected or alleged violations of our Terms of Use, notably through
-                            the review of reports and interactions between members<br>
-                            Better understand and design countermeasures against violations of our Terms of Use
-                        </p>
-                    </ol>
-                    <h4>4. Factors of Sharing Information</h4>
-                    <p>Since our goal is to help you make professional connections, the main sharing of members’ information
-                        is, of course, with other members. We also share some members’ information with service providers
-                        and partners who assist us in operating the services.</p>
-                    <ul>
-                        <li>With other members</li>
-                    </ul>
-                    <p>You share information with other members when you voluntarily disclose information on the service
-                        (including your public profile). Please be careful with your information and make sure that the
-                        content you share is stuff that you’re comfortable being visible
-                        If you choose to hide your profile or for certain content or information about you, then it will be
-                        visible according to your settings.
-                        If someone submits a report involving you (such as a claim you violated our Terms of Use), We may
-                        communicate to the reporter actions, if any, we took as a result of their report</p>
-                    <ul>
-                        <li>With our service providers and partners</li>
-                    </ul>
-                    <p>We use third parties to help us operate and improve our services. These third parties assist us with
-                        various tasks, including data hosting and maintenance, analytics, customer care, payment processing
-                        and security operations</p>
-                    <ul>
-                        <li>With law enforcement / when required by law</li>
-                    </ul>
-                    <p>We may disclose your information if reasonably necessary: (i) to comply with a legal process, such as
-                        a court order, subpoena or search warrant, government / law enforcement investigation or other legal
-                        requirements; (ii) to assist in the prevention or detection of crime (subject in each case to
-                        applicable law); or (iii) to protect the safety of any person</p>
-                    <ul>
-                        <li>To enforce legal rights</li>
-                    </ul>
-                    <p>We may also share information: (i) if disclosure would mitigate our liability in an actual or
-                        threatened lawsuit; (ii) as necessary to protect our legal rights and legal rights of our members,
-                        business partners or other interested parties; (iii) to enforce our agreements with you; and (iv) to
-                        investigate, prevent, or take other action regarding illegal activity, suspected fraud or other
-                        wrongdoing</p>
-                    <h4>5. Cross-Border Data Transfers</h4>
-                    <p>When we have cross-border data transfers, we are guided by data protection laws have been considered
-                        adequate by the European Commission, Federal Law N 152-FZ ON PERSONAL DATA or other competent
-                        governmental body, we use standard contract clauses (standard contractual clauses are commitments
-                        between companies transferring personal data, binding them to protect the privacy and security of
-                        your data) or other appropriate transfer mechanism</p>
-                    <h4>6. Your Rights</h4>
-                    <p>We want you to be in control of your information, so we want to remind you of the following options
-                        and tools available to you:</p>
-                    <ul>
-                        <li>Access / Update tools in the service</li>
-                    </ul>
-                    <p>Tools and account settings can help you access, rectify or remove information that you provided to us
-                        and that’s associated with your account directly within the service</p>
-                    <ul>
-                        <li>Device permissions</li>
-                    </ul>
-                    <p>Mobile platforms can have permission systems for specific types of device data and notifications,
-                        such as phone contacts, pictures, location services, push notifications. You can change your
-                        settings on your device to either consent or oppose the collection or processing of the
-                        corresponding information or the display of the corresponding notifications</p>
-                    <ul>
-                        <li>Updating your information</li>
-                    </ul>
-                    <p>If you believe that the information we hold about you is inaccurate or that we are no longer entitled
-                        to use it and want to request its rectification, deletion, object to or restrict its processing</p>
-                    <h4>7. Privacy Policy Changes</h4>
-                    <p>Because we’re always looking for new and innovative ways to help you build meaningful connections and
-                        strive on making sure explanations about our data practices remain up-to-date, this policy may
-                        change over time. We will notify you before any material changes take effect so that you have time
-                        to review the changes</p>
-                </div>
-                <div data-key="policy" data-lang="ru" class="modal-window__content modal-window__content_hidden lang-container">
-                    <h4>Политика конфиденциальности</h4>
-                    <p>Спасибо, что нашли время, чтобы прочитать документ. Мы ценим, что вы доверяете нам свою информацию, и
-                        мы намерены всегда поддерживать это доверие.
-                        Действующая Политика конфиденциальности применяется с 06 августа 2023 г.</p>
-                    <h4>1. Оператор персональных данных</h4>
-                    <p>Товарный знак и фирменное наименование LLC Buncher™ принадлежат Индивидуальному Предпринимателю
-                        Грачеву Сергею Александровичу (ОГРН 317784700143518, г. Санкт-Петербург, Россия, 192174, ул. Седова,
-                        д.106) который является Оператором персональных данных согласно настоящей Политикой
-                        конфиденциальности</p>
-                    <p>Если у вас есть какие-либо юридические вопросы, напишите нам по адресу legal@buncher.app</p>
-                    <h4>2. Собираемая нами информация</h4>
-                    <p>Чтобы обеспечить функциональность сервиса сопоставления и отбора кандидатов и команд на основе
-                        выбранных критериев, мы собираем информацию о вас, такую как основные данные профиля и
-                        характеристики людей (или команд), с которыми вы хотели бы работать. Мы также собираем информацию об
-                        использовании вами наших услуг, а также информацию от третьих лиц, например, когда вы получаете
-                        доступ к нашим услугам через свою учетную запись в социальных сетях
-                    </p>
-                    <p>Предоставляемые данные включают в себя:</p>
-                    <ul>
-                        <li>Когда вы создаете учетную запись, вы предоставляете нам свой адрес электронной почты и полное
-                            имя.
-                        </li>
-                        <li>Когда вы заполняете свой профиль, вы можете поделиться с нами дополнительной информацией, такой
-                            как
-                            сведения о вашей профессиональной биографии и интересах и другие сведения о вас, а также такой
-                            контент,
-                            как фотографии. Чтобы добавить определенный контент, например изображения, вы можете разрешить
-                            нам
-                            доступ к вашей камере или фотоальбому.
-                        </li>
-                        <li>Вы можете приобретать платные опции и товары с помощью встроенных платежных систем (Google
-                            Pay/Apple
-                            Pay/Yookassa etc) . Эти платежные системы собирают и хранят финансовую информацию в соответствии
-                            с
-                            Соглашением об условиях обслуживания и Политикой конфиденциальности. Buncher не хранит полную
-                            информацию о
-                            карте. Он не выступает в качестве контроллера платежей, а только получает уведомления об
-                            успешных
-                            платежах.
-                        </li>
-                        <li>Если вы связываетесь с нашей службой поддержки, мы собираем информацию, которую вы
-                            предоставляете нам во время
-                            взаимодействия.
-                        </li>
-                        <li>Мы также обрабатываем публикуемый вами контент и сообщения, если это необходимо для безопасности
-                            участников общения и
-                            работы сервиса.
-                        </li>
-                    </ul>
-                    <p>В дополнение к информации, которую вы можете предоставить нам напрямую, мы получаем информацию
-                        из других
-                        источников:
-                    </p>
-                    <ul>
-                        <li>Участники могут предоставлять информацию о вас, когда они используют наши услуги, например,
-                            когда они взаимодействуют
-                            с вами или отправляют отчет, касающийся вас.
-                        </li>
-                        <li>Вы можете поделиться с нами информацией через свой аккаунт в социальной сети, например если вы
-                            решите
-                            зарегистрироваться и войти в аккаунт через свою социальную сеть или другой аккаунт (Linkedin или
-                            Github)
-                        </li>
-                    </ul>
-                    <p>Когда вы используете наши сервисы, мы собираем техническую информацию о том, какие функции вы
-                        использовали, а также с
-                        помощью каких устройств вы получили доступ к нашим сервисам: 
-                    </p>
-                    <ul>
-                        <li>Использование приложения генерирует данные о вашей активности в наших сервисах (например, когда
-                            вы вошли в систему,
-                            функции, которые вы использовали, предпринятые действия, отображаемая вам информация) и ваши
-                            взаимодействия с
-                            другими участниками (например, участники, с которыми вы общаетесь и взаимодействуете, когда вы
-                            обмениваетесь с ними
-                            сообщениями, количество сообщений, которые вы отправляете и получаете)
-                        </li>
-                        <li>Мы собираем информацию об устройствах, которые вы используете для доступа к нашим сервисам,
-                            включая идентификатор и
-                            тип устройства, настройки и характеристики нашего приложения, сбои приложения и т. д.
-                        </li>
-                        <li>Сбор данных о вашей геолокации может происходить в фоновом режиме, даже когда вы не пользуетесь
-                            услугами.
-                        </li>
-                    </ul>
-                    <h4>3. Факторы использования информации</h4>
-                    <p>Основная цель для которой мы можем использовать предоставляемую вами информацию, заключается в поиске
-                        способов улучшения нашего сервиса и услуг. Кроме того, мы используем ваши данные, чтобы обеспечить
-                        вашу безопасность.
-                    </p>
-                    <ol>
-                        <li>Для управления вашим аккаунтом и предоставления сервисов</li>
-                        <p>Создавать аккаунт и управлять им.<br>
-                            Оказывать клиентскую поддержку и отвечать на ваши запросы<br>
-                            Осуществлять транзакции<br>
-                            Общаться с вами по поводу использования сервисов<br>
-                        </p>
-                        <li>Для вашего общения с другими пользователями</li>
-                        <p>Рекомендовать вас другим пользователям и рекомендовать других пользователей вам</p>
-                        <li>Для улучшения наших сервисов и разработки новых</li>
-                        <p>Понимать, как пользователи обычно используют услуги для их улучшения (например, мы можем решить
-                            изменить внешний вид или даже существенно изменить функцию в зависимости от того, как
-                            пользователи реагируют на нее).<br>
-                            Разрабатывать новые функции и услуги (например, мы можем решить создать новую функцию на основе
-                            интересов в соответствии с запросами, полученными от пользователей).
-                        </p>
-                        <li>Для предотвращения, обнаружения и борьбы с мошенничеством и другими незаконными или
-                            несанкционированными действиями
-                        </li>
-                        <p>Выявлять и устранять текущие или предполагаемые нарушения наших Условий использования, в
-                            частности, путем реакции на жалобы и отчеты в ходе пользовательских взаимодействий.<br>
-                            Лучше понимать и разрабатывать контрмеры против нарушений наших Условий использования
-                        </p>
-                    </ol>
-                    <h4>4. Факторы передачи информации</h4>
-                    <p>Поскольку наша цель — помочь вам установить профессиональные связи, основная часть передачи
-                        пользовательских данных, конечно же, осуществляется между самими пользователями. Мы также передаем
-                        информацию от определенных пользователей поставщикам услуг и партнерам, которые помогают нам
-                        управлять службами приложения.</p>
-                    <ul>
-                        <li>Предоставление информации другим пользователям</li>
-                    </ul>
-                    <p>Вы делитесь информацией с другими пользователями (включая свой общедоступный профиль). Пожалуйста,
-                        будьте осторожны с вашей профессиональной информацией и убедитесь, что контент, которым вы делитесь,
-                        является тем, чем вам удобно поделиться с профессиональным сообществом.
-                        Если вы решите ограничить доступ к своему профилю или вашим вакансиям, они будут отображаться в
-                        соответствии с вашими настройками.
-                        Если кто-то отправит жалобу или сообщение, касающееся вас (например, заявление о том, что вы
-                        нарушили наши Условия использования), мы можем сообщить лицу, отправившему сообщение, о действиях,
-                        если таковые имеются, которые мы предприняли</p>
-                    <ul>
-                        <li>Предоставление информации нашим поставщикам услуг и партнерам</li>
-                    </ul>
-                    <p>Мы пользуемся услугами третьих лиц, помогающим нам с размещением и обслуживанием данных, аналитикой,
-                        обслуживанием пользователей, обработкой платежей и операциями по обеспечению безопасности.</p>
-                    <ul>
-                        <li>Правоохранительные органы / требование законодательства</li>
-                    </ul>
-                    <p>Мы можем раскрывать вашу информацию, если это необходимо: (i) для соблюдения судебного процесса,
-                        расследования правительства/правоохранительных органов или других юридических требований; (ii) для
-                        оказания помощи в предотвращении или раскрытии преступлений (в зависимости от применимого
-                        законодательства в каждом случае); или (iii) для защиты безопасности любого лица</p>
-                    <ul>
-                        <li>Обеспечение законных прав</li>
-                    </ul>
-                    <p>Мы также можем делиться информацией: (i) если раскрытие информации снизит нашу ответственность в
-                        действительном или потенциальном судебном иске; (ii) по мере необходимости для защиты наших законных
-                        прав и законных прав наших членов, деловых партнеров или других заинтересованных сторон; (iii) для
-                        обеспечения соблюдения наших соглашений с пользователями; и (iv) для расследования, предотвращения
-                        или принятия других мер в отношении незаконной деятельности, предполагаемого мошенничества или
-                        других правонарушений.</p>
-                    <h4>5. Трансграничная передача данных</h4>
-                    <p>Когда мы осуществляем трансграничную передачу данных, мы руководствуемся законами о защите данных,
-                        признанными Европейской Комиссией, Федеральным законом РФ N 152-ФЗ «О ПЕРСОНАЛЬНЫХ ДАННЫХ» или
-                        другим компетентным государственным органом адекватными, мы используем стандартные договорные
-                        положения (стандартные договорные положения обязательства между компаниями, передающими персональные
-                        данные, обязывающие их защищать конфиденциальность и безопасность ваших данных) или другой
-                        соответствующий механизм передачи</p>
-                    <h4>6. Ваши права</h4>
-                    <p>Мы хотим, чтобы вы контролировали свои данные, поэтому напоминаем вам о следующих доступных вам
-                        возможностях и инструментах:</p>
-                    <ul>
-                        <li>Инструменты доступа/обновления в сервисе</li>
-                    </ul>
-                    <p>Настройки вашей учетной записи могут помочь вам получить доступ, скрыть, исправить или удалить
-                        информацию, которую вы нам предоставили и которая связана с вашей учетной записью непосредственно на
-                        сервисе</p>
-                    <ul>
-                        <li>Разрешения для устройств</li>
-                    </ul>
-                    <p>Мобильные платформы имеют системы разрешений для определенных типов данных и уведомлений, таких как
-                        контакты, фотографии, службы геолокации, push-уведомления и рекламные идентификаторы. Вы можете
-                        изменить настройки на своем устройстве, чтобы разрешить или запретить сбор или обработку
-                        соответствующей информации или отображение соответствующих уведомлений. </p>
-                    <h4>7. Изменения в Политике конфиденциальности</h4>
-                    <p>Поскольку мы всегда ищем новые способы помочь вам наладить профессиональные связи и стремимся к тому,
-                        чтобы разъяснения о наших методах работы с данными оставались актуальными, эта политика может со
-                        временем меняться. Мы уведомим вас до того, как какие-либо существенные изменения вступят в силу,
-                        чтобы у вас было время ознакомиться с изменениями.
-                    </p>
-                </div>
-            </div>
-        </aside>
-        <aside class="modal-window custom-scrollbar" data-modal="termsOfUse">
-            <div class="modal-window__header">
-                <div class="modal-window__back" tabindex="-1">
-                    <img src="img/decorations/cross.svg" alt="cross">
-                </div>
-            </div>
-            <div class="modal-window__wrapper">
-                <div data-key="termsOfUse" data-lang="en" class="modal-window__content lang-container">
-                    <h4>Buncher app terms of use</h4>
-                    <p>Company provides you with access to the use of the Buncher App (hereinafter also referred to as the
-                        Service, Application, Buncher) by providing remote access to it via the Internet on the terms that
-                        are the subject of these Terms of Use (hereinafter also referred to as the Terms) by the Buncher
-                        Application</p>
-                    <p>These Terms are considered as a public offer in accordance with Art. 437 of the Civil Code of the
-                        Russian Federation.</p>
-                    <h4>1. Terms used</h4>
-                    <p>Buncher Application (or Application, Service, Buncher) is a service designed for professional
-                        acquaintances of Users, software created by the Company and placed in application stores, including
-                        Google Play, App Store and others, providing the User with access to the Service.</p>
-                    <p>Company, licensor, Individual entrepreneur Grachev Sergey Aleksandrovich (PSRN 317784700143518, St.
-                        Petersburg, Russia, 192174, Sedova st., 106), which is the copyright holder and administrator of the
-                        Service, brings to the public, distributes, operates, maintains, administration of the Service and
-                        grants the User the right to use additional functionality of the Service, namely: Subscription and
-                        Additional Options, by providing remote access to them via the Internet</p>
-                    <p>User, licensee - an individual who has an account in the Buncher Application, who has reached the age
-                        permitted in accordance with the legislation of the Russian Federation to accept these Terms and has
-                        the appropriate powers and legal capacity, who, in accordance with the Terms, is granted the right
-                        to use additional functionality of the Services, namely : Subscriptions and Additional Options, by
-                        providing remote access to them via the Internet in accordance with the Terms</p>
-                    <p>Subscription - an option in which the User of the Services, during the Subscription Period specified
-                        in the Terms, depending on the selected tariff for a fixed fee (Subscription Cost), gets access to a
-                        set of additional options of the Services, the description of which is available in the subscription
-                        interface</p>
-                    <p>Additional Options (Additional Option) - Service options purchased by the User</p>
-                    <h4>2. Buncher App Terms & Conditions Status</h4>
-                    <p>These Terms are a legally binding agreement between the User and the Company, the subject of which is
-                        the provision by the Company to the User of access to the use of the Service and its
-                        functionality.</p>
-                    <p>The User is obliged to fully familiarize himself with these Terms, as well as the Privacy Policy of
-                        the Service, before registering in the Service. Registration of the User in the Service means the
-                        full and unconditional acceptance by the User of the specified documents in accordance with Art. 438
-                        of the Civil Code of the Russian Federation.</p>
-                    <p>The Company recommends that Users regularly check these Terms for changes and/or additions. Continued
-                        use of the Service by the User after making changes and/or additions to these Terms means the User's
-                        acceptance and consent to such changes and/or additions.</p>
-                    <h4>3. Registration in application (creating an account)</h4>
-                    <p>User registration is free and voluntary.</p>
-                    <p>When registering in Service, User is obliged to provide the Company with the necessary reliable and
-                        up-to-date information for the formation of the User's profile, including a professional biography.
-                        The registration form of the Service may request additional information from the User.</p>
-                    <p>User is responsible for the accuracy, relevance, completeness and compliance with the law of the
-                        information provided during registration and its purity from claims of third parties.</p>
-                    <h4>4. Status and Rights of the Buncher App User</h4>
-                    <p>Company grants User a personal, worldwide, non-transferable, non-exclusive, revocable and
-                        non-sublicensable license to access and use the Service. This right is intended solely to enable the
-                        User to use the functionality of the Service provided by the Company in accordance with these Terms.
-                        This license will be automatically terminated and access to the Service closed if the User performs
-                        any of the following actions:</p>
-                    <ul>
-                        <li>use the Service or any content in the Service for any commercial purposes without the written
-                            consent of the Company;
-                        </li>
-                        <li>copy, modify, transmit, create any derivative works of, use or in any way reproduce any
-                            copyrighted materials, images, trademarks, trade names, proprietary information, service marks
-                            and other intellectual property available through the Service, being the holder or authorized
-                            representative of the holders of trade names, trademarks, service marks, proprietary
-                            information, etc.
-                        </li>
-                        <li>attempt to pass off any of your statements as statements approved by the Company;</li>
-                        <li>use robots, bots, crawlers, "scrapers", site crawling applications, proxy servers, or other
-                            manual or automatic devices, methods or processes to access the Service, extract or index its
-                            content, to recreate the Service, its appearance or its content, as well as to bypass its
-                            navigational structure;
-                        </li>
-                        <li>use the Service in any way that could interfere with, disrupt, or adversely affect the Service,
-                            servers or networks connected to the Service;
-                        </li>
-                        <li>upload viruses or other malicious code or otherwise compromise the security of the Service;</li>
-                        <li>forge job titles, names, company names, or otherwise manipulate identifiers in order to disguise
-                            the origin of any information transmitted through the Service;
-                        </li>
-                        <li>use meta tags, code or other devices containing any reference to the Company or the Service (or
-                            any trademarks, trademarks, service marks, logos or slogans of Buncher) to direct any person to
-                            any other website for any purpose;
-                        </li>
-                        <li>modify, adapt, sublicense, translate, sell, reverse engineer, decipher, decompile or otherwise
-                            disassemble any part of the Service or cause others to do so
-                        </li>
-                        <li>use or develop any third-party applications that interact with the Service without the written
-                            consent of the Company;
-                        </li>
-                        <li>investigate, scan or test the vulnerability of the Service, any system or network;</li>
-                        <li>encourage any activity that violates this Terms.</li>
-                    </ul>
-                    <p>The Company has the right to investigate illegal and / or unauthorized use of the Service and resort
-                        to any means of legal protection, including termination of the User's account</p>
-                    <p>Any software that the Company makes available to the User may automatically download and install
-                        updates or other new features. Controls for automatic downloads may be available in the settings
-                        menu of the User's device</p>
-                    <h4>5. Responsibilities of the Buncher Application User</h4>
-                    <p>The User accepts and agrees that the Company has the right to monitor and inspect any Content that
-                        the User posts within the Service. The Company has the right to remove, in whole or in part, any
-                        Content that may violate these Terms or may damage the reputation of the Service.</p>
-                    <p>When communicating with the Company's customer service representatives, you agree to behave with
-                        respect and courtesy. If the Company considers that your behavior towards the Company's customer
-                        service employee or other employees is threatening, aggressive or offensive, the Company reserves
-                        the right to immediately terminate the User's account.</p>
-                    <p>The Company has the right to receive, store and disclose information about User Content if required
-                        by law or to comply with these Terms, if the Company believes in good faith that such access,
-                        storage or disclosure is lawful for the purpose of: (i) complying with a court order; (ii) enforce
-                        the requirements of the Terms; (iii) satisfy any claim that any Content infringes the rights of
-                        third parties; (iv) responding to the User's contact with the customer support service; (v) protect
-                        the rights, property or personal safety of the Company or any other person.</p>
-                    <p>The user is prohibited from:</p>
-                    <ul>
-                        <li>use the Service for any purpose that is prohibited by these Terms;</li>
-                        <li>use the Service for the purpose of causing harm or with malicious intent;</li>
-                        <li>use the Service to harm the Company</li>
-                        <li>send spam, ask for money from subscribers or deceive them;</li>
-                        <li>impersonate any person or entity or post any image of another person without his or her
-                            permission
-                        </li>
-                        <li>poison, harass, threaten, insult or humiliate anyone, as well as disseminate defamatory
-                            information;
-                        </li>
-                        <li>post Content that violates anyone's rights, including rights of publicity, privacy, copyright,
-                            trademarks, or other
-                            intellectual property rights or rights arising from a contract;
-                        </li>
-                        <li>post any Content that incites hatred or contains threats, as well as materials of a sexual or
-                            pornographic
-                            nature;
-                        </li>
-                        <li>post any Content that incites violence; contains images of a naked body, scenes of graphic or
-                            gratuitous
-                            violence;
-                        </li>
-                        <li>post any Content that promotes racism, intolerance, hatred of any person or group of persons, or
-                            contains physical
-                            threats;
-                        </li>
-                        <li>attempt to obtain other subscribers' passwords or personal information for any purpose for
-                            commercial or illegal
-                            purposes, or distribute personal information of others without his or her permission;
-                        </li>
-                        <li>use another subscriber's account, transfer your account to another person, or create more than
-                            one account;
-                        </li>
-                        <li>create other accounts if the Company has already terminated the account and the User does not
-                            have permission to do so
-                        </li>
-                    </ul>
-                    <p>The Company reserves the right to check and/or block the User's account without a refund for any
-                        purchases if the User violated these Terms, misused the Service or the Company considered the User's
-                        behavior inappropriate or illegal, including actions or messages within the Service and outside
-                        it.</p>
-                    <h4>6. Payments, Subscription and Additional Options</h4>
-                    <p>According to these Terms, the Company grants the User, under the terms of a simple, personal,
-                        worldwide, non-transferable, non-exclusive revocable license, the right to use the Subscription or
-                        Additional Options of the Services by providing remote access to them via the Internet within the
-                        framework of the existing architecture and technical functionality, as well as within the limits
-                        strictly defined by the Terms</p>
+            <h4>2. Information We Collect</h4>
+            <p>
+              In order to ensure the functionality of the matching service and
+              the criteria-based selection of candidates and teams, we collect
+              some information about you, such as basic profile details and the
+              types of people (or companies) you’d like to work. We also collect
+              information about your use of our services such as access logs, as
+              well as information from third parties, like when you access our
+              services through your social media account
+            </p>
+            <p>The data provided includes:</p>
+            <ul>
+              <li>
+                When you create an account, you provide us with your email
+                address and full name.
+              </li>
+              <li>
+                When you complete your profile, you may choose to share
+                additional information with us, such as information about your
+                professional background and interests and other information
+                about you, as well as content such as photographs. To add
+                certain content, such as images, you can allow us access to your
+                camera or photo album.
+              </li>
+              <li>
+                You can purchase paid options and products using built-in
+                payment systems (Google Pay/Apple Pay/Yookassa etc) . These
+                payment processors collect and store financial information in
+                accordance with the Terms of Service Agreement and the Privacy
+                Policy. Buncher does not store complete card information. It
+                does not act as a payment controller, but only receives
+                notifications of successful payments.
+              </li>
+              <li>
+                If you contact our support team, we collect information that you
+                provide to us during the interaction.
+              </li>
+              <li>
+                We also process the content you post if it is necessary for the
+                safety of the participants in the communication and the
+                operation of the service.
+              </li>
+            </ul>
+            <p>
+              In addition to the information you may provide us directly, we
+              receive information about you from others, including:
+            </p>
+            <ul>
+              <li>
+                Members may provide information about you as they use our
+                services, for instance as they interact with you or if they
+                submit a report involving you.
+              </li>
+              <li>
+                You may decide to share information with us through your social
+                media account, for instance if you decide to create and log into
+                your Buncher account via your social media or other account
+                (Linkedin or Github)
+              </li>
+            </ul>
+            <p>
+              When you use our services, this generates technical data about
+              which features you’ve used, how you’ve used them and the devices
+              you use to access our services. See below for more details:
+            </p>
+            <ul>
+              <li>
+                Your use of the application generates data about your activity
+                on our services (for example, when you are logged in, features
+                you have used, actions taken, information displayed to you) and
+                your interactions with other members (for example, members with
+                whom you communicate and interact, when you exchange messages
+                with them, the number of messages you send and receive).
+              </li>
+              <li>
+                We collect information about the devices you use to access our
+                services, including device ID and type, our app settings and
+                characteristics, app crashes, etc.
+              </li>
+              <li>
+                The collection of your geolocation may occur in the background
+                even when you aren’t using the services
+              </li>
+            </ul>
+            <h4>3. Factors of using Information</h4>
+            <p>
+              The main reason we use your information is to deliver and improve
+              our services. Additionally, we use your info to help keep you
+              safe. Read on for a more detailed explanation of the various
+              reasons for which we use your information, together with practical
+              examples.
+            </p>
+            <ol>
+              <li>
+                To administer your account and provide our services to you
+              </li>
+              <p>
+                Create and manage your account<br />
+                Provide you with customer support and respond to your
+                requests<br />
+                Complete your transactions<br />
+                Communicate with you about our services<br />
+              </p>
+              <li>To help you connect with other users</li>
+              <p>Recommend and show members’ profiles to one another</p>
+              <li>To improve our services and develop new ones</li>
+              <p>
+                Understand how members typically use the services to improve
+                them (for instance, we may decide to change the look and feel or
+                even substantially modify a given feature based on how members
+                react to it)<br />
+                Develop new features and services (for example, we may decide to
+                build a new interests-based feature further to requests received
+                from members).
+              </p>
+              <li>
+                To prevent, detect and fight fraud and other illegal or
+                unauthorized activities
+              </li>
+              <p>
+                Find and address ongoing, suspected or alleged violations of our
+                Terms of Use, notably through the review of reports and
+                interactions between members<br />
+                Better understand and design countermeasures against violations
+                of our Terms of Use
+              </p>
+            </ol>
+            <h4>4. Factors of Sharing Information</h4>
+            <p>
+              Since our goal is to help you make professional connections, the
+              main sharing of members’ information is, of course, with other
+              members. We also share some members’ information with service
+              providers and partners who assist us in operating the services.
+            </p>
+            <ul>
+              <li>With other members</li>
+            </ul>
+            <p>
+              You share information with other members when you voluntarily
+              disclose information on the service (including your public
+              profile). Please be careful with your information and make sure
+              that the content you share is stuff that you’re comfortable being
+              visible If you choose to hide your profile or for certain content
+              or information about you, then it will be visible according to
+              your settings. If someone submits a report involving you (such as
+              a claim you violated our Terms of Use), We may communicate to the
+              reporter actions, if any, we took as a result of their report
+            </p>
+            <ul>
+              <li>With our service providers and partners</li>
+            </ul>
+            <p>
+              We use third parties to help us operate and improve our services.
+              These third parties assist us with various tasks, including data
+              hosting and maintenance, analytics, customer care, payment
+              processing and security operations
+            </p>
+            <ul>
+              <li>With law enforcement / when required by law</li>
+            </ul>
+            <p>
+              We may disclose your information if reasonably necessary: (i) to
+              comply with a legal process, such as a court order, subpoena or
+              search warrant, government / law enforcement investigation or
+              other legal requirements; (ii) to assist in the prevention or
+              detection of crime (subject in each case to applicable law); or
+              (iii) to protect the safety of any person
+            </p>
+            <ul>
+              <li>To enforce legal rights</li>
+            </ul>
+            <p>
+              We may also share information: (i) if disclosure would mitigate
+              our liability in an actual or threatened lawsuit; (ii) as
+              necessary to protect our legal rights and legal rights of our
+              members, business partners or other interested parties; (iii) to
+              enforce our agreements with you; and (iv) to investigate, prevent,
+              or take other action regarding illegal activity, suspected fraud
+              or other wrongdoing
+            </p>
+            <h4>5. Cross-Border Data Transfers</h4>
+            <p>
+              When we have cross-border data transfers, we are guided by data
+              protection laws have been considered adequate by the European
+              Commission, Federal Law N 152-FZ ON PERSONAL DATA or other
+              competent governmental body, we use standard contract clauses
+              (standard contractual clauses are commitments between companies
+              transferring personal data, binding them to protect the privacy
+              and security of your data) or other appropriate transfer mechanism
+            </p>
+            <h4>6. Your Rights</h4>
+            <p>
+              We want you to be in control of your information, so we want to
+              remind you of the following options and tools available to you:
+            </p>
+            <ul>
+              <li>Access / Update tools in the service</li>
+            </ul>
+            <p>
+              Tools and account settings can help you access, rectify or remove
+              information that you provided to us and that’s associated with
+              your account directly within the service
+            </p>
+            <ul>
+              <li>Device permissions</li>
+            </ul>
+            <p>
+              Mobile platforms can have permission systems for specific types of
+              device data and notifications, such as phone contacts, pictures,
+              location services, push notifications. You can change your
+              settings on your device to either consent or oppose the collection
+              or processing of the corresponding information or the display of
+              the corresponding notifications
+            </p>
+            <ul>
+              <li>Updating your information</li>
+            </ul>
+            <p>
+              If you believe that the information we hold about you is
+              inaccurate or that we are no longer entitled to use it and want to
+              request its rectification, deletion, object to or restrict its
+              processing
+            </p>
+            <h4>7. Privacy Policy Changes</h4>
+            <p>
+              Because we’re always looking for new and innovative ways to help
+              you build meaningful connections and strive on making sure
+              explanations about our data practices remain up-to-date, this
+              policy may change over time. We will notify you before any
+              material changes take effect so that you have time to review the
+              changes
+            </p>
+          </div>
+          <div
+            data-key="policy"
+            data-lang="ru"
+            class="modal-window__content modal-window__content_hidden lang-container"
+          >
+            <h4>Политика конфиденциальности</h4>
+            <p>
+              Спасибо, что нашли время, чтобы прочитать документ. Мы ценим, что
+              вы доверяете нам свою информацию, и мы намерены всегда
+              поддерживать это доверие. Действующая Политика конфиденциальности
+              применяется с 06 августа 2023 г.
+            </p>
+            <h4>1. Оператор персональных данных</h4>
+            <p>
+              Товарный знак и фирменное наименование LLC Buncher™ принадлежат
+              Индивидуальному Предпринимателю Грачеву Сергею Александровичу
+              (ОГРН 317784700143518, г. Санкт-Петербург, Россия, 192174, ул.
+              Седова, д.106) который является Оператором персональных данных
+              согласно настоящей Политикой конфиденциальности
+            </p>
+            <p>
+              Если у вас есть какие-либо юридические вопросы, напишите нам по
+              адресу legal@buncher.app
+            </p>
+            <h4>2. Собираемая нами информация</h4>
+            <p>
+              Чтобы обеспечить функциональность сервиса сопоставления и отбора
+              кандидатов и команд на основе выбранных критериев, мы собираем
+              информацию о вас, такую как основные данные профиля и
+              характеристики людей (или команд), с которыми вы хотели бы
+              работать. Мы также собираем информацию об использовании вами наших
+              услуг, а также информацию от третьих лиц, например, когда вы
+              получаете доступ к нашим услугам через свою учетную запись в
+              социальных сетях
+            </p>
+            <p>Предоставляемые данные включают в себя:</p>
+            <ul>
+              <li>
+                Когда вы создаете учетную запись, вы предоставляете нам свой
+                адрес электронной почты и полное имя.
+              </li>
+              <li>
+                Когда вы заполняете свой профиль, вы можете поделиться с нами
+                дополнительной информацией, такой как сведения о вашей
+                профессиональной биографии и интересах и другие сведения о вас,
+                а также такой контент, как фотографии. Чтобы добавить
+                определенный контент, например изображения, вы можете разрешить
+                нам доступ к вашей камере или фотоальбому.
+              </li>
+              <li>
+                Вы можете приобретать платные опции и товары с помощью
+                встроенных платежных систем (Google Pay/Apple Pay/Yookassa etc)
+                . Эти платежные системы собирают и хранят финансовую информацию
+                в соответствии с Соглашением об условиях обслуживания и
+                Политикой конфиденциальности. Buncher не хранит полную
+                информацию о карте. Он не выступает в качестве контроллера
+                платежей, а только получает уведомления об успешных платежах.
+              </li>
+              <li>
+                Если вы связываетесь с нашей службой поддержки, мы собираем
+                информацию, которую вы предоставляете нам во время
+                взаимодействия.
+              </li>
+              <li>
+                Мы также обрабатываем публикуемый вами контент и сообщения, если
+                это необходимо для безопасности участников общения и работы
+                сервиса.
+              </li>
+            </ul>
+            <p>
+              В дополнение к информации, которую вы можете предоставить нам
+              напрямую, мы получаем информацию из других источников:
+            </p>
+            <ul>
+              <li>
+                Участники могут предоставлять информацию о вас, когда они
+                используют наши услуги, например, когда они взаимодействуют с
+                вами или отправляют отчет, касающийся вас.
+              </li>
+              <li>
+                Вы можете поделиться с нами информацией через свой аккаунт в
+                социальной сети, например если вы решите зарегистрироваться и
+                войти в аккаунт через свою социальную сеть или другой аккаунт
+                (Linkedin или Github)
+              </li>
+            </ul>
+            <p>
+              Когда вы используете наши сервисы, мы собираем техническую
+              информацию о том, какие функции вы использовали, а также с помощью
+              каких устройств вы получили доступ к нашим сервисам: 
+            </p>
+            <ul>
+              <li>
+                Использование приложения генерирует данные о вашей активности в
+                наших сервисах (например, когда вы вошли в систему, функции,
+                которые вы использовали, предпринятые действия, отображаемая вам
+                информация) и ваши взаимодействия с другими участниками
+                (например, участники, с которыми вы общаетесь и
+                взаимодействуете, когда вы обмениваетесь с ними сообщениями,
+                количество сообщений, которые вы отправляете и получаете)
+              </li>
+              <li>
+                Мы собираем информацию об устройствах, которые вы используете
+                для доступа к нашим сервисам, включая идентификатор и тип
+                устройства, настройки и характеристики нашего приложения, сбои
+                приложения и т. д.
+              </li>
+              <li>
+                Сбор данных о вашей геолокации может происходить в фоновом
+                режиме, даже когда вы не пользуетесь услугами.
+              </li>
+            </ul>
+            <h4>3. Факторы использования информации</h4>
+            <p>
+              Основная цель для которой мы можем использовать предоставляемую
+              вами информацию, заключается в поиске способов улучшения нашего
+              сервиса и услуг. Кроме того, мы используем ваши данные, чтобы
+              обеспечить вашу безопасность.
+            </p>
+            <ol>
+              <li>Для управления вашим аккаунтом и предоставления сервисов</li>
+              <p>
+                Создавать аккаунт и управлять им.<br />
+                Оказывать клиентскую поддержку и отвечать на ваши запросы<br />
+                Осуществлять транзакции<br />
+                Общаться с вами по поводу использования сервисов<br />
+              </p>
+              <li>Для вашего общения с другими пользователями</li>
+              <p>
+                Рекомендовать вас другим пользователям и рекомендовать других
+                пользователей вам
+              </p>
+              <li>Для улучшения наших сервисов и разработки новых</li>
+              <p>
+                Понимать, как пользователи обычно используют услуги для их
+                улучшения (например, мы можем решить изменить внешний вид или
+                даже существенно изменить функцию в зависимости от того, как
+                пользователи реагируют на нее).<br />
+                Разрабатывать новые функции и услуги (например, мы можем решить
+                создать новую функцию на основе интересов в соответствии с
+                запросами, полученными от пользователей).
+              </p>
+              <li>
+                Для предотвращения, обнаружения и борьбы с мошенничеством и
+                другими незаконными или несанкционированными действиями
+              </li>
+              <p>
+                Выявлять и устранять текущие или предполагаемые нарушения наших
+                Условий использования, в частности, путем реакции на жалобы и
+                отчеты в ходе пользовательских взаимодействий.<br />
+                Лучше понимать и разрабатывать контрмеры против нарушений наших
+                Условий использования
+              </p>
+            </ol>
+            <h4>4. Факторы передачи информации</h4>
+            <p>
+              Поскольку наша цель — помочь вам установить профессиональные
+              связи, основная часть передачи пользовательских данных, конечно
+              же, осуществляется между самими пользователями. Мы также передаем
+              информацию от определенных пользователей поставщикам услуг и
+              партнерам, которые помогают нам управлять службами приложения.
+            </p>
+            <ul>
+              <li>Предоставление информации другим пользователям</li>
+            </ul>
+            <p>
+              Вы делитесь информацией с другими пользователями (включая свой
+              общедоступный профиль). Пожалуйста, будьте осторожны с вашей
+              профессиональной информацией и убедитесь, что контент, которым вы
+              делитесь, является тем, чем вам удобно поделиться с
+              профессиональным сообществом. Если вы решите ограничить доступ к
+              своему профилю или вашим вакансиям, они будут отображаться в
+              соответствии с вашими настройками. Если кто-то отправит жалобу или
+              сообщение, касающееся вас (например, заявление о том, что вы
+              нарушили наши Условия использования), мы можем сообщить лицу,
+              отправившему сообщение, о действиях, если таковые имеются, которые
+              мы предприняли
+            </p>
+            <ul>
+              <li>
+                Предоставление информации нашим поставщикам услуг и партнерам
+              </li>
+            </ul>
+            <p>
+              Мы пользуемся услугами третьих лиц, помогающим нам с размещением и
+              обслуживанием данных, аналитикой, обслуживанием пользователей,
+              обработкой платежей и операциями по обеспечению безопасности.
+            </p>
+            <ul>
+              <li>Правоохранительные органы / требование законодательства</li>
+            </ul>
+            <p>
+              Мы можем раскрывать вашу информацию, если это необходимо: (i) для
+              соблюдения судебного процесса, расследования
+              правительства/правоохранительных органов или других юридических
+              требований; (ii) для оказания помощи в предотвращении или
+              раскрытии преступлений (в зависимости от применимого
+              законодательства в каждом случае); или (iii) для защиты
+              безопасности любого лица
+            </p>
+            <ul>
+              <li>Обеспечение законных прав</li>
+            </ul>
+            <p>
+              Мы также можем делиться информацией: (i) если раскрытие информации
+              снизит нашу ответственность в действительном или потенциальном
+              судебном иске; (ii) по мере необходимости для защиты наших
+              законных прав и законных прав наших членов, деловых партнеров или
+              других заинтересованных сторон; (iii) для обеспечения соблюдения
+              наших соглашений с пользователями; и (iv) для расследования,
+              предотвращения или принятия других мер в отношении незаконной
+              деятельности, предполагаемого мошенничества или других
+              правонарушений.
+            </p>
+            <h4>5. Трансграничная передача данных</h4>
+            <p>
+              Когда мы осуществляем трансграничную передачу данных, мы
+              руководствуемся законами о защите данных, признанными Европейской
+              Комиссией, Федеральным законом РФ N 152-ФЗ «О ПЕРСОНАЛЬНЫХ ДАННЫХ»
+              или другим компетентным государственным органом адекватными, мы
+              используем стандартные договорные положения (стандартные
+              договорные положения обязательства между компаниями, передающими
+              персональные данные, обязывающие их защищать конфиденциальность и
+              безопасность ваших данных) или другой соответствующий механизм
+              передачи
+            </p>
+            <h4>6. Ваши права</h4>
+            <p>
+              Мы хотим, чтобы вы контролировали свои данные, поэтому напоминаем
+              вам о следующих доступных вам возможностях и инструментах:
+            </p>
+            <ul>
+              <li>Инструменты доступа/обновления в сервисе</li>
+            </ul>
+            <p>
+              Настройки вашей учетной записи могут помочь вам получить доступ,
+              скрыть, исправить или удалить информацию, которую вы нам
+              предоставили и которая связана с вашей учетной записью
+              непосредственно на сервисе
+            </p>
+            <ul>
+              <li>Разрешения для устройств</li>
+            </ul>
+            <p>
+              Мобильные платформы имеют системы разрешений для определенных
+              типов данных и уведомлений, таких как контакты, фотографии, службы
+              геолокации, push-уведомления и рекламные идентификаторы. Вы можете
+              изменить настройки на своем устройстве, чтобы разрешить или
+              запретить сбор или обработку соответствующей информации или
+              отображение соответствующих уведомлений. 
+            </p>
+            <h4>7. Изменения в Политике конфиденциальности</h4>
+            <p>
+              Поскольку мы всегда ищем новые способы помочь вам наладить
+              профессиональные связи и стремимся к тому, чтобы разъяснения о
+              наших методах работы с данными оставались актуальными, эта
+              политика может со временем меняться. Мы уведомим вас до того, как
+              какие-либо существенные изменения вступят в силу, чтобы у вас было
+              время ознакомиться с изменениями.
+            </p>
+          </div>
+        </div>
+      </aside>
+      <aside class="modal-window custom-scrollbar" data-modal="termsOfUse">
+        <div class="modal-window__header">
+          <div class="modal-window__back" tabindex="-1">
+            <img src="img/decorations/cross.svg" alt="cross" />
+          </div>
+        </div>
+        <div class="modal-window__wrapper">
+          <div
+            data-key="termsOfUse"
+            data-lang="en"
+            class="modal-window__content lang-container"
+          >
+            <h4>Buncher app terms of use</h4>
+            <p>
+              Company provides you with access to the use of the Buncher App
+              (hereinafter also referred to as the Service, Application,
+              Buncher) by providing remote access to it via the Internet on the
+              terms that are the subject of these Terms of Use (hereinafter also
+              referred to as the Terms) by the Buncher Application
+            </p>
+            <p>
+              These Terms are considered as a public offer in accordance with
+              Art. 437 of the Civil Code of the Russian Federation.
+            </p>
+            <h4>1. Terms used</h4>
+            <p>
+              Buncher Application (or Application, Service, Buncher) is a
+              service designed for professional acquaintances of Users, software
+              created by the Company and placed in application stores, including
+              Google Play, App Store and others, providing the User with access
+              to the Service.
+            </p>
+            <p>
+              Company, licensor, Individual entrepreneur Grachev Sergey
+              Aleksandrovich (PSRN 317784700143518, St. Petersburg, Russia,
+              192174, Sedova st., 106), which is the copyright holder and
+              administrator of the Service, brings to the public, distributes,
+              operates, maintains, administration of the Service and grants the
+              User the right to use additional functionality of the Service,
+              namely: Subscription and Additional Options, by providing remote
+              access to them via the Internet
+            </p>
+            <p>
+              User, licensee - an individual who has an account in the Buncher
+              Application, who has reached the age permitted in accordance with
+              the legislation of the Russian Federation to accept these Terms
+              and has the appropriate powers and legal capacity, who, in
+              accordance with the Terms, is granted the right to use additional
+              functionality of the Services, namely : Subscriptions and
+              Additional Options, by providing remote access to them via the
+              Internet in accordance with the Terms
+            </p>
+            <p>
+              Subscription - an option in which the User of the Services, during
+              the Subscription Period specified in the Terms, depending on the
+              selected tariff for a fixed fee (Subscription Cost), gets access
+              to a set of additional options of the Services, the description of
+              which is available in the subscription interface
+            </p>
+            <p>
+              Additional Options (Additional Option) - Service options purchased
+              by the User
+            </p>
+            <h4>2. Buncher App Terms & Conditions Status</h4>
+            <p>
+              These Terms are a legally binding agreement between the User and
+              the Company, the subject of which is the provision by the Company
+              to the User of access to the use of the Service and its
+              functionality.
+            </p>
+            <p>
+              The User is obliged to fully familiarize himself with these Terms,
+              as well as the Privacy Policy of the Service, before registering
+              in the Service. Registration of the User in the Service means the
+              full and unconditional acceptance by the User of the specified
+              documents in accordance with Art. 438 of the Civil Code of the
+              Russian Federation.
+            </p>
+            <p>
+              The Company recommends that Users regularly check these Terms for
+              changes and/or additions. Continued use of the Service by the User
+              after making changes and/or additions to these Terms means the
+              User's acceptance and consent to such changes and/or additions.
+            </p>
+            <h4>3. Registration in application (creating an account)</h4>
+            <p>User registration is free and voluntary.</p>
+            <p>
+              When registering in Service, User is obliged to provide the
+              Company with the necessary reliable and up-to-date information for
+              the formation of the User's profile, including a professional
+              biography. The registration form of the Service may request
+              additional information from the User.
+            </p>
+            <p>
+              User is responsible for the accuracy, relevance, completeness and
+              compliance with the law of the information provided during
+              registration and its purity from claims of third parties.
+            </p>
+            <h4>4. Status and Rights of the Buncher App User</h4>
+            <p>
+              Company grants User a personal, worldwide, non-transferable,
+              non-exclusive, revocable and non-sublicensable license to access
+              and use the Service. This right is intended solely to enable the
+              User to use the functionality of the Service provided by the
+              Company in accordance with these Terms. This license will be
+              automatically terminated and access to the Service closed if the
+              User performs any of the following actions:
+            </p>
+            <ul>
+              <li>
+                use the Service or any content in the Service for any commercial
+                purposes without the written consent of the Company;
+              </li>
+              <li>
+                copy, modify, transmit, create any derivative works of, use or
+                in any way reproduce any copyrighted materials, images,
+                trademarks, trade names, proprietary information, service marks
+                and other intellectual property available through the Service,
+                being the holder or authorized representative of the holders of
+                trade names, trademarks, service marks, proprietary information,
+                etc.
+              </li>
+              <li>
+                attempt to pass off any of your statements as statements
+                approved by the Company;
+              </li>
+              <li>
+                use robots, bots, crawlers, "scrapers", site crawling
+                applications, proxy servers, or other manual or automatic
+                devices, methods or processes to access the Service, extract or
+                index its content, to recreate the Service, its appearance or
+                its content, as well as to bypass its navigational structure;
+              </li>
+              <li>
+                use the Service in any way that could interfere with, disrupt,
+                or adversely affect the Service, servers or networks connected
+                to the Service;
+              </li>
+              <li>
+                upload viruses or other malicious code or otherwise compromise
+                the security of the Service;
+              </li>
+              <li>
+                forge job titles, names, company names, or otherwise manipulate
+                identifiers in order to disguise the origin of any information
+                transmitted through the Service;
+              </li>
+              <li>
+                use meta tags, code or other devices containing any reference to
+                the Company or the Service (or any trademarks, trademarks,
+                service marks, logos or slogans of Buncher) to direct any person
+                to any other website for any purpose;
+              </li>
+              <li>
+                modify, adapt, sublicense, translate, sell, reverse engineer,
+                decipher, decompile or otherwise disassemble any part of the
+                Service or cause others to do so
+              </li>
+              <li>
+                use or develop any third-party applications that interact with
+                the Service without the written consent of the Company;
+              </li>
+              <li>
+                investigate, scan or test the vulnerability of the Service, any
+                system or network;
+              </li>
+              <li>encourage any activity that violates this Terms.</li>
+            </ul>
+            <p>
+              The Company has the right to investigate illegal and / or
+              unauthorized use of the Service and resort to any means of legal
+              protection, including termination of the User's account
+            </p>
+            <p>
+              Any software that the Company makes available to the User may
+              automatically download and install updates or other new features.
+              Controls for automatic downloads may be available in the settings
+              menu of the User's device
+            </p>
+            <h4>5. Responsibilities of the Buncher Application User</h4>
+            <p>
+              The User accepts and agrees that the Company has the right to
+              monitor and inspect any Content that the User posts within the
+              Service. The Company has the right to remove, in whole or in part,
+              any Content that may violate these Terms or may damage the
+              reputation of the Service.
+            </p>
+            <p>
+              When communicating with the Company's customer service
+              representatives, you agree to behave with respect and courtesy. If
+              the Company considers that your behavior towards the Company's
+              customer service employee or other employees is threatening,
+              aggressive or offensive, the Company reserves the right to
+              immediately terminate the User's account.
+            </p>
+            <p>
+              The Company has the right to receive, store and disclose
+              information about User Content if required by law or to comply
+              with these Terms, if the Company believes in good faith that such
+              access, storage or disclosure is lawful for the purpose of: (i)
+              complying with a court order; (ii) enforce the requirements of the
+              Terms; (iii) satisfy any claim that any Content infringes the
+              rights of third parties; (iv) responding to the User's contact
+              with the customer support service; (v) protect the rights,
+              property or personal safety of the Company or any other person.
+            </p>
+            <p>The user is prohibited from:</p>
+            <ul>
+              <li>
+                use the Service for any purpose that is prohibited by these
+                Terms;
+              </li>
+              <li>
+                use the Service for the purpose of causing harm or with
+                malicious intent;
+              </li>
+              <li>use the Service to harm the Company</li>
+              <li>
+                send spam, ask for money from subscribers or deceive them;
+              </li>
+              <li>
+                impersonate any person or entity or post any image of another
+                person without his or her permission
+              </li>
+              <li>
+                poison, harass, threaten, insult or humiliate anyone, as well as
+                disseminate defamatory information;
+              </li>
+              <li>
+                post Content that violates anyone's rights, including rights of
+                publicity, privacy, copyright, trademarks, or other intellectual
+                property rights or rights arising from a contract;
+              </li>
+              <li>
+                post any Content that incites hatred or contains threats, as
+                well as materials of a sexual or pornographic nature;
+              </li>
+              <li>
+                post any Content that incites violence; contains images of a
+                naked body, scenes of graphic or gratuitous violence;
+              </li>
+              <li>
+                post any Content that promotes racism, intolerance, hatred of
+                any person or group of persons, or contains physical threats;
+              </li>
+              <li>
+                attempt to obtain other subscribers' passwords or personal
+                information for any purpose for commercial or illegal purposes,
+                or distribute personal information of others without his or her
+                permission;
+              </li>
+              <li>
+                use another subscriber's account, transfer your account to
+                another person, or create more than one account;
+              </li>
+              <li>
+                create other accounts if the Company has already terminated the
+                account and the User does not have permission to do so
+              </li>
+            </ul>
+            <p>
+              The Company reserves the right to check and/or block the User's
+              account without a refund for any purchases if the User violated
+              these Terms, misused the Service or the Company considered the
+              User's behavior inappropriate or illegal, including actions or
+              messages within the Service and outside it.
+            </p>
+            <h4>6. Payments, Subscription and Additional Options</h4>
+            <p>
+              According to these Terms, the Company grants the User, under the
+              terms of a simple, personal, worldwide, non-transferable,
+              non-exclusive revocable license, the right to use the Subscription
+              or Additional Options of the Services by providing remote access
+              to them via the Internet within the framework of the existing
+              architecture and technical functionality, as well as within the
+              limits strictly defined by the Terms
+            </p>
 
-                    <p>The User is given the opportunity to purchase a Subscription in advance payment according to the
-                        tariff
-                        chosen by the User at the time of registration of paid access</p>
+            <p>
+              The User is given the opportunity to purchase a Subscription in
+              advance payment according to the tariff chosen by the User at the
+              time of registration of paid access
+            </p>
 
-                    <p>If the User decides to cancel the Subscription, he must cancel the Subscription no later than 24
-                        hours before
-                        the end of the paid Subscription period in accordance with the selected tariff. The cost of the
-                        Subscription
-                        in accordance with the tariff chosen by the User (if several tariffs are available when purchasing
-                        the
-                        Subscription) is debited from the User no earlier than 24 hours before the expiration of the paid
-                        Subscription period, if the User has not canceled the Subscription within the period specified in
-                        this
-                        paragraph.</p>
+            <p>
+              If the User decides to cancel the Subscription, he must cancel the
+              Subscription no later than 24 hours before the end of the paid
+              Subscription period in accordance with the selected tariff. The
+              cost of the Subscription in accordance with the tariff chosen by
+              the User (if several tariffs are available when purchasing the
+              Subscription) is debited from the User no earlier than 24 hours
+              before the expiration of the paid Subscription period, if the User
+              has not canceled the Subscription within the period specified in
+              this paragraph.
+            </p>
 
-                    <p>Within the framework of these Terms, the User of the Services has the opportunity to purchase
-                        Additional Options
-                        in the range and in the amount indicated in the interface for purchasing Additional Options.</p>
+            <p>
+              Within the framework of these Terms, the User of the Services has
+              the opportunity to purchase Additional Options in the range and in
+              the amount indicated in the interface for purchasing Additional
+              Options.
+            </p>
 
-                    <p>To calculate and pay Subscription fees, the Company will calculate any "month" in the Services
-                        interface as a period
-                        of thirty (30) days. By initiating the Subscription, the User agrees that subsequent debits of the
-                        Subscription cost
-                        will be automatically carried out using the payment method chosen by the User at the end of each
-                        period, a multiple
-                        of 30 days, chosen by the User when subscribing, unless the User cancels the Subscription before the
-                        payment
-                        date.</p>
+            <p>
+              To calculate and pay Subscription fees, the Company will calculate
+              any "month" in the Services interface as a period of thirty (30)
+              days. By initiating the Subscription, the User agrees that
+              subsequent debits of the Subscription cost will be automatically
+              carried out using the payment method chosen by the User at the end
+              of each period, a multiple of 30 days, chosen by the User when
+              subscribing, unless the User cancels the Subscription before the
+              payment date.
+            </p>
 
-                    <p>The opportunity to use the Subscription and Additional Options is provided to the User from the
-                        moment the Company
-                        receives the remuneration. The Company is deemed to have fulfilled its obligations to provide the
-                        opportunity to use
-                        the Subscription and Additional Options for the acquired Period and Additional Options at the time
-                        of granting
-                        access to the Subscription and Additional Options.</p>
+            <p>
+              The opportunity to use the Subscription and Additional Options is
+              provided to the User from the moment the Company receives the
+              remuneration. The Company is deemed to have fulfilled its
+              obligations to provide the opportunity to use the Subscription and
+              Additional Options for the acquired Period and Additional Options
+              at the time of granting access to the Subscription and Additional
+              Options.
+            </p>
 
-                    <p>The cost of the paid Period in case of cancellation by the User of the Subscription and the cost of
-                        the paid
-                        Additional Options are non-refundable.</p>
+            <p>
+              The cost of the paid Period in case of cancellation by the User of
+              the Subscription and the cost of the paid Additional Options are
+              non-refundable.
+            </p>
 
-                    <p>Payment for the cost of the Subscription in the Service is made by the User through the App Store,
-                        Google Play
-                        Market, as well as other app stores that host the Application for mobile devices.</p>
+            <p>
+              Payment for the cost of the Subscription in the Service is made by
+              the User through the App Store, Google Play Market, as well as
+              other app stores that host the Application for mobile devices.
+            </p>
 
-                    <p>Available Subscription rates and the cost of Additional Options are indicated in the relevant section
-                        in the
-                        interface of the Application for mobile devices.</p>
+            <p>
+              Available Subscription rates and the cost of Additional Options
+              are indicated in the relevant section in the interface of the
+              Application for mobile devices.
+            </p>
 
-                    <p>Registration and payment for the Subscription and Additional Options is governed by the rules of the
-                        application
-                        store in which the User issues Subscriptions</p>
+            <p>
+              Registration and payment for the Subscription and Additional
+              Options is governed by the rules of the application store in which
+              the User issues Subscriptions
+            </p>
 
-                    <p>The technical ability to connect the Subscription and pay for Additional Options through an
-                        application store may be
-                        limited in accordance with the rules of such an application store.</p>
+            <p>
+              The technical ability to connect the Subscription and pay for
+              Additional Options through an application store may be limited in
+              accordance with the rules of such an application store.
+            </p>
 
-                    <h4>7. Warranties and Limitation of Liability</h4>
-                    <p>The Service and its functionality, including all scripts, applications, content and design of the
-                        Service, Subscription and Additional Options are provided "as is". The Company disclaims all
-                        warranties that the service or its functionality may or may not be suitable for specific purposes of
-                        use. The Company cannot guarantee and does not promise any specific results from the use of the
-                        service and / or its functionality, including guarantees regarding the error-free and uninterrupted
-                        operation of the Subscription and Additional Options.</p>
-                    <p>Under no circumstances shall the Company be liable to the User or to any third parties for any
-                        indirect,
-                        incidental, unintentional damage, including lost profits or lost data, damage to honor, dignity or
-                        business reputation caused in connection with the use of the service, the content of the service or
-                        other materials that you or others have accessed through the service, even if the Company has warned
-                        or
-                        indicated the possibility of such harm.</p>
-                    <p>The Company does not assume any obligations and does not bear any responsibility for any direct or
-                        indirect
-                        consequences of any use or inability to use the Subscription and Additional Options, incl. as a
-                        result of
-                        the user's loss of access to the account and / or damage caused to the user and / or third parties
-                        as a
-                        result of any use, non-use or inability to use the Subscription and Additional Options or its
-                        individual
-                        components and / or functionality, including due to possible errors or failures in the operation of
-                        the
-                        Subscription and Additional Options</p>
-                    <p>The Company is not liable to the user for losses incurred by the User of communication using the
-                        service, the
-                        content of the service or other materials to which you or other persons have accessed using the
-                        service.</p>
+            <h4>7. Warranties and Limitation of Liability</h4>
+            <p>
+              The Service and its functionality, including all scripts,
+              applications, content and design of the Service, Subscription and
+              Additional Options are provided "as is". The Company disclaims all
+              warranties that the service or its functionality may or may not be
+              suitable for specific purposes of use. The Company cannot
+              guarantee and does not promise any specific results from the use
+              of the service and / or its functionality, including guarantees
+              regarding the error-free and uninterrupted operation of the
+              Subscription and Additional Options.
+            </p>
+            <p>
+              Under no circumstances shall the Company be liable to the User or
+              to any third parties for any indirect, incidental, unintentional
+              damage, including lost profits or lost data, damage to honor,
+              dignity or business reputation caused in connection with the use
+              of the service, the content of the service or other materials that
+              you or others have accessed through the service, even if the
+              Company has warned or indicated the possibility of such harm.
+            </p>
+            <p>
+              The Company does not assume any obligations and does not bear any
+              responsibility for any direct or indirect consequences of any use
+              or inability to use the Subscription and Additional Options, incl.
+              as a result of the user's loss of access to the account and / or
+              damage caused to the user and / or third parties as a result of
+              any use, non-use or inability to use the Subscription and
+              Additional Options or its individual components and / or
+              functionality, including due to possible errors or failures in the
+              operation of the Subscription and Additional Options
+            </p>
+            <p>
+              The Company is not liable to the user for losses incurred by the
+              User of communication using the service, the content of the
+              service or other materials to which you or other persons have
+              accessed using the service.
+            </p>
 
-                    <h4>8. Final provisions</h4>
-                    <p>These Terms constitute an agreement between the User and the Company regarding the procedure for
-                        using the Service and its functionality.</p>
-                    <p>These Terms shall be governed by and construed in accordance with the laws of the Russian Federation
-                        and
-                        local laws.</p>
-                    <p>These Terms come into force for the User from the moment of his accession to them and are valid for
-                        an
-                        indefinite period.</p>
-                    <p>If, for one reason or another, one or more provisions of these Terms are found to be invalid or
-                        unenforceable,
-                        this shall not affect the validity or enforceability of the remaining provisions.</p>
-                </div>
-                <div data-key="termsOfUse" data-lang="ru" class="modal-window__content lang-container">
-                    <h4>Условия использования приложения Buncher</h4>
-                    <p>Компания предоставляет Вам доступ к использованию Приложения Buncher путем предоставления удаленного
-                        доступа к нему через сеть Интернет на условиях, являющихся предметом настоящих Условий использования
-                        (далее также Условия) Приложения Buncher</p>
-                    <p>Данные Условия рассматриваются как публичная оферта в соответствии со ст. 437 Гражданского кодекса
-                        Российской Федерации.</p>
-                    <h4>1. Используемые термины</h4>
-                    <p>Приложение Buncher (или Приложение, Сервис, Buncher) – сервис, предназначенный для профессиональных
-                        знакомств Пользователей, программное обеспечение созданное Компанией и размещенное в магазинах
-                        приложений, включая Google Play, App Store и иных, предоставляющее Пользователю доступ к
-                        Сервису.</p>
-                    <p>Компания –лицензиар, Индивидуальный предприниматель Грачев Сергей Александрович (ОГРН ИП
-                        317784700143518, г. Санкт-Петербург, Россия, 192174, ул. Седова, д. 106) являющийся правообладателем
-                        и администратором Сервиса, осуществляет доведение до всеобщего сведения, распространение,
-                        оперирование, обслуживание, администрирование Сервиса и предоставляет Пользователю право
-                        использования дополнительных функциональных возможностей Сервиса, а именно: Подписки и
-                        Дополнительных Опций, путем предоставления удаленного доступа к ним через сеть Интернет</p>
-                    <p>Пользователь, лицензиат – физическое лицо, имеющее аккаунт в Приложении Buncher, достигшее возраста,
-                        допустимого в соответствии с законодательством Российской Федерации для акцепта настоящих Условий, и
-                        обладающее соответствующими полномочиями и дееспособностью, которому в соответствии с Условиями
-                        предоставляется право использования дополнительных функциональных возможностей Сервисов, а именно:
-                        Подписки и Дополнительных Опции, путем предоставления удаленного доступа к ним через сеть Интернет
-                        согласно Условиям</p>
-                    <p>Подписка – опция, при которой Пользователь Сервисов в течение определенного в Условиях Периода
-                        Подписки в зависимости от выбранного тарифа за фиксированную плату (Стоимость Подписки) получает
-                        доступ к набору дополнительных опций Сервисов, описание которых доступно в интерфейсе оформления
-                        подписки</p>
-                    <p>Дополнительные Опции (Дополнительная Опция) – опции Сервиса, приобретаемые Пользователем</p>
-                    <h4>2. Статус Условий использования Приложения Buncher</h4>
-                    <p>Настоящие Условия являются юридически обязательным соглашением между Пользователем и Компанией,
-                        предметом которого является предоставление Компанией Пользователю доступа к использованию Сервиса и
-                        его функционала.</p>
-                    <p>Пользователь обязан до момента регистрации в Сервисе полностью ознакомиться с настоящими Условиями, а
-                        также Политикой конфиденциальности Сервиса. Регистрация Пользователя в Сервисе означает полное и
-                        безоговорочное принятие Пользователем указанных документов в соответствии со ст. 438 Гражданского
-                        кодекса Российской Федерации.</p>
-                    <p>Компания рекомендует Пользователям регулярно проверять настоящие Условия на предмет их изменения
-                        и/или дополнения. Продолжение использования Сервиса Пользователем после внесения изменений и/или
-                        дополнений в настоящие Условия означает принятие и согласие Пользователя с такими изменениями и/или
-                        дополнениями.</p>
-                    <h4>3. Регистрация в приложении (создание аккаунта)</h4>
-                    <p>Регистрация Пользователя является бесплатной и добровольной.</p>
-                    <p>При регистрации в Сервисе Пользователь обязан предоставить Компании необходимую достоверную и
-                        актуальную информацию для формирования профиля Пользователя, включая профессиональную биографию.
-                        Регистрационная форма Сервиса может запрашивать у Пользователя дополнительную информацию.</p>
-                    <p>Пользователь несет ответственность за достоверность, актуальность, полноту и соответствие
-                        законодательству предоставленной при регистрации информации и ее чистоту от претензий третьих
-                        лиц.</p>
-                    <h4>4. Статус и Права Пользователя Приложения Buncher</h4>
-                    <p>Компания предоставляет Пользователю личную, всемирную, непередаваемую, неисключительную, отзывную и
-                        не подлежащую сублицензированию лицензию на доступ к Сервису и его использование. Настоящее право
-                        предназначено исключительно для того, чтобы Пользователь мог пользоваться функциональностями
-                        Сервиса, предоставляемого Компанией согласно настоящим Условиям. Настоящая лицензия будет
-                        автоматически аннулирована, а доступ к Сервису закрыт, в случае, если Пользователь будет совершать
-                        любое из следующих действий:</p>
-                    <ul>
-                        <li>использовать Сервис или любой контент в составе Сервиса в каких-либо коммерческих целях без
-                            письменного согласия Компании;
-                        </li>
-                        <li>копировать, изменять, передавать, создавать какие-либо производные работы, использовать или
-                            каким-либо образом воспроизводить любые охраняемые авторским правом материалы, изображения,
-                            товарные
-                            знаки, фирменные наименования, служебную информацию, сервисные знаки и прочие объекты
-                            интеллектуальной собственности, доступные посредством Сервиса, не являясь держателем или
-                            полномочным
-                            представителем держателей фирменных наименований, товарных знаков, сервисных знаков, служебной
-                            информации и т.д.
-                        </li>
-                        <li>предпринимать попытки выдать какие-либо ваши заявления за утверждения, одобренные Компанией;
-                        </li>
-                        <li>использовать роботов, ботов, поисковых роботов, «скраперов», приложения сканирования сайтов,
-                            прокси-серверы,
-                            а также другие ручные или автоматические устройства, методы или процессы для доступа к Сервису,
-                            извлечения
-                            или индексирования его содержимого, для воссоздания Сервиса, его внешнего вида или его
-                            содержимого, а также
-                            для обхода его навигационной структуры;
-                        </li>
-                        <li>использовать Сервис каким-либо образом, способным помешать работе Сервиса, нарушить ее или
-                            негативно повлиять на
-                            Сервис, серверы или сети, подключенные к Сервису;
-                        </li>
-                        <li>загружать вирусы или другой вредоносный код или иным образом нарушать безопасность Сервиса;</li>
-                        <li>подделывать заголовки вакансий, имена, названия организаций или иным образом манипулировать
-                            идентификаторами с целью
-                            скрыть происхождение любой информации, передаваемой с помощью Сервиса;
-                        </li>
-                        <li>использовать метатеги, код или другие устройства, содержащие какие-либо ссылки на Компанию или
-                            Сервис (или любые
-                            товарные знаки, торговые марки, сервисные знаки, логотипы или слоганы Buncher), чтобы направить
-                            любое лицо на любой
-                            другой веб-сайт в любых целях;
-                        </li>
-                        <li>изменять, адаптировать, сублицензировать, переводить, продавать, реконструировать,
-                            расшифровывать, декомпилировать
-                            или иным образом разбирать какую-либо часть Сервиса или побуждать других к таким действиям;
-                        </li>
-                        <li>использовать или разрабатывать любые сторонние приложения, которые взаимодействуют с Сервисом
-                            без письменного
-                            согласия Компании;
-                        </li>
-                        <li>исследовать, сканировать или тестировать уязвимость Сервиса, любой системы или сети;</li>
-                        <li>поощрять любые действия, нарушающие настоящие Условия</li>
-                    </ul>
-                    <p>Компания вправе расследовать незаконное и/или несанкционированное использование Сервиса и прибегать к
-                        любым способам правовой защиты, включая прекращение действия аккаунта Пользователя</p>
-                    <p>Любое программное обеспечение, которое Компания предоставляет Пользователю, может автоматически
-                        загружать и устанавливать обновления или другие новые функции. Средства контроля автоматических
-                        загрузок могут быть доступны в меню настроек устройства Пользователя</p>
-                    <h4>5. Обязанности Пользователя Приложения Buncher</h4>
-                    <p>Пользователь принимает и соглашается с тем, что Компания имеет право отслеживать и проверять любой
-                        Контент, который Пользователь размещает в рамках Сервиса. Компания имеет право полностью или
-                        частично удалять любой Контент, который может нарушать настоящие Условия или может нанести ущерб
-                        репутации Сервиса.</p>
-                    <p>При общении с представителями Компании по обслуживанию клиентов вы соглашаетесь вести себя
-                        уважительно и вежливо. Если Компания посчитает, что ваше поведение по отношению к сотруднику службы
-                        Компании по работе с клиентами или другим сотрудникам является угрожающим, агрессивным или
-                        оскорбительным, Компания оставляет за собой право немедленно прекратить действие аккаунта
-                        Пользователя.</p>
-                    <p>Компания имеет право получать, хранить и раскрывать информацию о Контенте Пользователя, если это
-                        требуется по закону или для выполнения этих Условий, если Компания добросовестно считает, что такой
-                        доступ, хранение или разглашение осуществляются на законном основании с целью: (i) выполнения
-                        постановления суда; (ii) обеспечения выполнения требований Условий; (iii) удовлетворения претензии о
-                        том, что какой-либо Контент нарушает права третьих лиц; (iv) реагирования на обращение Пользователя
-                        в службу поддержки клиентов; (v) защиты права, собственности или обеспечения личной безопасности
-                        Компании или любого другого лица.</p>
-                    <p>Пользователю запрещается:</p>
-                    <ul>
-                        <li>использовать Сервис в любых целях, которые запрещены настоящими Условиями;</li>
-                        <li>использовать Сервис с целью причинения вреда или со злым умыслом;</li>
-                        <li>использовать Сервис с целью причинения вреда Компании</li>
-                        <li>рассылать спам, просить деньги у подписчиков или обманывать их;</li>
-                        <li>выдавать себя за какое-либо лицо или организацию или публиковать любые изображения другого лица
-                            без его или ее
-                            разрешения;
-                        </li>
-                        <li>травить, преследовать, угрожать, оскорблять или унижать кого-либо, а также распространять
-                            порочащие сведения;
-                        </li>
-                        <li>размещать Контент, который нарушает чьи-либо права, включая права на публичность,
-                            неприкосновенность частной жизни,
-                            авторское право, товарные знаки или другие права интеллектуальной собственности или права,
-                            вытекающие из
-                            договора;
-                        </li>
-                        <li>размещать любой Контент, разжигающий ненависть или содержащий угрозы, а также материалы
-                            сексуального или
-                            порнографического характера;
-                        </li>
-                        <li>размещать любой Контент, который подстрекает к насилию; содержит изображения обнаженного тела,
-                            сцены графического или
-                            беспричинного насилия;
-                        </li>
-                        <li>размещать любой Контент, пропагандирующий расизм, нетерпимость, ненависть к любому человеку или
-                            группе лиц, а также
-                            содержащий физические угрозы;
-                        </li>
-                        <li>пытаться в каких-либо целях получить пароли других подписчиков или их персональные данные в
-                            коммерческих или
-                            противозаконных целях, а также распространять персональные данные других лиц без его или ее
-                            разрешения;
-                        </li>
-                        <li>использовать аккаунт другого подписчика, передавать свой аккаунт другому лицу или создавать
-                            более одного
-                            аккаунта;
-                        </li>
-                        <li>создавать другие аккаунты, если Компания уже прекратила действие аккаунта и у Пользователя нет
-                            на это разрешения.
-                        </li>
-                    </ul>
-                    <p>Компания оставляет за собой право проверить и/или заблокировать аккаунт Пользователя без возврата
-                        денежных средств за любые покупки, если Пользователь нарушил настоящие Условия, неправильно
-                        использовал Сервис или Компания сочла поведение Пользователя неподобающим или незаконным, включая
-                        действия или сообщения внутри Сервиса и за его пределами. </p>
-                    <h4>6. Платежи, Подписка и Дополнительные Опции</h4>
-                    <p>Согласно настоящим Условиям Компания предоставляет Пользователю на условиях простой, личной,
-                        всемирной, непередаваемой, неисключительной отзывной лицензии право использования Подписки или
-                        Дополнительных Опций Сервиса путем предоставления удаленного доступа к ним через сеть Интернет в
-                        рамках имеющейся архитектуры и технической функциональности, а также в строго определенных Условиями
-                        пределах.</p>
+            <h4>8. Final provisions</h4>
+            <p>
+              These Terms constitute an agreement between the User and the
+              Company regarding the procedure for using the Service and its
+              functionality.
+            </p>
+            <p>
+              These Terms shall be governed by and construed in accordance with
+              the laws of the Russian Federation and local laws.
+            </p>
+            <p>
+              These Terms come into force for the User from the moment of his
+              accession to them and are valid for an indefinite period.
+            </p>
+            <p>
+              If, for one reason or another, one or more provisions of these
+              Terms are found to be invalid or unenforceable, this shall not
+              affect the validity or enforceability of the remaining provisions.
+            </p>
+          </div>
+          <div
+            data-key="termsOfUse"
+            data-lang="ru"
+            class="modal-window__content lang-container"
+          >
+            <h4>Условия использования приложения Buncher</h4>
+            <p>
+              Компания предоставляет Вам доступ к использованию Приложения
+              Buncher путем предоставления удаленного доступа к нему через сеть
+              Интернет на условиях, являющихся предметом настоящих Условий
+              использования (далее также Условия) Приложения Buncher
+            </p>
+            <p>
+              Данные Условия рассматриваются как публичная оферта в соответствии
+              со ст. 437 Гражданского кодекса Российской Федерации.
+            </p>
+            <h4>1. Используемые термины</h4>
+            <p>
+              Приложение Buncher (или Приложение, Сервис, Buncher) – сервис,
+              предназначенный для профессиональных знакомств Пользователей,
+              программное обеспечение созданное Компанией и размещенное в
+              магазинах приложений, включая Google Play, App Store и иных,
+              предоставляющее Пользователю доступ к Сервису.
+            </p>
+            <p>
+              Компания –лицензиар, Индивидуальный предприниматель Грачев Сергей
+              Александрович (ОГРН ИП 317784700143518, г. Санкт-Петербург,
+              Россия, 192174, ул. Седова, д. 106) являющийся правообладателем и
+              администратором Сервиса, осуществляет доведение до всеобщего
+              сведения, распространение, оперирование, обслуживание,
+              администрирование Сервиса и предоставляет Пользователю право
+              использования дополнительных функциональных возможностей Сервиса,
+              а именно: Подписки и Дополнительных Опций, путем предоставления
+              удаленного доступа к ним через сеть Интернет
+            </p>
+            <p>
+              Пользователь, лицензиат – физическое лицо, имеющее аккаунт в
+              Приложении Buncher, достигшее возраста, допустимого в соответствии
+              с законодательством Российской Федерации для акцепта настоящих
+              Условий, и обладающее соответствующими полномочиями и
+              дееспособностью, которому в соответствии с Условиями
+              предоставляется право использования дополнительных функциональных
+              возможностей Сервисов, а именно: Подписки и Дополнительных Опции,
+              путем предоставления удаленного доступа к ним через сеть Интернет
+              согласно Условиям
+            </p>
+            <p>
+              Подписка – опция, при которой Пользователь Сервисов в течение
+              определенного в Условиях Периода Подписки в зависимости от
+              выбранного тарифа за фиксированную плату (Стоимость Подписки)
+              получает доступ к набору дополнительных опций Сервисов, описание
+              которых доступно в интерфейсе оформления подписки
+            </p>
+            <p>
+              Дополнительные Опции (Дополнительная Опция) – опции Сервиса,
+              приобретаемые Пользователем
+            </p>
+            <h4>2. Статус Условий использования Приложения Buncher</h4>
+            <p>
+              Настоящие Условия являются юридически обязательным соглашением
+              между Пользователем и Компанией, предметом которого является
+              предоставление Компанией Пользователю доступа к использованию
+              Сервиса и его функционала.
+            </p>
+            <p>
+              Пользователь обязан до момента регистрации в Сервисе полностью
+              ознакомиться с настоящими Условиями, а также Политикой
+              конфиденциальности Сервиса. Регистрация Пользователя в Сервисе
+              означает полное и безоговорочное принятие Пользователем указанных
+              документов в соответствии со ст. 438 Гражданского кодекса
+              Российской Федерации.
+            </p>
+            <p>
+              Компания рекомендует Пользователям регулярно проверять настоящие
+              Условия на предмет их изменения и/или дополнения. Продолжение
+              использования Сервиса Пользователем после внесения изменений и/или
+              дополнений в настоящие Условия означает принятие и согласие
+              Пользователя с такими изменениями и/или дополнениями.
+            </p>
+            <h4>3. Регистрация в приложении (создание аккаунта)</h4>
+            <p>Регистрация Пользователя является бесплатной и добровольной.</p>
+            <p>
+              При регистрации в Сервисе Пользователь обязан предоставить
+              Компании необходимую достоверную и актуальную информацию для
+              формирования профиля Пользователя, включая профессиональную
+              биографию. Регистрационная форма Сервиса может запрашивать у
+              Пользователя дополнительную информацию.
+            </p>
+            <p>
+              Пользователь несет ответственность за достоверность, актуальность,
+              полноту и соответствие законодательству предоставленной при
+              регистрации информации и ее чистоту от претензий третьих лиц.
+            </p>
+            <h4>4. Статус и Права Пользователя Приложения Buncher</h4>
+            <p>
+              Компания предоставляет Пользователю личную, всемирную,
+              непередаваемую, неисключительную, отзывную и не подлежащую
+              сублицензированию лицензию на доступ к Сервису и его
+              использование. Настоящее право предназначено исключительно для
+              того, чтобы Пользователь мог пользоваться функциональностями
+              Сервиса, предоставляемого Компанией согласно настоящим Условиям.
+              Настоящая лицензия будет автоматически аннулирована, а доступ к
+              Сервису закрыт, в случае, если Пользователь будет совершать любое
+              из следующих действий:
+            </p>
+            <ul>
+              <li>
+                использовать Сервис или любой контент в составе Сервиса в
+                каких-либо коммерческих целях без письменного согласия Компании;
+              </li>
+              <li>
+                копировать, изменять, передавать, создавать какие-либо
+                производные работы, использовать или каким-либо образом
+                воспроизводить любые охраняемые авторским правом материалы,
+                изображения, товарные знаки, фирменные наименования, служебную
+                информацию, сервисные знаки и прочие объекты интеллектуальной
+                собственности, доступные посредством Сервиса, не являясь
+                держателем или полномочным представителем держателей фирменных
+                наименований, товарных знаков, сервисных знаков, служебной
+                информации и т.д.
+              </li>
+              <li>
+                предпринимать попытки выдать какие-либо ваши заявления за
+                утверждения, одобренные Компанией;
+              </li>
+              <li>
+                использовать роботов, ботов, поисковых роботов, «скраперов»,
+                приложения сканирования сайтов, прокси-серверы, а также другие
+                ручные или автоматические устройства, методы или процессы для
+                доступа к Сервису, извлечения или индексирования его
+                содержимого, для воссоздания Сервиса, его внешнего вида или его
+                содержимого, а также для обхода его навигационной структуры;
+              </li>
+              <li>
+                использовать Сервис каким-либо образом, способным помешать
+                работе Сервиса, нарушить ее или негативно повлиять на Сервис,
+                серверы или сети, подключенные к Сервису;
+              </li>
+              <li>
+                загружать вирусы или другой вредоносный код или иным образом
+                нарушать безопасность Сервиса;
+              </li>
+              <li>
+                подделывать заголовки вакансий, имена, названия организаций или
+                иным образом манипулировать идентификаторами с целью скрыть
+                происхождение любой информации, передаваемой с помощью Сервиса;
+              </li>
+              <li>
+                использовать метатеги, код или другие устройства, содержащие
+                какие-либо ссылки на Компанию или Сервис (или любые товарные
+                знаки, торговые марки, сервисные знаки, логотипы или слоганы
+                Buncher), чтобы направить любое лицо на любой другой веб-сайт в
+                любых целях;
+              </li>
+              <li>
+                изменять, адаптировать, сублицензировать, переводить, продавать,
+                реконструировать, расшифровывать, декомпилировать или иным
+                образом разбирать какую-либо часть Сервиса или побуждать других
+                к таким действиям;
+              </li>
+              <li>
+                использовать или разрабатывать любые сторонние приложения,
+                которые взаимодействуют с Сервисом без письменного согласия
+                Компании;
+              </li>
+              <li>
+                исследовать, сканировать или тестировать уязвимость Сервиса,
+                любой системы или сети;
+              </li>
+              <li>поощрять любые действия, нарушающие настоящие Условия</li>
+            </ul>
+            <p>
+              Компания вправе расследовать незаконное и/или несанкционированное
+              использование Сервиса и прибегать к любым способам правовой
+              защиты, включая прекращение действия аккаунта Пользователя
+            </p>
+            <p>
+              Любое программное обеспечение, которое Компания предоставляет
+              Пользователю, может автоматически загружать и устанавливать
+              обновления или другие новые функции. Средства контроля
+              автоматических загрузок могут быть доступны в меню настроек
+              устройства Пользователя
+            </p>
+            <h4>5. Обязанности Пользователя Приложения Buncher</h4>
+            <p>
+              Пользователь принимает и соглашается с тем, что Компания имеет
+              право отслеживать и проверять любой Контент, который Пользователь
+              размещает в рамках Сервиса. Компания имеет право полностью или
+              частично удалять любой Контент, который может нарушать настоящие
+              Условия или может нанести ущерб репутации Сервиса.
+            </p>
+            <p>
+              При общении с представителями Компании по обслуживанию клиентов вы
+              соглашаетесь вести себя уважительно и вежливо. Если Компания
+              посчитает, что ваше поведение по отношению к сотруднику службы
+              Компании по работе с клиентами или другим сотрудникам является
+              угрожающим, агрессивным или оскорбительным, Компания оставляет за
+              собой право немедленно прекратить действие аккаунта Пользователя.
+            </p>
+            <p>
+              Компания имеет право получать, хранить и раскрывать информацию о
+              Контенте Пользователя, если это требуется по закону или для
+              выполнения этих Условий, если Компания добросовестно считает, что
+              такой доступ, хранение или разглашение осуществляются на законном
+              основании с целью: (i) выполнения постановления суда; (ii)
+              обеспечения выполнения требований Условий; (iii) удовлетворения
+              претензии о том, что какой-либо Контент нарушает права третьих
+              лиц; (iv) реагирования на обращение Пользователя в службу
+              поддержки клиентов; (v) защиты права, собственности или
+              обеспечения личной безопасности Компании или любого другого лица.
+            </p>
+            <p>Пользователю запрещается:</p>
+            <ul>
+              <li>
+                использовать Сервис в любых целях, которые запрещены настоящими
+                Условиями;
+              </li>
+              <li>
+                использовать Сервис с целью причинения вреда или со злым
+                умыслом;
+              </li>
+              <li>использовать Сервис с целью причинения вреда Компании</li>
+              <li>
+                рассылать спам, просить деньги у подписчиков или обманывать их;
+              </li>
+              <li>
+                выдавать себя за какое-либо лицо или организацию или публиковать
+                любые изображения другого лица без его или ее разрешения;
+              </li>
+              <li>
+                травить, преследовать, угрожать, оскорблять или унижать
+                кого-либо, а также распространять порочащие сведения;
+              </li>
+              <li>
+                размещать Контент, который нарушает чьи-либо права, включая
+                права на публичность, неприкосновенность частной жизни,
+                авторское право, товарные знаки или другие права
+                интеллектуальной собственности или права, вытекающие из
+                договора;
+              </li>
+              <li>
+                размещать любой Контент, разжигающий ненависть или содержащий
+                угрозы, а также материалы сексуального или порнографического
+                характера;
+              </li>
+              <li>
+                размещать любой Контент, который подстрекает к насилию; содержит
+                изображения обнаженного тела, сцены графического или
+                беспричинного насилия;
+              </li>
+              <li>
+                размещать любой Контент, пропагандирующий расизм, нетерпимость,
+                ненависть к любому человеку или группе лиц, а также содержащий
+                физические угрозы;
+              </li>
+              <li>
+                пытаться в каких-либо целях получить пароли других подписчиков
+                или их персональные данные в коммерческих или противозаконных
+                целях, а также распространять персональные данные других лиц без
+                его или ее разрешения;
+              </li>
+              <li>
+                использовать аккаунт другого подписчика, передавать свой аккаунт
+                другому лицу или создавать более одного аккаунта;
+              </li>
+              <li>
+                создавать другие аккаунты, если Компания уже прекратила действие
+                аккаунта и у Пользователя нет на это разрешения.
+              </li>
+            </ul>
+            <p>
+              Компания оставляет за собой право проверить и/или заблокировать
+              аккаунт Пользователя без возврата денежных средств за любые
+              покупки, если Пользователь нарушил настоящие Условия, неправильно
+              использовал Сервис или Компания сочла поведение Пользователя
+              неподобающим или незаконным, включая действия или сообщения внутри
+              Сервиса и за его пределами. 
+            </p>
+            <h4>6. Платежи, Подписка и Дополнительные Опции</h4>
+            <p>
+              Согласно настоящим Условиям Компания предоставляет Пользователю на
+              условиях простой, личной, всемирной, непередаваемой,
+              неисключительной отзывной лицензии право использования Подписки
+              или Дополнительных Опций Сервиса путем предоставления удаленного
+              доступа к ним через сеть Интернет в рамках имеющейся архитектуры и
+              технической функциональности, а также в строго определенных
+              Условиями пределах.
+            </p>
 
-                    <p>Пользователю предоставляется возможность приобретения Подписки в порядке предварительной оплаты
-                        согласно выбранному Пользователем тарифу в момент оформления платного доступа </p>
+            <p>
+              Пользователю предоставляется возможность приобретения Подписки в
+              порядке предварительной оплаты согласно выбранному Пользователем
+              тарифу в момент оформления платного доступа 
+            </p>
 
-                    <p>В случае если Пользователь решил отказаться от Подписки, ему необходимо отменить Подписку не позднее
-                        чем за 24 часа до окончания оплаченного периода Подписки в соответствии с выбранным тарифом.
-                        Стоимость Подписки в соответствии с выбранным Пользователем тарифом (в случае если при приобретении
-                        Подписки доступно несколько тарифов) списывается с Пользователя не ранее чем за 24 часа до истечения
-                        оплаченного периода Подписки в случае, если Пользователь не отказался от Подписки в указанный в
-                        настоящем пункте срок.</p>
+            <p>
+              В случае если Пользователь решил отказаться от Подписки, ему
+              необходимо отменить Подписку не позднее чем за 24 часа до
+              окончания оплаченного периода Подписки в соответствии с выбранным
+              тарифом. Стоимость Подписки в соответствии с выбранным
+              Пользователем тарифом (в случае если при приобретении Подписки
+              доступно несколько тарифов) списывается с Пользователя не ранее
+              чем за 24 часа до истечения оплаченного периода Подписки в случае,
+              если Пользователь не отказался от Подписки в указанный в настоящем
+              пункте срок.
+            </p>
 
-                    <p>В рамках настоящих Условий Пользователь Сервисов имеет возможность приобрести Дополнительные Опции в
-                        ассортименте и в объеме, которые указаны в интерфейсе приобретения Дополнительных Опций.</p>
+            <p>
+              В рамках настоящих Условий Пользователь Сервисов имеет возможность
+              приобрести Дополнительные Опции в ассортименте и в объеме, которые
+              указаны в интерфейсе приобретения Дополнительных Опций.
+            </p>
 
-                    <p>Для расчета и оплаты платежей за Подписку Компания рассчитывает любой «месяц» в интерфейсе Сервисов
-                        как период в тридцать (30) дней. Инициируя оформление Подписки, Пользователь соглашается с тем, что
-                        последующие списания стоимости Подписки будут автоматически осуществляться с использованием
-                        выбранного Пользователем способа оплаты в конце каждого периода, кратного 30 дням, выбранного
-                        Пользователем при оформлении Подписки, если только Пользователь не откажется от Подписки до даты
-                        платежа.</p>
+            <p>
+              Для расчета и оплаты платежей за Подписку Компания рассчитывает
+              любой «месяц» в интерфейсе Сервисов как период в тридцать (30)
+              дней. Инициируя оформление Подписки, Пользователь соглашается с
+              тем, что последующие списания стоимости Подписки будут
+              автоматически осуществляться с использованием выбранного
+              Пользователем способа оплаты в конце каждого периода, кратного 30
+              дням, выбранного Пользователем при оформлении Подписки, если
+              только Пользователь не откажется от Подписки до даты платежа.
+            </p>
 
-                    <p>Возможность использования Подписки и Дополнительных Опций предоставляется Пользователю с момента
-                        получения Компанией вознаграждения. Компания считается исполнившей свои обязательства по
-                        предоставлению возможности использования Подписки и Дополнительных Опций на приобретенный Период и
-                        Дополнительных Опций в момент предоставления доступа к Подписке и Дополнительным Опциям.</p>
+            <p>
+              Возможность использования Подписки и Дополнительных Опций
+              предоставляется Пользователю с момента получения Компанией
+              вознаграждения. Компания считается исполнившей свои обязательства
+              по предоставлению возможности использования Подписки и
+              Дополнительных Опций на приобретенный Период и Дополнительных
+              Опций в момент предоставления доступа к Подписке и Дополнительным
+              Опциям.
+            </p>
 
-                    <p>Стоимость оплаченного Периода при отмене Пользователем Подписки и стоимость оплаченных Дополнительных
-                        Опций
-                        возврату не подлежат.</p>
+            <p>
+              Стоимость оплаченного Периода при отмене Пользователем Подписки и
+              стоимость оплаченных Дополнительных Опций возврату не подлежат.
+            </p>
 
-                    <p>Оплата стоимости Подписки в Сервисе производится Пользователем посредством магазина приложений App
-                        Store, Google Play Маркет, а также иных магазинов приложений, в которых размещено Приложение </p>
+            <p>
+              Оплата стоимости Подписки в Сервисе производится Пользователем
+              посредством магазина приложений App Store, Google Play Маркет, а
+              также иных магазинов приложений, в которых размещено Приложение
+            </p>
 
-                    <p>Доступные тарифы Подписки и стоимость Дополнительных Опций указываются в соответствующем разделе в
-                        интерфейсе Приложения </p>
+            <p>
+              Доступные тарифы Подписки и стоимость Дополнительных Опций
+              указываются в соответствующем разделе в интерфейсе Приложения
+            </p>
 
-                    <p>Оформление и оплата Подписки и Дополнительных Опций регулируется правилами магазина приложений, в
-                        котором Пользователь оформляет Подписки.</p>
+            <p>
+              Оформление и оплата Подписки и Дополнительных Опций регулируется
+              правилами магазина приложений, в котором Пользователь оформляет
+              Подписки.
+            </p>
 
-                    <p>Техническая возможность подключения Подписки и оплаты Дополнительных Опций посредством того или иного
-                        магазина приложений может быть ограничена в соответствии с правилами такого магазина приложений.
-                    </p>
+            <p>
+              Техническая возможность подключения Подписки и оплаты
+              Дополнительных Опций посредством того или иного магазина
+              приложений может быть ограничена в соответствии с правилами такого
+              магазина приложений.
+            </p>
 
-                    <h4>7. Гарантии и ограничение ответственности</h4>
-                    <p>Сервис и его функционал, включая все скрипты, приложения, контент и оформление Сервиса, Подписка и
-                        Дополнительные Опции поставляются «как есть». Компания отказывается от всяких гарантий того, что
-                        сервис или его функционал могут подходить или не подходить для конкретных целей использования.
-                        Компания не может гарантировать и не обещает никаких специфических результатов от использования
-                        сервиса и/или его функционала включая гарантии в отношении безошибочной и бесперебойной работы
-                        Подписки и Дополнительных Опций</p>
-                    <p>Ни при каких обстоятельствах Компания не несет ответственность перед Пользователем или перед любыми
-                        третьими лицами за любой косвенный, случайный, неумышленный ущерб, включая упущенную выгоду или
-                        потерянные данные, вред чести, достоинству или деловой репутации, вызванный в связи с использованием
-                        сервиса, содержимого сервиса или иных материалов, к которым вы или иные лица получили доступ с
-                        помощью сервиса, даже если Компания предупреждала или указывала на возможность такого вреда.</p>
-                    <p>Компания не принимает на себя никаких обязательств и не несет никакой ответственности за какие-либо
-                        прямые или косвенные последствия какого-либо использования или невозможности использования Подписки
-                        и Дополнительных Опций, в т.ч. в результате утраты пользователем доступа к аккаунту и/или ущерб,
-                        причиненный пользователю и/или третьим сторонам в результате какого-либо использования,
-                        неиспользования или невозможности использования Подписки и Дополнительных Опций или отдельных ее
-                        компонентов и/или функциональности, в том числе из-за возможных ошибок или сбоев в работе Подписки и
-                        Дополнительных Опций.</p>
-                    <p>Компания не несет  ответственности перед пользователем за убытки, понесенные Пользователем связи с
-                        использованием сервиса, содержимого сервиса или иных материалов, к которым вы или иные лица получили
-                        доступ с помощью сервиса.</p>
+            <h4>7. Гарантии и ограничение ответственности</h4>
+            <p>
+              Сервис и его функционал, включая все скрипты, приложения, контент
+              и оформление Сервиса, Подписка и Дополнительные Опции поставляются
+              «как есть». Компания отказывается от всяких гарантий того, что
+              сервис или его функционал могут подходить или не подходить для
+              конкретных целей использования. Компания не может гарантировать и
+              не обещает никаких специфических результатов от использования
+              сервиса и/или его функционала включая гарантии в отношении
+              безошибочной и бесперебойной работы Подписки и Дополнительных
+              Опций
+            </p>
+            <p>
+              Ни при каких обстоятельствах Компания не несет ответственность
+              перед Пользователем или перед любыми третьими лицами за любой
+              косвенный, случайный, неумышленный ущерб, включая упущенную выгоду
+              или потерянные данные, вред чести, достоинству или деловой
+              репутации, вызванный в связи с использованием сервиса, содержимого
+              сервиса или иных материалов, к которым вы или иные лица получили
+              доступ с помощью сервиса, даже если Компания предупреждала или
+              указывала на возможность такого вреда.
+            </p>
+            <p>
+              Компания не принимает на себя никаких обязательств и не несет
+              никакой ответственности за какие-либо прямые или косвенные
+              последствия какого-либо использования или невозможности
+              использования Подписки и Дополнительных Опций, в т.ч. в результате
+              утраты пользователем доступа к аккаунту и/или ущерб, причиненный
+              пользователю и/или третьим сторонам в результате какого-либо
+              использования, неиспользования или невозможности использования
+              Подписки и Дополнительных Опций или отдельных ее компонентов и/или
+              функциональности, в том числе из-за возможных ошибок или сбоев в
+              работе Подписки и Дополнительных Опций.
+            </p>
+            <p>
+              Компания не несет  ответственности перед пользователем за убытки,
+              понесенные Пользователем связи с использованием сервиса,
+              содержимого сервиса или иных материалов, к которым вы или иные
+              лица получили доступ с помощью сервиса.
+            </p>
 
-                    <h4>8. Заключительные положения</h4>
-                    <p>Настоящие Условия составляют соглашение между Пользователем и Компанией относительно порядка
-                        использования Сервиса и его функционала.</p>
-                    <p>Настоящие Условия регулируются и толкуются в соответствии с законодательством Российской Федерации и
-                        местного законодательства.</p>
-                    <p>Настоящие Условия вступают в силу для Пользователя с момента его присоединения к ним и действуют в
-                        течение неопределенного срока.</p>
-                    <p>Если по тем или иным причинам одно или несколько положений настоящих Условий будут признаны
-                        недействительными или не имеющими юридической силы, это не оказывает влияния на действительность или
-                        применимость остальных положений.</p>
-                </div>
-            </div>
-        </aside>
+            <h4>8. Заключительные положения</h4>
+            <p>
+              Настоящие Условия составляют соглашение между Пользователем и
+              Компанией относительно порядка использования Сервиса и его
+              функционала.
+            </p>
+            <p>
+              Настоящие Условия регулируются и толкуются в соответствии с
+              законодательством Российской Федерации и местного
+              законодательства.
+            </p>
+            <p>
+              Настоящие Условия вступают в силу для Пользователя с момента его
+              присоединения к ним и действуют в течение неопределенного срока.
+            </p>
+            <p>
+              Если по тем или иным причинам одно или несколько положений
+              настоящих Условий будут признаны недействительными или не имеющими
+              юридической силы, это не оказывает влияния на действительность или
+              применимость остальных положений.
+            </p>
+          </div>
+        </div>
+      </aside>
     </div>
-</body>
-
+  </body>
 </html>
