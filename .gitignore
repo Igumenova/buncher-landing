@@ -2,3 +2,4 @@
 /node_modules/
 fullPush.ps1
 .idea
+/dist/
