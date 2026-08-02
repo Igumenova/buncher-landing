@@ -491,9 +491,11 @@ export const setScrollingAnimations = function () {
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          endBlock.classList.add("section-footer_shown");
           setMainCornerShown(false);
           setMainRightPlusShown(false);
         } else {
+          endBlock.classList.remove("section-footer_shown");
           const mainRect = mainSection.getBoundingClientRect();
           const isMainVisible =
             mainRect.top < window.innerHeight && mainRect.bottom > 0;
