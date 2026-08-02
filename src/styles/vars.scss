@@ -7,20 +7,22 @@ $semi-bold: 600;
 //sizes
 $line-height: 16px;
 $min-section-height: max(100vh, 41vw);
-$decoration-line-smaller-dim: 2px;
-$decoration-line-bigger-45-dim: 45px;
-$decoration-line-bigger-35-dim: 35px;
-$decoration-line-bigger-25-dim: 25px;
+$decoration-line-smaller-dim: 1px;
+$decoration-line-bigger-45-dim: 36px;
+$decoration-line-bigger-35-dim: 36px;
+$decoration-line-bigger-25-dim: 36px;
 $decoration-line-std-margin: 18px;
 $gap-between-numbers: 10vh;
 
 //colors
-$dark-blue: #384D60;
-$dark-blue-filter: brightness(0) saturate(100%) invert(26%) sepia(4%) saturate(4099%) hue-rotate(168deg) brightness(94%) contrast(84%);
-$bright-blue: #1DA1F2;
-$bright-blue-filter: brightness(0) saturate(100%) invert(54%) sepia(69%) saturate(1516%) hue-rotate(175deg) brightness(91%) contrast(110%);
+$dark-blue: #384d60;
+$dark-blue-filter: brightness(0) saturate(100%) invert(26%) sepia(4%)
+  saturate(4099%) hue-rotate(168deg) brightness(94%) contrast(84%);
+$bright-blue: #1da1f2;
+$bright-blue-filter: brightness(0) saturate(100%) invert(54%) sepia(69%)
+  saturate(1516%) hue-rotate(175deg) brightness(91%) contrast(110%);
 $pale-blue: #228ed0;
-$light-grey: #F7F8F9;
+$light-grey: #f7f8f9;
 $white: #fff;
 $grey: #d3d3d3;
 $fade-black: #1f1f1f;
@@ -46,7 +48,7 @@ $small-transition: all $small-transition-time ease-in-out;
 @mixin decorationLine {
   position: absolute;
   background-color: $dark-blue;
-  border-radius: 1px;
+  border-radius: 999px;
 }
 
 @mixin transitionStopPropagation {
@@ -56,7 +58,17 @@ $small-transition: all $small-transition-time ease-in-out;
   }
 }
 
-@mixin mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin) {
+@mixin mainSectionRecount(
+  $wrapper-padding-left,
+  $wrapper-padding-right,
+  $horizontal-line-bottom,
+  $currentDecorationLen,
+  $phone-upper-margin
+) {
+  $decoration-side-offset: 120px;
+  $decoration-edge-offset: $decoration-line-std-margin;
+  $decoration-plus-top-offset: 43px;
+
   &__wrapper {
     padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
   }
@@ -71,22 +83,67 @@ $small-transition: all $small-transition-time ease-in-out;
 
   &__decoration {
     &_hor {
-      bottom: $horizontal-line-bottom;
+      bottom: $decoration-side-offset;
+      height: $decoration-line-smaller-dim;
+      border: 0;
 
       &_hidden {
-        transform: translateX(calc(-1 * $currentDecorationLen - $decoration-line-std-margin));
+        transform: translateX(
+          calc(-1 * $currentDecorationLen - $decoration-edge-offset)
+        );
       }
     }
 
     &_vert {
-      bottom: $decoration-line-std-margin;
-      left: $wrapper-padding-left;
+      bottom: $decoration-edge-offset;
+      left: $decoration-side-offset;
+      width: $decoration-line-smaller-dim;
+      border: 0;
+
+      &_hidden {
+        transform: translate(
+            calc(
+              -1 *
+                (
+                  $decoration-side-offset - $decoration-edge-offset -
+                    $currentDecorationLen
+                )
+            ),
+            calc(-1 * ($decoration-side-offset - $decoration-edge-offset))
+          )
+          rotate(90deg);
+        opacity: 0;
+      }
     }
 
     &_square {
+      display: none;
       left: $currentDecorationLen;
-      width: calc($wrapper-padding-left - $currentDecorationLen - $decoration-line-std-margin);
-      height: calc($horizontal-line-bottom - $decoration-line-std-margin + $decoration-line-smaller-dim);
+      width: calc(
+        $decoration-side-offset - $currentDecorationLen -
+          $decoration-edge-offset
+      );
+      height: calc(
+        $decoration-side-offset - $currentDecorationLen -
+          $decoration-edge-offset
+      );
+    }
+
+    &_plus-vert {
+      right: $decoration-side-offset;
+      top: $decoration-plus-top-offset;
+      width: $decoration-line-smaller-dim;
+      border: 0;
+    }
+
+    &_plus-hor {
+      right: calc($decoration-side-offset - $currentDecorationLen / 2);
+      top: calc(
+        $decoration-plus-top-offset +
+          ($currentDecorationLen - $decoration-line-smaller-dim) / 2
+      );
+      height: $decoration-line-smaller-dim;
+      border: 0;
     }
 
     &_long {
@@ -119,7 +176,12 @@ $small-transition: all $small-transition-time ease-in-out;
   }
 }
 
-@mixin createKeyFrames_leanSlideAndBounce($startVal, $endVal, $name, $dispersion) {
+@mixin createKeyFrames_leanSlideAndBounce(
+  $startVal,
+  $endVal,
+  $name,
+  $dispersion
+) {
   $bounce_len: calc(($endVal - $startVal) * $dispersion);
   @keyframes #{$name} {
     0% {
@@ -141,33 +203,25 @@ $small-transition: all $small-transition-time ease-in-out;
 }
 
 @media screen and (min-width: 1440px) and (max-width: 1600px) {
-
 }
 
 @media screen and (min-width: 1366px) and (max-width: 1440px) {
-
 }
 
 @media screen and (min-width: 1024px) and (max-width: 1366px) {
-
 }
 
 @media screen and (min-width: 800px) and (max-width: 1024px) {
-
 }
 
 @media screen and (min-width: 600px) and (max-width: 800px) {
-
 }
 
 @media screen and (min-width: 430px) and (max-width: 600px) {
-
 }
 
 @media screen and (min-width: 375px) and (max-width: 430px) {
-
 }
 
 @media screen and (max-width: 375px) {
-
 }

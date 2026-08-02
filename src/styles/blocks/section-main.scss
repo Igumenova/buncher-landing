@@ -8,7 +8,10 @@
   $wrapper-padding-right: min(25vw, 489px);
   $line-right-margin: 30%;
   $phone-upper-margin: 10vh;
-  $horizontal-line-bottom: 182px;
+  $decoration-side-offset: 120px;
+  $decoration-edge-offset: $decoration-line-std-margin;
+  $decoration-plus-top-offset: 43px;
+  $horizontal-line-bottom: $decoration-side-offset;
   $decoration-line-long-margin: 76%;
   $currentDecorationLen: $decoration-line-bigger-45-dim;
   $rotate: 90deg;
@@ -40,13 +43,13 @@
 
     &:before {
       display: block;
-      content: '';
+      content: "";
       height: 60vh;
     }
 
     &:after {
       display: block;
-      content: '';
+      content: "";
       height: 60vh;
     }
 
@@ -69,7 +72,6 @@
         flex: 1 1;
       }
     }
-
   }
 
   &__text-block {
@@ -79,12 +81,12 @@
     flex-direction: column;
 
     &:before {
-      content: '';
+      content: "";
       flex: 1 1;
     }
 
     &:after {
-      content: '';
+      content: "";
       flex: 1.1 1;
     }
   }
@@ -103,7 +105,7 @@
     width: min(815px, calc(100vw - $shuffle-left-offset * 2));
     margin: 0 0 0 $shuffle-left-offset;
     transform: translateY(-50%);
-    color: #D6E7F2;
+    color: #d6e7f2;
     font-family: Montserrat, sans-serif;
     font-size: clamp(42px, 3.125vw, 60px);
     font-weight: $semi-bold;
@@ -132,7 +134,7 @@
     color: inherit;
 
     &_highlight {
-      color: #384D60;
+      color: #384d60;
     }
   }
 
@@ -149,7 +151,7 @@
 
   &__phone-volume {
     position: absolute;
-    content: '';
+    content: "";
     display: block;
     width: 1px;
     height: 14.77%;
@@ -159,13 +161,12 @@
 
   &__phone-block {
     position: absolute;
-    content: '';
+    content: "";
     display: block;
     width: 1px;
     height: 7.39%;
     right: -1px;
     top: 38.05%;
-
   }
 
   &__phone-container {
@@ -204,7 +205,9 @@
     z-index: 2;
     aspect-ratio: $counter-ratio;
     width: calc($wrapper-padding-right + $offset);
-    height: calc(($wrapper-padding-right + $offset) / $counter-ratio); //do not remove, aspect ration doesnt work properly sometimes
+    height: calc(
+      ($wrapper-padding-right + $offset) / $counter-ratio
+    ); //do not remove, aspect ration doesnt work properly sometimes
     max-width: calc(85vh * $counter-ratio);
     max-height: 85vh;
     right: -50%;
@@ -212,16 +215,39 @@
 
     padding: $counter-vert-padding 0 $counter-vert-padding 100%;
 
-    mask-image: linear-gradient(rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 1) $counter-vert-padding,
-        rgba(255, 255, 255, 1) calc(100% - $counter-vert-padding),
-        rgba(255, 255, 255, 0) 100%);
+    mask-image: linear-gradient(
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 1) $counter-vert-padding,
+      rgba(255, 255, 255, 1) calc(100% - $counter-vert-padding),
+      rgba(255, 255, 255, 0) 100%
+    );
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
     mask-position: 0 0;
 
     &_shown {
-      right: 0;
+      right: var(--counter-shown-right, 0);
+    }
+
+    @media screen and (min-width: 601px) and (orientation: landscape) {
+      aspect-ratio: auto;
+      width: 1920px;
+      height: 1080px;
+      max-width: none;
+      max-height: none;
+      right: -1920px;
+      top: 0;
+      padding: 0;
+      mask-image: none;
+      -webkit-mask-image: none;
+      box-sizing: border-box;
+      overflow: visible;
+      transform: scale(var(--counter-scale, 1));
+      transform-origin: top right;
+
+      &_shown {
+        right: var(--counter-shown-right, 0);
+      }
     }
   }
 
@@ -247,7 +273,7 @@
     transform: rotate($rotate);
     opacity: 1;
 
-    &>* {
+    & > * {
       transform: rotate(calc(-1 * $rotate));
       transform-origin: bottom left;
     }
@@ -258,12 +284,12 @@
       transform: unset;
 
       * {
-        animation: rollBackAndFade $decoration-animation-duration ease-out forwards;
+        animation: rollBackAndFade $decoration-animation-duration ease-out
+          forwards;
         animation-delay: calc($endAnimation / 2);
         transform: unset;
       }
     }
-
 
     &_hidden {
       animation-delay: unset;
@@ -281,30 +307,103 @@
     position: absolute;
 
     &_hor {
-      left: $decoration-line-std-margin;
+      left: $decoration-edge-offset;
       bottom: $horizontal-line-bottom;
-      transition: transform $endAnimation ease-out;
-      transition-delay: unset;
+      height: $decoration-line-smaller-dim;
+      border: 0;
+      transition: none;
+      will-change: transform;
 
       &_hidden {
-        transform: translateX(calc(-1 * $currentDecorationLen - $decoration-line-std-margin));
-        transition-delay: $decoration-animation-duration;
+        transform: translateX(
+          calc(-1 * $currentDecorationLen - $decoration-edge-offset)
+        );
       }
     }
 
     &_vert {
-      bottom: $decoration-line-std-margin;
-      left: $wrapper-padding-left;
+      bottom: $decoration-edge-offset;
+      left: $decoration-side-offset;
+      width: $decoration-line-smaller-dim;
+      border: 0;
+      transform-origin: bottom left;
+      transition: none;
+      will-change: transform, opacity;
+      opacity: 1;
+
+      &_hidden {
+        transform: translate(
+            calc(
+              -1 *
+                (
+                  $decoration-side-offset - $decoration-edge-offset -
+                    $currentDecorationLen
+                )
+            ),
+            calc(-1 * ($decoration-side-offset - $decoration-edge-offset))
+          )
+          rotate(90deg);
+        opacity: 0;
+      }
     }
 
     &_square {
+      display: none;
       left: $currentDecorationLen;
       bottom: 0;
-      width: calc($wrapper-padding-left - $currentDecorationLen - $decoration-line-std-margin);
-      height: calc($horizontal-line-bottom - $decoration-line-std-margin + $decoration-line-smaller-dim);
-      border-top-right-radius: 80%;
+      width: calc(
+        $decoration-side-offset - $currentDecorationLen -
+          $decoration-edge-offset
+      );
+      height: calc(
+        $decoration-side-offset - $currentDecorationLen -
+          $decoration-edge-offset
+      );
+      border-top-right-radius: 0;
       border-bottom: none;
       border-left: none;
+    }
+
+    &_plus-vert {
+      right: $decoration-side-offset;
+      top: $decoration-plus-top-offset;
+      width: $decoration-line-smaller-dim;
+      border: 0;
+      transition:
+        transform $decoration-animation-duration ease-in-out,
+        opacity $small-transition-time linear;
+      opacity: 1;
+      will-change: transform, opacity;
+    }
+
+    &_plus-hor {
+      right: calc($decoration-side-offset - $currentDecorationLen / 2);
+      top: calc(
+        $decoration-plus-top-offset +
+          ($currentDecorationLen - $decoration-line-smaller-dim) / 2
+      );
+      height: $decoration-line-smaller-dim;
+      border: 0;
+      transform-origin: center center;
+      transition:
+        transform $decoration-animation-duration ease-in-out,
+        opacity $small-transition-time linear;
+      opacity: 1;
+      will-change: transform, opacity;
+    }
+
+    &_plus-hidden {
+      opacity: 0;
+    }
+
+    &_plus-vert.section-main__decoration_plus-hidden {
+      transform: translateY(
+        calc(-1 * ($decoration-plus-top-offset + $currentDecorationLen))
+      );
+    }
+
+    &_plus-hor.section-main__decoration_plus-hidden {
+      transform: scaleX(0);
     }
 
     &_long {
@@ -315,7 +414,7 @@
       height: calc(100% - $decoration-line-std-margin * 2);
 
       &:before {
-        content: '';
+        content: "";
         transition: $line-transition;
         @include decorationLine;
         width: $decoration-line-smaller-dim;
@@ -324,7 +423,7 @@
       }
 
       &:after {
-        content: '';
+        content: "";
         transition: $line-transition;
         @include decorationLine;
         width: $decoration-line-smaller-dim;
@@ -334,13 +433,17 @@
 
       &_hidden {
         &:before {
-          transition: $line-transition, opacity 0.1s linear 0.7s;
+          transition:
+            $line-transition,
+            opacity 0.1s linear 0.7s;
           transform: translateY(calc($line-gap + $currentDecorationLen));
           opacity: 0;
         }
 
         &:after {
-          transition: $line-transition, opacity 0.1s linear 0.7s;
+          transition:
+            $line-transition,
+            opacity 0.1s linear 0.7s;
           transform: translateY(calc(-1 * $line-gap - $currentDecorationLen));
           opacity: 0;
         }
@@ -419,10 +522,19 @@
     }
 
     &__content-block {
-      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 300px);
+      max-width: min(
+        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
+        300px
+      );
     }
 
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
   }
 
   @media screen and (min-width: 1366px) and (max-width: 1440px) {
@@ -444,10 +556,19 @@
     }
 
     &__content-block {
-      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 300px);
+      max-width: min(
+        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
+        300px
+      );
     }
 
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
   }
 
   @media screen and (min-width: 1024px) and (max-width: 1366px) {
@@ -469,10 +590,19 @@
     }
 
     &__content-block {
-      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 250px);
+      max-width: min(
+        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
+        250px
+      );
     }
 
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
   }
 
   @media screen and (min-width: 800px) and (max-width: 1024px) {
@@ -494,16 +624,19 @@
     }
 
     &__content-block {
-      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 250px);
+      max-width: min(
+        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
+        250px
+      );
     }
 
-    &__counter-block {
-      $offset: 32px;
-      width: calc($wrapper-padding-right + $offset);
-      height: calc(($wrapper-padding-right + $offset) / $counter-ratio); //do not remove, aspect ration doesnt work properly sometimes
-    }
-
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
   }
 
   @media screen and (min-width: 600px) and (max-width: 800px) {
@@ -525,14 +658,23 @@
     }
 
     &__content-block {
-      max-width: min(calc((100vh - $phone-upper-margin * 2) * $phone-ratio), 190px);
+      max-width: min(
+        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
+        190px
+      );
     }
 
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
   }
 
   @media screen and (min-width: 430px) and (max-width: 600px),
-  (orientation: portrait) and (min-width: 600px) {
+    (orientation: portrait) and (min-width: 600px) {
     $wrapper-padding-left: 50px;
     $wrapper-padding-right: 50px;
     $horizontal-line-bottom: 105px;
@@ -540,7 +682,13 @@
     $content-left-margin: max(144px, 23vw);
     $content-max-width: max(204px, 33vw);
     $currentDecorationLen: $decoration-line-bigger-25-dim;
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
 
     &__wrapper {
       display: flex;
@@ -552,10 +700,12 @@
 
     &__text-container {
       flex: 1 1 100%;
-      mask-image: linear-gradient(rgba(255, 255, 255, 0) 5%,
-          rgba(255, 255, 255, 1) 15%,
-          rgba(255, 255, 255, 1) 85%,
-          rgba(255, 255, 255, 0) 95%);
+      mask-image: linear-gradient(
+        rgba(255, 255, 255, 0) 5%,
+        rgba(255, 255, 255, 1) 15%,
+        rgba(255, 255, 255, 1) 85%,
+        rgba(255, 255, 255, 0) 95%
+      );
       order: 2;
       max-width: 77%;
     }
@@ -576,7 +726,6 @@
       height: unset;
       padding-bottom: $phone-upper-margin;
       margin-left: calc($content-left-margin - $wrapper-padding-left);
-
     }
 
     &__phone-container {
@@ -588,8 +737,10 @@
       top: 0;
       left: -36px;
 
-      mask-image: linear-gradient(rgba(255, 255, 255, 1) 0%,
-          rgba(255, 255, 255, 1) 100%);
+      mask-image: linear-gradient(
+        rgba(255, 255, 255, 1) 0%,
+        rgba(255, 255, 255, 1) 100%
+      );
       mask-size: 100% 100%;
       mask-repeat: no-repeat;
       mask-position: 36px 0;
@@ -613,7 +764,9 @@
       }
 
       &_long {
-        $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+        $line-gap: calc(
+          2 * $decoration-line-std-margin + $currentDecorationLen
+        );
         top: $decoration-line-std-margin;
         height: calc(100% - $decoration-line-std-margin);
 
@@ -638,7 +791,13 @@
     $content-max-width: min(220px, 50vw);
     $content-left-margin: 58px;
     $currentDecorationLen: $decoration-line-bigger-25-dim;
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
 
     &__wrapper {
       display: flex;
@@ -650,10 +809,12 @@
 
     &__text-container {
       flex: 1 1 100%;
-      mask-image: linear-gradient(rgba(255, 255, 255, 0) 5%,
-          rgba(255, 255, 255, 1) 15%,
-          rgba(255, 255, 255, 1) 85%,
-          rgba(255, 255, 255, 0) 95%);
+      mask-image: linear-gradient(
+        rgba(255, 255, 255, 0) 5%,
+        rgba(255, 255, 255, 1) 15%,
+        rgba(255, 255, 255, 1) 85%,
+        rgba(255, 255, 255, 0) 95%
+      );
       order: 2;
       max-width: 100%;
     }
@@ -685,8 +846,10 @@
       top: 0;
       left: -30vw;
 
-      mask-image: linear-gradient(rgba(255, 255, 255, 1) 0%,
-          rgba(255, 255, 255, 1) 100%);
+      mask-image: linear-gradient(
+        rgba(255, 255, 255, 1) 0%,
+        rgba(255, 255, 255, 1) 100%
+      );
       mask-size: 100% 100%;
       mask-repeat: no-repeat;
       mask-position: 30vw 0;
@@ -711,7 +874,9 @@
 
       &_long {
         width: 1px;
-        $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+        $line-gap: calc(
+          2 * $decoration-line-std-margin + $currentDecorationLen
+        );
         top: 0;
         height: calc(100%);
 
@@ -734,7 +899,13 @@
     $content-max-width: min(200px, 50vw);
     $content-left-margin: 64px;
     $currentDecorationLen: $decoration-line-bigger-25-dim;
-    @include mainSectionRecount($wrapper-padding-left, $wrapper-padding-right, $horizontal-line-bottom, $currentDecorationLen, $phone-upper-margin);
+    @include mainSectionRecount(
+      $wrapper-padding-left,
+      $wrapper-padding-right,
+      $horizontal-line-bottom,
+      $currentDecorationLen,
+      $phone-upper-margin
+    );
 
     &__wrapper {
       display: flex;
@@ -746,10 +917,12 @@
 
     &__text-container {
       flex: 1 1 100%;
-      mask-image: linear-gradient(rgba(255, 255, 255, 0) 5%,
-          rgba(255, 255, 255, 1) 15%,
-          rgba(255, 255, 255, 1) 85%,
-          rgba(255, 255, 255, 0) 95%);
+      mask-image: linear-gradient(
+        rgba(255, 255, 255, 0) 5%,
+        rgba(255, 255, 255, 1) 15%,
+        rgba(255, 255, 255, 1) 85%,
+        rgba(255, 255, 255, 0) 95%
+      );
       order: 2;
       max-width: 100%;
     }
@@ -781,8 +954,10 @@
       top: 0;
       left: -30vw;
 
-      mask-image: linear-gradient(rgba(255, 255, 255, 1) 0%,
-          rgba(255, 255, 255, 1) 100%);
+      mask-image: linear-gradient(
+        rgba(255, 255, 255, 1) 0%,
+        rgba(255, 255, 255, 1) 100%
+      );
       mask-size: 100% 100%;
       mask-repeat: no-repeat;
       mask-position: 30vw 0;
@@ -807,7 +982,9 @@
 
       &_long {
         width: 1px;
-        $line-gap: calc(2 * $decoration-line-std-margin + $currentDecorationLen);
+        $line-gap: calc(
+          2 * $decoration-line-std-margin + $currentDecorationLen
+        );
         top: 0;
         height: calc(100%);
 

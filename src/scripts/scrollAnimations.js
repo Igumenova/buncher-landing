@@ -23,6 +23,99 @@ export const setScrollingAnimations = function () {
     element.style.setProperty(`-o-${styleName}`, value);
     element.style.setProperty(styleName, value);
   };
+  let setMainCornerShown = function () {
+    // initialized in createMainCornerAnimation
+  };
+  const setMainRightPlusShown = (isShown) => {
+    document
+      .querySelectorAll(
+        ".section-main__decoration_plus-vert, .section-main__decoration_plus-hor",
+      )
+      .forEach((line) => {
+        line.classList.toggle("section-main__decoration_plus-hidden", !isShown);
+      });
+  };
+  const createMainCornerAnimation = function () {
+    const EDGE_OFFSET = 18;
+    const SIDE_OFFSET = 120;
+    const ANIMATION_DURATION = 500;
+    const horizontalLine = document.querySelector(
+      ".decoration-line_hor_trackable",
+    );
+    const verticalLine = document.querySelector(
+      ".decoration-line_vert_trackable",
+    );
+
+    let progress = 0;
+    let targetProgress = 0;
+    let frameId = null;
+    let animationStart = 0;
+    let startProgress = 0;
+
+    const easeInOut = (value) =>
+      value < 0.5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
+
+    const applyProgress = (value) => {
+      const lineSize = horizontalLine.offsetWidth;
+      const startX = EDGE_OFFSET + lineSize;
+      const startY = SIDE_OFFSET;
+      const endX = SIDE_OFFSET;
+      const endY = EDGE_OFFSET + lineSize;
+      const radius = endX - startX;
+      const revealPart = 0.32;
+      const curvedProgress = easeInOut(value);
+      const revealProgress = Math.min(curvedProgress / revealPart, 1);
+      const arcProgress =
+        curvedProgress <= revealPart
+          ? 0
+          : (curvedProgress - revealPart) / (1 - revealPart);
+      const arcAngle = ((1 - arcProgress) * Math.PI) / 2;
+      const movingTopX = startX + radius * Math.cos(arcAngle);
+      const movingTopY = endY + radius * Math.sin(arcAngle);
+      const lineAngle = -90 * (1 - arcProgress);
+
+      horizontalLine.style.transform = "none";
+      verticalLine.style.left = `${movingTopX}px`;
+      verticalLine.style.bottom = `${movingTopY - lineSize}px`;
+      verticalLine.style.transform = `rotate(${lineAngle}deg) scaleY(${revealProgress})`;
+      verticalLine.style.opacity = revealProgress > 0.02 ? "1" : "0";
+    };
+
+    const step = (time) => {
+      const elapsed = time - animationStart;
+      const localProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
+      progress =
+        startProgress +
+        (targetProgress - startProgress) * easeInOut(localProgress);
+
+      applyProgress(progress);
+
+      if (localProgress < 1) {
+        frameId = requestAnimationFrame(step);
+      }
+    };
+
+    setMainCornerShown = (isShown) => {
+      targetProgress = isShown ? 1 : 0;
+
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+
+      startProgress = progress;
+      animationStart = performance.now();
+      frameId = requestAnimationFrame(step);
+    };
+
+    horizontalLine.style.left = `${EDGE_OFFSET}px`;
+    horizontalLine.style.bottom = `${SIDE_OFFSET}px`;
+    verticalLine.style.transformOrigin = "top center";
+    applyProgress(progress);
+
+    window.addEventListener("resize", () => {
+      applyProgress(progress);
+    });
+  };
   const createNumberIntersectionObserver = function (blocks) {
     const REGEX = /_\d+-\d+$/;
     const numberCont = document.getElementById("changing-number");
@@ -174,18 +267,19 @@ export const setScrollingAnimations = function () {
     const mainSection = document.getElementById("section-main");
     const shuffleLayer = document.createElement("div");
     const shuffleText = document.createElement("h2");
-    const getHighlightRanges = (steps) => steps.map((step) => {
-      return step.highlight.reduce((ranges, word) => {
-        const start = step.text.toLowerCase().indexOf(word.toLowerCase());
-        if (start !== -1) {
-          ranges.push({
-            start,
-            end: start + word.length,
-          });
-        }
-        return ranges;
-      }, []);
-    });
+    const getHighlightRanges = (steps) =>
+      steps.map((step) => {
+        return step.highlight.reduce((ranges, word) => {
+          const start = step.text.toLowerCase().indexOf(word.toLowerCase());
+          if (start !== -1) {
+            ranges.push({
+              start,
+              end: start + word.length,
+            });
+          }
+          return ranges;
+        }, []);
+      });
     let textSteps = getScrollAnimationTextSteps();
     let highlightRanges = getHighlightRanges(textSteps);
     let activeStep = -1;
@@ -348,7 +442,9 @@ export const setScrollingAnimations = function () {
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
   };
   const createMainIntersectionObserver = function () {
+    const coverSection = document.querySelector(".section-cover");
     const mainSection = document.getElementById("section-main");
+    const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
     const options = {
@@ -359,15 +455,24 @@ export const setScrollingAnimations = function () {
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          coverSection.classList.add("section-cover_scrolled");
           longDecorationLine.classList.add(
             "section-main__decoration_long_hidden",
           );
           counterBlock.classList.add("section-main__counter-block_shown");
+          if (footerSection.getBoundingClientRect().top < window.innerHeight) {
+            return;
+          }
+          setMainCornerShown(true);
+          setMainRightPlusShown(true);
         } else {
+          coverSection.classList.remove("section-cover_scrolled");
           longDecorationLine.classList.remove(
             "section-main__decoration_long_hidden",
           );
           counterBlock.classList.remove("section-main__counter-block_shown");
+          setMainCornerShown(false);
+          setMainRightPlusShown(false);
         }
       });
     };
@@ -377,13 +482,7 @@ export const setScrollingAnimations = function () {
   };
   const createEndIntersectionObserver = function () {
     const endBlock = document.getElementById("section-footer");
-    const decorativeLine = document.querySelector(
-      ".decoration-line_hor_trackable",
-    );
-    const decorativeMask = document.querySelector(
-      ".section-main__mask_trackable ",
-    );
-
+    const mainSection = document.getElementById("section-main");
     const options = {
       root: null,
       threshold: 0.1,
@@ -392,14 +491,19 @@ export const setScrollingAnimations = function () {
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          decorativeLine.classList.add("section-main__decoration_hor_hidden");
-          decorativeMask.classList.add("section-main__mask_hidden");
-          decorativeMask.classList.add("section-main__mask_animated");
+          setMainCornerShown(false);
+          setMainRightPlusShown(false);
         } else {
-          decorativeLine.classList.remove(
-            "section-main__decoration_hor_hidden",
-          );
-          decorativeMask.classList.remove("section-main__mask_hidden");
+          const mainRect = mainSection.getBoundingClientRect();
+          const isMainVisible =
+            mainRect.top < window.innerHeight && mainRect.bottom > 0;
+
+          if (!isMainVisible) {
+            return;
+          }
+
+          setMainCornerShown(true);
+          setMainRightPlusShown(true);
         }
       });
     };
@@ -417,7 +521,7 @@ export const setScrollingAnimations = function () {
     const phone = document.getElementById("phone");
     const counter = document.getElementById("counter");
     const wrapper = document.getElementById("main-wrapper");
-    const arrowEl = document.querySelector(".section-main__arrow-block");
+    // const arrowEl = document.querySelector(".section-main__arrow-block");
     const footerSection = document.getElementById("section-footer");
     const footerContainer = footerSection.querySelector(
       ".section-footer__footer-container",
@@ -452,11 +556,11 @@ export const setScrollingAnimations = function () {
         const rect = contentContainer.getBoundingClientRect();
         const visibleSize = measure100vh.clientHeight - rect.height;
         const textContainerSize = visibleSize * (NUMBER_OF_BLOCKS + 1.4); //+1.4 as we have pseudo-elements;
-        addStyleWithPrefixes(
-          arrowEl,
-          "mask-size",
-          `${rect.right - rect.width * 0.24}px`,
-        );
+        // addStyleWithPrefixes(
+        //   arrowEl,
+        //   "mask-size",
+        //   `${rect.right - rect.width * 0.24}px`,
+        // );
         wrapper.style.paddingBottom = `${visibleSize}px`;
         wrapper.style.height = `${rect.height + textContainerSize}px`;
         textContainer.style.minHeight = `${textContainerSize}px`;
@@ -482,27 +586,48 @@ export const setScrollingAnimations = function () {
 
         counter.style.width = `${counterWidth}px`;
         counter.style.height = `${counterWidth / COUNTER_RATIO}px`;
+        counter.style.maxWidth = "";
+        counter.style.maxHeight = "";
+        counter.style.paddingTop = "";
+        counter.style.paddingBottom = "";
+        counter.style.paddingLeft = "";
+        counter.style.removeProperty("--counter-shown-right");
+        counter.style.removeProperty("--counter-scale");
         counter.style.top = "auto";
         counter.style.bottom = `${counterBottom}px`;
       });
     };
     const setBiggerScreenStyles = () => {
       textContainer.classList.remove("section-main__text-container_small"); //must be executed first!
-      addStyleWithPrefixes(arrowEl, "mask-size", "unset");
+      // addStyleWithPrefixes(arrowEl, "mask-size", "unset");
       wrapper.style.paddingBottom = "0";
       wrapper.style.height = `auto`;
       textContainer.style.minHeight = `100vh`;
 
       requestAnimationFrame(() => {
-        const gap_between_numbers = measure100vh.clientHeight * 0.1;
-        const rect = contentContainer.getBoundingClientRect();
-        const phoneRect = phone.getBoundingClientRect();
-        let counterWidth = window.innerWidth - phoneRect.right + 10;
-        const counterTop = phoneRect.top - rect.top - gap_between_numbers * 0.5;
-        counter.style.width = `${counterWidth}px`;
-        counter.style.height = `${counterWidth / COUNTER_RATIO}px`;
-        counter.style.top = `${counterTop}px`;
+        const counterTopOffset = 0;
+        const counterHost = document.querySelector(
+          ".section-main__decoration-container",
+        );
+        const counterHostRect = counterHost.getBoundingClientRect();
+        const counterBaseWidth = 1920;
+        const counterBaseHeight = 1080;
+        const counterScale = Math.min(
+          counterHostRect.width / counterBaseWidth,
+          counterHostRect.height / counterBaseHeight,
+        );
+
+        counter.style.width = `${counterBaseWidth}px`;
+        counter.style.height = `${counterBaseHeight}px`;
+        counter.style.maxWidth = `${counterBaseWidth}px`;
+        counter.style.maxHeight = `${counterBaseHeight}px`;
+        counter.style.paddingTop = "0";
+        counter.style.paddingBottom = "0";
+        counter.style.paddingLeft = "0";
+        counter.style.top = `${counterTopOffset}px`;
         counter.style.bottom = `auto`;
+        counter.style.setProperty("--counter-scale", counterScale);
+        counter.style.setProperty("--counter-shown-right", "40px");
       });
     };
     const changeMode = () => {
@@ -525,6 +650,7 @@ export const setScrollingAnimations = function () {
   createNumberIntersectionObserver(blocks);
   createPhoneAnimation(blocks);
   createShuffleTextAnimation(blocks);
+  createMainCornerAnimation();
   createMainIntersectionObserver();
   createEndIntersectionObserver();
 };

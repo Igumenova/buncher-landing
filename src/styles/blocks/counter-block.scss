@@ -1,68 +1,67 @@
 .counter-block {
-  position: relative;
-  $cell-height: 68%;
+  $mobile-digit-height: 68%;
+  $desktop-offset: 50px;
   $dispersion: 0.1;
-  $gap-size: calc(($gap-between-numbers + 100% - $cell-height) * 1.3);
-  $step-size: calc(-1 * $gap-size - $cell-height);
+  $mobile-gap-size: calc(
+    ($gap-between-numbers + 100% - $mobile-digit-height) * 1.3
+  );
+  $mobile-step-size: calc(-1 * $mobile-gap-size - $mobile-digit-height);
   $animation-speed: 0.8s;
-  height: 100%;
+
+  position: relative;
   width: 100%;
+  height: 100%;
 
   &__number-container {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
     top: 0;
     left: -15%;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 80%;
-    gap: $gap-size;
+    height: 100%;
+    gap: $mobile-gap-size;
     transform: translateY(0);
     animation: slide2to1 $animation-speed ease-in-out forwards;
 
-
-    //start animation classes
-    &_0-1 {
-      animation: none;
-    }
-
-    &_1-0 {
-      animation: none;
-    }
-
+    &_0-1,
+    &_1-0,
     &_1-1 {
       animation: none;
     }
 
     @for $i from 1 through 4 {
-      &_#{$i}-#{$i+1} {
-        animation: slide#{$i}to#{$i+1} $animation-speed ease-in-out forwards;
-        transform: translateY(calc($step-size * $i));
+      &_#{$i}-#{$i + 1} {
+        animation: slide#{$i}to#{$i + 1} $animation-speed ease-in-out forwards;
+        transform: translateY(calc($mobile-step-size * $i));
       }
 
-      &_#{$i+2}-#{$i+1} {
-        animation: slide#{$i+2}to#{$i+1} $animation-speed ease-in-out forwards;
-        transform: translateY(calc($step-size * $i));
+      &_#{$i + 2}-#{$i + 1} {
+        animation: slide#{$i +
+          2}to#{$i +
+          1}
+          $animation-speed
+          ease-in-out
+          forwards;
+        transform: translateY(calc($mobile-step-size * $i));
       }
 
-      &_#{$i+1}-#{$i+1} {
+      &_#{$i + 1}-#{$i + 1} {
         animation: none;
-        transform: translateY(calc($step-size * $i));
+        transform: translateY(calc($mobile-step-size * $i));
       }
     }
   }
 
   &__number {
-    height: $cell-height;
-    max-height: $cell-height;
-    min-height: $cell-height;
+    height: $mobile-digit-height;
+    max-height: $mobile-digit-height;
+    min-height: $mobile-digit-height;
 
     &:first-child {
       position: relative;
       left: -5px;
-      right: auto;
     }
   }
 
@@ -75,17 +74,151 @@
 
   &__denominator {
     position: absolute;
-    bottom: 0;
     right: -40%;
+    bottom: 0;
     height: 80%;
     object-fit: cover;
   }
 
-  @for $i from 0 through 4 {
-    $cur-pos: calc($step-size * $i);
+  @media screen and (min-width: 601px) and (orientation: landscape) {
+    $desktop-left-top: 35px;
+    $desktop-left-height: 770px;
+    $desktop-left-gap: 420px;
+    $desktop-left-step: 1190px;
+    $desktop-right-top: 140px;
+    $desktop-right-height: 920px;
+    $desktop-right-offset: 35px;
+    $desktop-division-top: 40px;
+    $desktop-content-left: 640px;
+    $desktop-division-left: 1088px;
+    $desktop-division-height: 1000px;
 
-    @include createKeyFrames_leanSlideAndBounce($cur-pos, calc($cur-pos + $step-size), slide#{$i+1}to#{$i+2}, $dispersion);
-    @include createKeyFrames_leanSlideAndBounce(calc($cur-pos + $step-size), $cur-pos, slide#{$i+2}to#{$i+1}, $dispersion);
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+
+    &__number-window {
+      position: absolute;
+      top: 0;
+      left: $desktop-content-left;
+      width: calc($desktop-division-left - $desktop-content-left + 154px);
+      height: 1080px;
+      overflow: visible;
+      z-index: 1;
+    }
+
+    &__number-container {
+      position: relative;
+      top: $desktop-left-top;
+      left: 0;
+      width: 100%;
+      height: auto;
+      gap: $desktop-left-gap;
+      overflow: visible;
+      align-items: flex-end;
+    }
+
+    &__number {
+      flex: 0 0 auto;
+      display: block;
+      position: relative;
+      width: auto;
+      height: $desktop-left-height;
+      max-height: $desktop-left-height;
+      min-height: $desktop-left-height;
+      max-width: none;
+      object-fit: contain;
+      object-position: right top;
+
+      &:first-child {
+        left: -150px;
+      }
+    }
+
+    &__division {
+      top: $desktop-division-top;
+      left: $desktop-division-left;
+      display: block;
+      width: auto;
+      height: $desktop-division-height;
+      max-height: $desktop-division-height;
+      object-fit: contain;
+      z-index: 2;
+    }
+
+    &__denominator {
+      top: $desktop-right-top;
+      right: $desktop-right-offset;
+      left: auto;
+      bottom: auto;
+      display: block;
+      width: auto;
+      height: $desktop-right-height;
+      max-height: $desktop-right-height;
+      object-fit: contain;
+      object-position: right top;
+      z-index: 3;
+    }
+
+    @for $i from 1 through 4 {
+      &__number-container_#{$i}-#{$i + 1} {
+        animation: slideDesktop#{$i}to#{$i +
+          1}
+          $animation-speed
+          ease-in-out
+          forwards;
+        transform: translateY(calc(-1 * $desktop-left-step * #{$i}));
+      }
+
+      &__number-container_#{$i + 2}-#{$i + 1} {
+        animation: slideDesktop#{$i +
+          2}to#{$i +
+          1}
+          $animation-speed
+          ease-in-out
+          forwards;
+        transform: translateY(calc(-1 * $desktop-left-step * #{$i}));
+      }
+
+      &__number-container_#{$i + 1}-#{$i + 1} {
+        animation: none;
+        transform: translateY(calc(-1 * $desktop-left-step * #{$i}));
+      }
+    }
+
+    @for $i from 0 through 4 {
+      $cur-pos: calc(-1 * $desktop-left-step * #{$i});
+      $next-pos: calc(-1 * $desktop-left-step * #{$i + 1});
+
+      @include createKeyFrames_leanSlideAndBounce(
+        $cur-pos,
+        $next-pos,
+        slideDesktop#{$i + 1}to#{$i + 2},
+        $dispersion
+      );
+      @include createKeyFrames_leanSlideAndBounce(
+        $next-pos,
+        $cur-pos,
+        slideDesktop#{$i + 2}to#{$i + 1},
+        $dispersion
+      );
+    }
+  }
+
+  @for $i from 0 through 4 {
+    $cur-pos: calc($mobile-step-size * $i);
+
+    @include createKeyFrames_leanSlideAndBounce(
+      $cur-pos,
+      calc($cur-pos + $mobile-step-size),
+      slide#{$i + 1}to#{$i + 2},
+      $dispersion
+    );
+    @include createKeyFrames_leanSlideAndBounce(
+      calc($cur-pos + $mobile-step-size),
+      $cur-pos,
+      slide#{$i + 2}to#{$i + 1},
+      $dispersion
+    );
   }
 }
-

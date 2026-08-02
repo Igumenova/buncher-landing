@@ -4,6 +4,12 @@
   min-height: max(100svh, 41vw);
   overflow: hidden;
   background-color: $white;
+  --cover-decoration-line-size: #{$decoration-line-bigger-45-dim};
+  $cover-decoration-offset: 120px;
+  $cover-decoration-animation-duration: 0.7s;
+  $cover-right-plus-drop: calc($cover-decoration-offset - $decoration-line-std-margin);
+  $cover-right-plus-bottom: calc($decoration-line-std-margin + (var(--cover-decoration-line-size) - $decoration-line-smaller-dim) / 2);
+  $cover-right-plus-right: calc($cover-decoration-offset - var(--cover-decoration-line-size));
 
   &__header {
     position: absolute;
@@ -102,9 +108,64 @@
   }
 
   &__decoration {
+    z-index: 3;
+    transition:
+      bottom $cover-decoration-animation-duration ease-in-out,
+      transform $cover-decoration-animation-duration ease-in-out;
+
     &_hor {
-      right: $decoration-line-std-margin;
-      bottom: 21%;
+      bottom: $cover-decoration-offset;
+
+      &_left {
+        left: $decoration-line-std-margin;
+      }
+
+      &_right {
+        right: $decoration-line-std-margin;
+      }
+
+      &_right-plus {
+        right: $cover-right-plus-right;
+        bottom: $cover-right-plus-bottom;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+    }
+
+    &_vert {
+      bottom: $decoration-line-std-margin;
+
+      &_left {
+        left: $cover-decoration-offset;
+      }
+
+      &_right {
+        right: $cover-decoration-offset;
+      }
+    }
+  }
+
+  &_scrolled {
+    .section-cover__decoration {
+      &_hor_left {
+        transform: translateX(calc(-1 * var(--cover-decoration-line-size) - $decoration-line-std-margin));
+      }
+
+      &_vert_left {
+        transform: translateY(calc(100svh - $decoration-line-std-margin - var(--cover-decoration-line-size)));
+      }
+
+      &_vert_right {
+        transform: translateY($cover-right-plus-drop);
+      }
+
+      &_hor_right {
+        transform: translateX(calc(var(--cover-decoration-line-size) + $decoration-line-std-margin));
+      }
+
+      &_hor_right-plus {
+        transform: translateY($cover-right-plus-drop) scaleX(1);
+      }
     }
   }
 
@@ -115,6 +176,8 @@
   }
 
   @media screen and (max-width: 1024px) {
+    --cover-decoration-line-size: #{$decoration-line-bigger-35-dim};
+
     &__background-image {
       width: 86vw;
     }
@@ -130,6 +193,8 @@
   }
 
   @media screen and (max-width: 600px), screen and (orientation: portrait) {
+    --cover-decoration-line-size: #{$decoration-line-bigger-25-dim};
+
     &__header {
       top: 5vh;
     }
@@ -165,7 +230,8 @@
     }
 
     &__decoration {
-      &_hor {
+      &_hor,
+      &_vert {
         opacity: 0;
       }
     }
