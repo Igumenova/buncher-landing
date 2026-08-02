@@ -211,7 +211,9 @@ export const setScrollingAnimations = function () {
       alphabet[Math.floor(Math.random() * alphabet.length)];
 
     const getShuffleChar = (char, alphabet) =>
-      /[a-zа-яё]/i.test(char) ? getRandomLetter(alphabet) : char;
+      /[a-zа-яё]/i.test(char) && alphabet.length
+        ? getRandomLetter(alphabet)
+        : char;
 
     const render = (stepIndex, shouldShuffle) => {
       const step = textSteps[stepIndex];

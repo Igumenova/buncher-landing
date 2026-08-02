@@ -4,6 +4,37 @@ export const LANGUAGE_CHANGE_EVENT = "buncher:language-change";
 
 let currentLanguage = "en";
 
+const lang = {
+  lang: {
+    ru: "РУ",
+    en: "EN",
+  },
+  coverText: {
+    ru: "Знакомьтесь с новыми проектами и людьми в IT так, как вы этого хотите",
+    en: "Meet new IT projects and people the way you want",
+  },
+  footerHeader: {
+    ru: "Начать с Buncher",
+    en: "Start with Buncher",
+  },
+  footerDescription: {
+    ru: "И создать свой экспертный вайб",
+    en: "And create your expert vibe",
+  },
+  policy: {
+    ru: "Политика конфиденциальности",
+    en: "Privacy policy",
+  },
+  termsOfUse: {
+    ru: "Условия использования",
+    en: "Terms and conditions",
+  },
+  linkedIn: {
+    ru: "https://www.linkedin.com/showcase/buncher-app-ru",
+    en: "https://www.linkedin.com/company/buncher-app",
+  },
+};
+
 const scrollAnimationTextSteps = {
   ru: [
     {
@@ -51,8 +82,6 @@ const scrollAnimationTextSteps = {
   ],
 };
 
-export const getCurrentLanguage = () => currentLanguage;
-
 export const getScrollAnimationTextSteps = () =>
   scrollAnimationTextSteps[currentLanguage] ?? scrollAnimationTextSteps.en;
 
@@ -61,68 +90,6 @@ export const setLanguageSelectorBehavior = function () {
   const LANGUAGES = {
     RU: "ru",
     EN: "en",
-  };
-
-  const lang = {
-    lang: {
-      ru: "РУ",
-      en: "EN",
-    },
-    coverText: {
-      ru: "Знакомьтесь с новыми проектами и людьми в IT так, как вы этого хотите",
-      en: "Meet new IT projects and people the way you want",
-    },
-    article1: {
-      ru: "управляйте карьерой через профессиональные знакомства без лишнего стресса",
-      en: "manage your career through professional dating without unnecessary stress",
-    },
-    article2: {
-      ru: "персонализируйте ожидания и находите\u00A0точные профессиональные совпадения",
-      en: "personalize your expectations and find exact professional matches",
-    },
-    article3: {
-      ru: `управляйте контактами согласно\u00A0своим профессиональным потребностям`,
-      en: "manage contacts according to your professional needs",
-    },
-    article4: {
-      ru: "настройте опции приложения и получите лучшие контакты",
-      en: "customize app options and get the best contacts",
-    },
-    article5: {
-      ru: "общайтесь, находите для себя общие вызовы, идеи и интересы",
-      en: "chat, find common professional challenges, ideas and\u00A0interests",
-    },
-
-    footerHeader: {
-      ru: "Начать с Buncher",
-      en: "Start with Buncher",
-    },
-    footerDescription: {
-      ru: "И создать свой экспертный вайб",
-      en: "And create your expert vibe",
-    },
-    policy: {
-      ru: "Политика конфиденциальности",
-      en: "Privacy policy",
-    },
-    termsOfUse: {
-      ru: "Условия использования",
-      en: "Terms and conditions",
-    },
-    linkedIn: {
-      ru: "https://www.linkedin.com/showcase/buncher-app-ru",
-      en: "https://www.linkedin.com/company/buncher-app",
-    },
-  };
-  const langContainersMap = {
-    policy: {
-      en: undefined,
-      ru: undefined,
-    },
-    termsOfUse: {
-      en: undefined,
-      ru: undefined,
-    },
   };
 
   const changeInlineLanguage = (language, elements) => {
@@ -187,9 +154,6 @@ export const setLanguageSelectorBehavior = function () {
   const langContainers = document.querySelectorAll(".lang-container");
   const phoneImages = document.querySelectorAll(".lang-img");
   const langLinks = document.querySelectorAll(".lang-link");
-  langContainers.forEach(
-    (el) => (langContainersMap[el.dataset.key][el.dataset.lang] = el),
-  );
 
   const customDropdown = document.getElementById("languageSelector");
   const options = document.querySelector(".header__language-options");
