@@ -101,19 +101,18 @@
   &__shuffle-text {
     position: sticky;
     top: 50vh;
-    width: min(815px, 100vw);
+    width: 33.333vw;
     margin: 0;
     transform: translateY(-50%);
     color: #d6e7f2;
-    font-family: Montserrat, sans-serif;
-    font-size: clamp(42px, 3.125vw, 60px);
+    font-family: "Montserrat", Arial, sans-serif;
+    font-size: 60px;
     font-weight: $semi-bold;
-    line-height: 1.13;
+    line-height: 68px;
     letter-spacing: 0;
     text-transform: uppercase;
-    white-space: normal;
-    overflow-wrap: normal;
-    word-break: normal;
+    white-space: pre;
+    overflow-wrap: anywhere;
     opacity: 0;
     visibility: hidden;
 
@@ -134,6 +133,11 @@
 
     &_highlight {
       color: #384d60;
+    }
+
+    &_accent {
+      color: #384d60;
+      text-shadow: 0 0 14px rgba(56, 77, 96, 0.14);
     }
   }
 
@@ -518,6 +522,7 @@
       width: min(603px, 100vw);
       margin-left: 0;
       font-size: clamp(40px, 3.125vw, 54px);
+      line-height: 61px;
     }
 
     &__content-block {
@@ -551,6 +556,7 @@
       width: min(603px, 100vw);
       margin-left: 0;
       font-size: clamp(38px, 3.125vw, 54px);
+      line-height: 61px;
     }
 
     &__content-block {
@@ -584,6 +590,7 @@
       width: min(553px, 100vw);
       margin-left: 0;
       font-size: clamp(32px, 3.125vw, 50px);
+      line-height: 56px;
     }
 
     &__content-block {
@@ -617,6 +624,7 @@
       width: min(422px, 100vw);
       margin-left: 0;
       font-size: clamp(28px, 3.125vw, 40px);
+      line-height: 45px;
     }
 
     &__content-block {
@@ -650,6 +658,7 @@
       width: min(311px, 100vw);
       margin-left: 0;
       font-size: clamp(22px, 3.125vw, 28px);
+      line-height: 32px;
     }
 
     &__content-block {

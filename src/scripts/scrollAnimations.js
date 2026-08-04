@@ -10,8 +10,7 @@ export let refreshSizes = function () {
 export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
-  const SHUFFLE_FRAMES = 12;
-  const SHUFFLE_FRAME_DELAY = 50;
+  const SHUFFLE_DURATION = 1200;
 
   const measure100vh = document.querySelector(".section-footer");
   const blocks = document.querySelectorAll(".trackable");
@@ -267,23 +266,10 @@ export const setScrollingAnimations = function () {
     const mainSection = document.getElementById("section-main");
     const shuffleLayer = document.createElement("div");
     const shuffleText = document.createElement("h2");
-    const getHighlightRanges = (steps) =>
-      steps.map((step) => {
-        return step.highlight.reduce((ranges, word) => {
-          const start = step.text.toLowerCase().indexOf(word.toLowerCase());
-          if (start !== -1) {
-            ranges.push({
-              start,
-              end: start + word.length,
-            });
-          }
-          return ranges;
-        }, []);
-      });
     let textSteps = getScrollAnimationTextSteps();
-    let highlightRanges = getHighlightRanges(textSteps);
     let activeStep = -1;
-    let shuffleTimer = null;
+    let shuffleFrame = null;
+    let animationToken = 0;
     const visibleSteps = [];
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
@@ -360,6 +346,278 @@ export const setScrollingAnimations = function () {
         addLetter(char, index);
       });
     };
+    const isLetter = (character) => /\p{L}/u.test(character);
+    const isIndexInRanges = (ranges, index) =>
+      ranges.some((range) => index >= range.start && index < range.end);
+    const createShuffleSymbols = (text) => {
+      const letters = [...text].filter(isLetter);
+      const uniqueLetters = [...new Set(letters)];
+
+      return uniqueLetters.length ? uniqueLetters : [...text].filter(Boolean);
+    };
+    const getTextMeasurer = (phraseElement) => {
+      const styles = getComputedStyle(phraseElement);
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      context.font = `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
+
+      return (text) => context.measureText(text.toLocaleUpperCase("ru")).width;
+    };
+    const wrapLine = (line, maxWidth, measureText) => {
+      const words = line.trim().split(/\s+/);
+      const lines = [];
+      let currentLine = "";
+
+      words.forEach((word) => {
+        const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+        if (!currentLine || measureText(nextLine) <= maxWidth) {
+          currentLine = nextLine;
+          return;
+        }
+
+        lines.push(currentLine);
+        currentLine = word;
+      });
+
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+
+      return lines.length ? lines : [line];
+    };
+    const wrapPhraseText = (phraseElement, text) => {
+      const maxWidth = phraseElement.clientWidth;
+
+      if (!maxWidth) {
+        return text;
+      }
+
+      const measureText = getTextMeasurer(phraseElement);
+
+      return text
+        .split("\n")
+        .flatMap((line) => wrapLine(line, maxWidth, measureText))
+        .join("\n");
+    };
+    const createHighlightRanges = (phraseElement, phrase) => {
+      const layoutText = wrapPhraseText(phraseElement, phrase.text);
+      const highlights = Array.isArray(phrase.highlight)
+        ? phrase.highlight
+        : [phrase.highlight];
+      const lowerLayoutText = layoutText.toLocaleLowerCase("ru");
+
+      return highlights
+        .filter(Boolean)
+        .map((highlight) => {
+          const start = lowerLayoutText.indexOf(
+            highlight.toLocaleLowerCase("ru"),
+          );
+
+          return start < 0
+            ? null
+            : {
+                start,
+                end: start + highlight.length,
+              };
+        })
+        .filter(Boolean);
+    };
+    const createLineCharacterGroups = (text) => {
+      const lines = [];
+      let line = [];
+
+      [...text].forEach((character, index) => {
+        if (character === "\n") {
+          if (line.length) {
+            lines.push(line);
+          }
+          line = [];
+          return;
+        }
+
+        if (character !== " ") {
+          line.push(index);
+        }
+      });
+
+      if (line.length) {
+        lines.push(line);
+      }
+
+      return lines;
+    };
+    const isSyncCharacterRevealed = (index, progress, lineGroups) => {
+      const lineIndex = lineGroups.findIndex((line) => line.includes(index));
+      const line = lineGroups[lineIndex];
+
+      if (!line) {
+        return true;
+      }
+
+      const characterPosition = line.indexOf(index);
+      return progress >= (characterPosition + 1) / line.length;
+    };
+    const createAnimationAccentIndexes = (text, progress, excludedRanges) => {
+      const words = [];
+      let word = [];
+
+      [...text].forEach((character, index) => {
+        if (isLetter(character)) {
+          word.push(index);
+          return;
+        }
+
+        if (word.length) {
+          words.push(word);
+          word = [];
+        }
+      });
+
+      if (word.length) {
+        words.push(word);
+      }
+
+      const position = Math.min(5, Math.floor(progress * 6));
+
+      return new Set(
+        words
+          .map((letters, wordIndex) => {
+            const offset = (position + wordIndex * 2) % letters.length;
+            return letters[offset];
+          })
+          .filter((index) => !isIndexInRanges(excludedRanges, index)),
+      );
+    };
+    const appendHighlightedPhrase = (phraseElement, displayText, ranges) => {
+      const fragment = document.createDocumentFragment();
+
+      [...displayText].forEach((character, index) => {
+        if (!isIndexInRanges(ranges, index)) {
+          fragment.append(character);
+          return;
+        }
+
+        const element = document.createElement("span");
+        element.className = "section-main__shuffle-letter_highlight";
+        element.textContent = character;
+        fragment.append(element);
+      });
+
+      phraseElement.replaceChildren(fragment);
+    };
+    const renderPhrase = (
+      phraseElement,
+      displayText,
+      phrase,
+      accentIndexes = null,
+      revealedIndexes = null,
+    ) => {
+      const highlightRanges = createHighlightRanges(phraseElement, phrase);
+
+      if (!accentIndexes) {
+        appendHighlightedPhrase(phraseElement, displayText, highlightRanges);
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      [...displayText].forEach((character, index) => {
+        const isHighlight =
+          isIndexInRanges(highlightRanges, index) && revealedIndexes.has(index);
+        const isAccent = accentIndexes.has(index);
+
+        if (!isHighlight && !isAccent) {
+          fragment.append(character);
+          return;
+        }
+
+        const element = document.createElement("span");
+        element.className = isHighlight
+          ? "section-main__shuffle-letter_highlight"
+          : "section-main__shuffle-letter_accent";
+        element.textContent = character;
+        fragment.append(element);
+      });
+
+      phraseElement.replaceChildren(fragment);
+    };
+    const animateSyncText = (phraseElement, phrase, onComplete = () => {}) => {
+      animationToken++;
+      const currentToken = animationToken;
+      const nextText = wrapPhraseText(phraseElement, phrase.text);
+      const symbols = createShuffleSymbols(phrase.text);
+      const startedAt = performance.now();
+      const lineGroups = createLineCharacterGroups(nextText);
+      const highlightRanges = createHighlightRanges(phraseElement, phrase);
+      const settledHighlightIndexes = new Set();
+
+      if (shuffleFrame) {
+        cancelAnimationFrame(shuffleFrame);
+      }
+
+      const frame = (now) => {
+        if (currentToken !== animationToken) {
+          return;
+        }
+
+        const progress = Math.min((now - startedAt) / SHUFFLE_DURATION, 1);
+        const revealedIndexes = new Set();
+        const animatedText = [...nextText]
+          .map((character, index) => {
+            if (character === " " || character === "\n") {
+              return character;
+            }
+
+            const isInHighlight = isIndexInRanges(highlightRanges, index);
+            const isRevealed = isSyncCharacterRevealed(
+              index,
+              progress,
+              lineGroups,
+            );
+
+            if (isInHighlight && isRevealed) {
+              settledHighlightIndexes.add(index);
+            }
+
+            if (isRevealed || settledHighlightIndexes.has(index)) {
+              revealedIndexes.add(index);
+              return character;
+            }
+
+            return symbols[Math.floor(Math.random() * symbols.length)];
+          })
+          .join("");
+
+        const accentIndexes = createAnimationAccentIndexes(
+          nextText,
+          progress,
+          highlightRanges,
+        );
+        const activeAccentIndexes = new Set(
+          [...accentIndexes].filter((index) => !revealedIndexes.has(index)),
+        );
+
+        renderPhrase(
+          phraseElement,
+          animatedText,
+          phrase,
+          activeAccentIndexes,
+          revealedIndexes,
+        );
+
+        if (progress < 1) {
+          shuffleFrame = requestAnimationFrame(frame);
+          return;
+        }
+
+        renderPhrase(phraseElement, nextText, phrase);
+        onComplete();
+      };
+
+      shuffleFrame = requestAnimationFrame(frame);
+    };
     const setStep = (stepIndex, forceRender = false) => {
       const nextStep = Math.max(0, Math.min(textSteps.length - 1, stepIndex));
       if (nextStep === activeStep && !forceRender) {
@@ -368,28 +626,19 @@ export const setScrollingAnimations = function () {
 
       activeStep = nextStep;
       shuffleText.classList.add("section-main__shuffle-text_visible");
-      clearInterval(shuffleTimer);
-      let frame = 0;
-      render(nextStep, true);
-      shuffleTimer = setInterval(() => {
-        frame++;
-        if (frame >= SHUFFLE_FRAMES) {
-          clearInterval(shuffleTimer);
-          render(nextStep, false);
-          return;
-        }
-        render(nextStep, true);
-      }, SHUFFLE_FRAME_DELAY);
+      animateSyncText(shuffleText, textSteps[nextStep]);
     };
     const hideText = () => {
       activeStep = -1;
-      clearInterval(shuffleTimer);
+      animationToken++;
+      if (shuffleFrame) {
+        cancelAnimationFrame(shuffleFrame);
+      }
       shuffleText.replaceChildren();
       shuffleText.classList.remove("section-main__shuffle-text_visible");
     };
     const updateTextLanguage = () => {
       textSteps = getScrollAnimationTextSteps();
-      highlightRanges = getHighlightRanges(textSteps);
       if (activeStep !== -1) {
         setStep(activeStep, true);
       }
