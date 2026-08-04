@@ -11,6 +11,7 @@ export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
   const SHUFFLE_DURATION = 1200;
+  const TEXT_EXIT_DURATION = 450;
 
   const measure100vh = document.querySelector(".section-footer");
   const blocks = document.querySelectorAll(".trackable");
@@ -269,6 +270,7 @@ export const setScrollingAnimations = function () {
     let textSteps = getScrollAnimationTextSteps();
     let activeStep = -1;
     let shuffleFrame = null;
+    let hideTimer = null;
     let animationToken = 0;
     const visibleSteps = [];
 
@@ -616,7 +618,7 @@ export const setScrollingAnimations = function () {
         onComplete();
       };
 
-      shuffleFrame = requestAnimationFrame(frame);
+      frame(performance.now());
     };
     const setStep = (stepIndex, forceRender = false) => {
       const nextStep = Math.max(0, Math.min(textSteps.length - 1, stepIndex));
@@ -625,8 +627,9 @@ export const setScrollingAnimations = function () {
       }
 
       activeStep = nextStep;
-      shuffleText.classList.add("section-main__shuffle-text_visible");
+      clearTimeout(hideTimer);
       animateSyncText(shuffleText, textSteps[nextStep]);
+      shuffleText.classList.add("section-main__shuffle-text_visible");
     };
     const hideText = () => {
       activeStep = -1;
@@ -634,8 +637,13 @@ export const setScrollingAnimations = function () {
       if (shuffleFrame) {
         cancelAnimationFrame(shuffleFrame);
       }
-      shuffleText.replaceChildren();
       shuffleText.classList.remove("section-main__shuffle-text_visible");
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (activeStep === -1) {
+          shuffleText.replaceChildren();
+        }
+      }, TEXT_EXIT_DURATION);
     };
     const updateTextLanguage = () => {
       textSteps = getScrollAnimationTextSteps();
