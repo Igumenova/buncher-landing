@@ -99,11 +99,10 @@
   }
 
   &__shuffle-text {
-    $shuffle-left-offset: clamp(12px, 2vw, 28px);
     position: sticky;
     top: 50vh;
-    width: min(815px, calc(100vw - $shuffle-left-offset * 2));
-    margin: 0 0 0 $shuffle-left-offset;
+    width: min(815px, 100vw);
+    margin: 0;
     transform: translateY(-50%);
     color: #d6e7f2;
     font-family: Montserrat, sans-serif;
@@ -176,6 +175,7 @@
     aspect-ratio: $phone-ratio;
     width: 100%;
     background-color: transparent;
+    // transform: translateX(-100px);
   }
 
   &__outer-flow {
@@ -515,9 +515,8 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: clamp(12px, 2vw, 28px);
-      width: min(603px, calc(100vw - $shuffle-left-offset * 2));
-      margin-left: $shuffle-left-offset;
+      width: min(603px, 100vw);
+      margin-left: 0;
       font-size: clamp(40px, 3.125vw, 54px);
     }
 
@@ -549,9 +548,8 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: clamp(12px, 2vw, 28px);
-      width: min(603px, calc(100vw - $shuffle-left-offset * 2));
-      margin-left: $shuffle-left-offset;
+      width: min(603px, 100vw);
+      margin-left: 0;
       font-size: clamp(38px, 3.125vw, 54px);
     }
 
@@ -583,9 +581,8 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: clamp(12px, 2vw, 28px);
-      width: min(553px, calc(100vw - $shuffle-left-offset * 2));
-      margin-left: $shuffle-left-offset;
+      width: min(553px, 100vw);
+      margin-left: 0;
       font-size: clamp(32px, 3.125vw, 50px);
     }
 
@@ -617,9 +614,8 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: clamp(12px, 2vw, 28px);
-      width: min(422px, calc(100vw - $shuffle-left-offset * 2));
-      margin-left: $shuffle-left-offset;
+      width: min(422px, 100vw);
+      margin-left: 0;
       font-size: clamp(28px, 3.125vw, 40px);
     }
 
@@ -651,9 +647,8 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: clamp(12px, 2vw, 28px);
-      width: min(311px, calc(100vw - $shuffle-left-offset * 2));
-      margin-left: $shuffle-left-offset;
+      width: min(311px, 100vw);
+      margin-left: 0;
       font-size: clamp(22px, 3.125vw, 28px);
     }
 
@@ -711,10 +706,9 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: 12px;
       top: 70vh;
-      width: calc(100vw - $shuffle-left-offset * 2);
-      margin-left: $shuffle-left-offset;
+      width: 100vw;
+      margin-left: 0;
       font-size: 22px;
       line-height: 26px;
     }
@@ -820,10 +814,9 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: 12px;
       top: 70vh;
-      width: calc(100vw - $shuffle-left-offset * 2);
-      margin-left: $shuffle-left-offset;
+      width: 100vw;
+      margin-left: 0;
       font-size: 20px;
       line-height: 26px;
     }
@@ -928,10 +921,9 @@
     }
 
     &__shuffle-text {
-      $shuffle-left-offset: 12px;
       top: 70vh;
-      width: calc(100vw - $shuffle-left-offset * 2);
-      margin-left: $shuffle-left-offset;
+      width: 100vw;
+      margin-left: 0;
       font-size: 20px;
       line-height: 26px;
     }

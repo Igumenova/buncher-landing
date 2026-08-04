@@ -456,9 +456,9 @@ export const setScrollingAnimations = function () {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           coverSection.classList.add("section-cover_scrolled");
-          longDecorationLine.classList.add(
-            "section-main__decoration_long_hidden",
-          );
+          // longDecorationLine.classList.add(
+          //   "section-main__decoration_long_hidden",
+          // );
           counterBlock.classList.add("section-main__counter-block_shown");
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
@@ -467,9 +467,9 @@ export const setScrollingAnimations = function () {
           setMainRightPlusShown(true);
         } else {
           coverSection.classList.remove("section-cover_scrolled");
-          longDecorationLine.classList.remove(
-            "section-main__decoration_long_hidden",
-          );
+          // longDecorationLine.classList.remove(
+          //   "section-main__decoration_long_hidden",
+          // );
           counterBlock.classList.remove("section-main__counter-block_shown");
           setMainCornerShown(false);
           setMainRightPlusShown(false);
