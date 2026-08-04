@@ -11,12 +11,16 @@
   //border: 1px solid red;
 
   &_0 {
-    top: 0;
+    top: -25%;
     justify-content: center;
   }
 
   &_1 {
     justify-content: space-evenly;
+
+    .anchor__item:first-child {
+      top: -25%;
+    }
 
     .anchor__item:nth-child(2) {
       top: -17%;
