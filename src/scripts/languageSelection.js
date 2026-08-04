@@ -83,8 +83,8 @@ const scrollAnimationTextSteps = {
 };
 
 const coverTypingPhrases = {
-  ru: ["Рабочее пространство", "Мессенджер", "нишевый матчмейкер"],
-  en: ["Workspace", "Messenger", "niche matchmaker"],
+  ru: ["Мессенджер", "Рабочее пространство", "нишевый матчмейкер"],
+  en: ["Messenger", "Workspace", "niche matchmaker"],
 };
 
 export const getCoverTypingPhrases = () =>
