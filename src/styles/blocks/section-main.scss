@@ -102,6 +102,7 @@
     position: sticky;
     top: 50vh;
     width: 30vw;
+    min-height: calc(1.13em * 3);
     margin: 0;
     transform: translate(-120%, -50%);
     color: #d6e7f2;
@@ -116,9 +117,9 @@
     opacity: 0;
     visibility: hidden;
     transition:
-      opacity 0.35s ease,
-      transform 0.45s ease,
-      visibility 0s linear 0.45s;
+      opacity 0.8s ease-in-out,
+      transform 0.8s ease-in-out,
+      visibility 0s linear 0.8s;
     will-change: transform, opacity;
 
     &_visible {
@@ -126,8 +127,8 @@
       opacity: 1;
       visibility: visible;
       transition:
-        opacity 0.35s ease,
-        transform 0.45s ease,
+        opacity 0.8s ease-in-out,
+        transform 0.8s ease-in-out,
         visibility 0s linear 0s;
     }
   }

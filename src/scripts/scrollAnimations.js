@@ -11,10 +11,18 @@ export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
   const SHUFFLE_DURATION = 1200;
-  const TEXT_EXIT_DURATION = 450;
+  const TEXT_EXIT_DURATION = 800;
+  const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
   const measure100vh = document.querySelector(".section-footer");
   const blocks = document.querySelectorAll(".trackable");
+  const dispatchTextStepChange = (stepIndex) => {
+    document.dispatchEvent(
+      new CustomEvent(TEXT_STEP_CHANGE_EVENT, {
+        detail: { stepIndex },
+      }),
+    );
+  };
 
   const addStyleWithPrefixes = function (element, styleName, value) {
     element.style.setProperty(`-webkit-${styleName}`, value);
@@ -142,6 +150,7 @@ export const setScrollingAnimations = function () {
               REGEX,
               `_${nextArrayIndex}-${nextArrayIndex}`,
             );
+            dispatchTextStepChange(nextArrayIndex - 1);
           }
           return;
         }
@@ -159,12 +168,14 @@ export const setScrollingAnimations = function () {
             REGEX,
             `_${curArrayIndex}-${nextArrayIndex}`,
           );
+          dispatchTextStepChange(nextArrayIndex - 1);
         } else {
           visibleBlocks[curArrayIndex] = false;
           numberCont.className = numberCont.className.replace(
             REGEX,
             `_${nextArrayIndex}-${curArrayIndex}`,
           );
+          dispatchTextStepChange(curArrayIndex - 1);
         }
       });
       recount = false;
@@ -272,7 +283,6 @@ export const setScrollingAnimations = function () {
     let shuffleFrame = null;
     let hideTimer = null;
     let animationToken = 0;
-    const visibleSteps = [];
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
     shuffleText.classList.add("section-main__shuffle-text");
@@ -651,51 +661,18 @@ export const setScrollingAnimations = function () {
         setStep(activeStep, true);
       }
     };
-    const updateActiveStep = () => {
-      const activeEntry = visibleSteps
-        .map((isVisible, index) => {
-          if (!isVisible) {
-            return null;
-          }
+    const updateActiveStepFromNumber = (event) => {
+      const { stepIndex } = event.detail;
 
-          const rect = blocks[index].getBoundingClientRect();
-          const blockCenter = rect.top + rect.height / 2;
-          const viewportCenter = window.innerHeight / 2;
-          return {
-            index,
-            distance: Math.abs(blockCenter - viewportCenter),
-          };
-        })
-        .filter(Boolean)
-        .sort((a, b) => a.distance - b.distance)[0];
-
-      if (!activeEntry) {
+      if (stepIndex < 0) {
         hideText();
         return;
       }
 
-      setStep(activeEntry.index);
+      setStep(stepIndex);
     };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          visibleSteps[Number(entry.target.dataset.num) - 1] =
-            entry.isIntersecting;
-        });
-        updateActiveStep();
-      },
-      {
-        root: null,
-        threshold: 0.45,
-      },
-    );
-
-    visibleSteps.length = blocks.length;
-    visibleSteps.fill(false);
-    blocks.forEach((block) => {
-      observer.observe(block);
-    });
+    document.addEventListener(TEXT_STEP_CHANGE_EVENT, updateActiveStepFromNumber);
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
   };
   const createMainIntersectionObserver = function () {
@@ -717,6 +694,7 @@ export const setScrollingAnimations = function () {
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.add("section-main__counter-block_shown");
+          dispatchTextStepChange(0);
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
           }
@@ -728,6 +706,7 @@ export const setScrollingAnimations = function () {
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.remove("section-main__counter-block_shown");
+          dispatchTextStepChange(-1);
           setMainCornerShown(false);
           setMainRightPlusShown(false);
         }
@@ -749,6 +728,7 @@ export const setScrollingAnimations = function () {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           endBlock.classList.add("section-footer_shown");
+          dispatchTextStepChange(-1);
           setMainCornerShown(false);
           setMainRightPlusShown(false);
         } else {
