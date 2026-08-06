@@ -16,18 +16,47 @@ export const setCoverTypingAnimation = function () {
 
   let phraseIndex = 0;
   let charIndex = 0;
-  let isErasing = false;
+  let fadeIndex = 0;
+  let phase = "typing";
   let timer = null;
+  let renderedPhrase = "";
 
   const schedule = (delay) => {
     timer = setTimeout(tick, delay);
+  };
+
+  const renderPhrase = (phrase) => {
+    if (renderedPhrase === phrase) {
+      return;
+    }
+
+    renderedPhrase = phrase;
+    typingText.textContent = "";
+
+    phrase.split("").forEach((char) => {
+      const charNode = document.createElement("span");
+      charNode.className = "section-cover__typing-char";
+      charNode.textContent = char === " " ? "\u00a0" : char;
+      typingText.appendChild(charNode);
+    });
+  };
+
+  const setVisibleChars = (isCharVisible) => {
+    Array.from(typingText.children).forEach((charNode, index) => {
+      charNode.classList.toggle(
+        "section-cover__typing-char_visible",
+        isCharVisible(index),
+      );
+    });
   };
 
   const resetTyping = () => {
     clearTimeout(timer);
     phraseIndex = 0;
     charIndex = 0;
-    isErasing = false;
+    fadeIndex = 0;
+    phase = "typing";
+    renderedPhrase = "";
     typingText.textContent = "";
     schedule(TYPE_DELAY);
   };
@@ -35,28 +64,36 @@ export const setCoverTypingAnimation = function () {
   const tick = () => {
     const phrases = getCoverTypingPhrases();
     const phrase = phrases[phraseIndex];
-    typingText.textContent = phrase.slice(0, charIndex);
+    renderPhrase(phrase);
 
-    if (!isErasing && charIndex < phrase.length) {
+    if (phase === "typing") {
+      setVisibleChars((index) => index < charIndex);
+
+      if (charIndex >= phrase.length) {
+        phase = "erasing";
+        fadeIndex = 0;
+        schedule(HOLD_DELAY);
+        return;
+      }
+
       charIndex++;
       schedule(TYPE_DELAY);
       return;
     }
 
-    if (!isErasing) {
-      isErasing = true;
-      schedule(HOLD_DELAY);
-      return;
-    }
+    setVisibleChars((index) => index >= fadeIndex);
 
-    if (charIndex > 0) {
-      charIndex--;
+    if (fadeIndex < phrase.length) {
+      fadeIndex++;
       schedule(ERASE_DELAY);
       return;
     }
 
-    isErasing = false;
+    phase = "typing";
     phraseIndex = (phraseIndex + 1) % phrases.length;
+    charIndex = 0;
+    fadeIndex = 0;
+    renderedPhrase = "";
     schedule(TYPE_DELAY);
   };
 

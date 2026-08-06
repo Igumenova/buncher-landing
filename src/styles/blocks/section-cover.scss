@@ -53,16 +53,13 @@
     text-transform: uppercase;
     white-space: nowrap;
 
-    &::after {
-      content: "";
-      display: inline-block;
-      width: 0.08em;
-      height: 0.85em;
-      margin-left: 0.12em;
-      background-color: $dark-blue;
-      border-radius: 999px;
-      vertical-align: -0.08em;
-      animation: coverTypingCaret 0.8s steps(1) infinite;
+    .section-cover__typing-char {
+      opacity: 0;
+      transition: opacity 0.18s ease-out;
+    }
+
+    .section-cover__typing-char_visible {
+      opacity: 1;
     }
   }
 
@@ -166,12 +163,6 @@
       &_hor_right-plus {
         transform: translateY($cover-right-plus-drop) scaleX(1);
       }
-    }
-  }
-
-  @keyframes coverTypingCaret {
-    50% {
-      opacity: 0;
     }
   }
 
