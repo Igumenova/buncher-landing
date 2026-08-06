@@ -15,6 +15,7 @@ export const setScrollingAnimations = function () {
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
   const measure100vh = document.querySelector(".section-footer");
+  const scrollRoot = document.getElementById("custom-scrollbar");
   const blocks = document.querySelectorAll(".trackable");
   const dispatchTextStepChange = (stepIndex) => {
     document.dispatchEvent(
@@ -130,7 +131,7 @@ export const setScrollingAnimations = function () {
     const visibleBlocks = [];
 
     const options = {
-      root: null,
+      root: scrollRoot,
       threshold: 0.5,
     };
 
@@ -223,7 +224,7 @@ export const setScrollingAnimations = function () {
     const createObserver = (anchors) => {
       const phone = document.getElementById("phone");
       const options = {
-        root: null,
+        root: scrollRoot,
         threshold: 0.5,
       };
 
@@ -276,6 +277,7 @@ export const setScrollingAnimations = function () {
   };
   const createShuffleTextAnimation = function (blocks) {
     const mainSection = document.getElementById("section-main");
+    const stage = mainSection.querySelector(".section-main__stage");
     const shuffleLayer = document.createElement("div");
     const shuffleText = document.createElement("h2");
     let textSteps = getScrollAnimationTextSteps();
@@ -287,7 +289,7 @@ export const setScrollingAnimations = function () {
     shuffleLayer.classList.add("section-main__shuffle-layer");
     shuffleText.classList.add("section-main__shuffle-text");
     shuffleLayer.appendChild(shuffleText);
-    mainSection.appendChild(shuffleLayer);
+    stage.appendChild(shuffleLayer);
 
     const isHighlighted = (ranges, index) =>
       ranges.some((range) => index >= range.start && index < range.end);
@@ -682,7 +684,7 @@ export const setScrollingAnimations = function () {
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
     const options = {
-      root: null,
+      root: scrollRoot,
       threshold: 0.05,
     };
 
@@ -720,7 +722,7 @@ export const setScrollingAnimations = function () {
     const endBlock = document.getElementById("section-footer");
     const mainSection = document.getElementById("section-main");
     const options = {
-      root: null,
+      root: scrollRoot,
       threshold: 0.1,
     };
 
@@ -800,8 +802,8 @@ export const setScrollingAnimations = function () {
         //   "mask-size",
         //   `${rect.right - rect.width * 0.24}px`,
         // );
-        wrapper.style.paddingBottom = `${visibleSize}px`;
-        wrapper.style.height = `${rect.height + textContainerSize}px`;
+        wrapper.style.paddingBottom = "0";
+        wrapper.style.height = "100%";
         textContainer.style.minHeight = `${textContainerSize}px`;
 
         const phoneRect = phone.getBoundingClientRect();

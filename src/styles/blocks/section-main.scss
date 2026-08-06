@@ -1,8 +1,7 @@
 .section-main {
   position: relative;
-  display: flex;
-  justify-content: center;
   z-index: 2;
+  overflow: clip;
   $phone-ratio: 0.4618;
   $wrapper-padding-left: 197px;
   $wrapper-padding-right: min(25vw, 489px);
@@ -20,14 +19,24 @@
   $counter-vert-padding: $gap-between-numbers;
   $counter-ratio: 0.65;
 
+  &__stage {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 100vh;
+    min-height: $min-section-height;
+    overflow: hidden;
+  }
+
   &__wrapper {
     position: relative;
     z-index: 2;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 0 $wrapper-padding-right 0 $wrapper-padding-left;
     max-width: 100vw;
     width: 100%;
+    height: 100%;
     gap: 3vw;
   }
 
@@ -39,7 +48,8 @@
     flex: 1 1 100%;
     max-width: 815px;
     width: 100%;
-    z-index: 2;
+    z-index: 1;
+    pointer-events: none;
 
     &:before {
       display: block;
@@ -99,7 +109,7 @@
   }
 
   &__shuffle-text {
-    position: sticky;
+    position: absolute;
     top: 50vh;
     width: 30vw;
     min-height: calc(1.13em * 3);
@@ -148,12 +158,12 @@
   }
 
   &__content-block {
-    position: sticky;
+    position: relative;
     z-index: 3;
-    top: 0;
     height: $min-section-height;
     flex: 1 0.66 100%;
     max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
+    margin-left: auto;
     padding-top: $phone-upper-margin;
     padding-bottom: $phone-upper-margin;
   }
@@ -200,7 +210,7 @@
 
   &__decoration-container {
     overflow: hidden;
-    position: sticky;
+    position: relative;
     top: 0;
     left: 0;
     height: 100vh;
