@@ -11,7 +11,8 @@ export const setCoverTypingAnimation = function () {
   }
 
   const TYPE_DELAY = 95;
-  const ERASE_DELAY = 55;
+  const ERASE_DELAY = 90;
+  const ERASE_END_DELAY = 200;
   const HOLD_DELAY = 1200;
 
   let phraseIndex = 0;
@@ -58,6 +59,7 @@ export const setCoverTypingAnimation = function () {
     phase = "typing";
     renderedPhrase = "";
     typingText.textContent = "";
+    typingText.classList.remove("section-cover__typing-text_erasing");
     schedule(TYPE_DELAY);
   };
 
@@ -67,6 +69,7 @@ export const setCoverTypingAnimation = function () {
     renderPhrase(phrase);
 
     if (phase === "typing") {
+      typingText.classList.remove("section-cover__typing-text_erasing");
       setVisibleChars((index) => index < charIndex);
 
       if (charIndex >= phrase.length) {
@@ -81,11 +84,12 @@ export const setCoverTypingAnimation = function () {
       return;
     }
 
-    setVisibleChars((index) => index >= fadeIndex);
+    typingText.classList.add("section-cover__typing-text_erasing");
 
     if (fadeIndex < phrase.length) {
       fadeIndex++;
-      schedule(ERASE_DELAY);
+      setVisibleChars((index) => index >= fadeIndex);
+      schedule(fadeIndex === phrase.length ? ERASE_END_DELAY : ERASE_DELAY);
       return;
     }
 
@@ -94,6 +98,7 @@ export const setCoverTypingAnimation = function () {
     charIndex = 0;
     fadeIndex = 0;
     renderedPhrase = "";
+    typingText.classList.remove("section-cover__typing-text_erasing");
     schedule(TYPE_DELAY);
   };
 
