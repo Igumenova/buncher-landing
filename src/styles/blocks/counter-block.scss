@@ -12,13 +12,31 @@
   width: 100%;
   height: 100%;
 
+  &__number-window {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  &__number-zero {
+    position: absolute;
+    top: 0;
+    left: -15%;
+    display: block;
+    height: $mobile-digit-height;
+    max-height: $mobile-digit-height;
+    min-height: $mobile-digit-height;
+    width: auto;
+  }
+
   &__number-container {
     position: relative;
     top: 0;
-    left: -15%;
+    left: 22%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     width: 80%;
     height: 100%;
     gap: $mobile-gap-size;
@@ -55,43 +73,22 @@
   }
 
   &__number {
+    display: block;
     height: $mobile-digit-height;
     max-height: $mobile-digit-height;
     min-height: $mobile-digit-height;
-
-    &:first-child {
-      position: relative;
-      left: -5px;
-    }
-  }
-
-  &__division {
-    position: absolute;
-    top: 0;
-    left: 27%;
-    width: 50%;
-  }
-
-  &__denominator {
-    position: absolute;
-    right: -40%;
-    bottom: 0;
-    height: 80%;
-    object-fit: cover;
+    width: auto;
   }
 
   @media screen and (min-width: 601px) and (orientation: landscape) {
-    $desktop-left-top: 35px;
-    $desktop-left-height: 770px;
-    $desktop-left-gap: 420px;
-    $desktop-left-step: 1190px;
-    $desktop-right-top: 140px;
-    $desktop-right-height: 920px;
-    $desktop-right-offset: 35px;
-    $desktop-division-top: 40px;
-    $desktop-content-left: 640px;
-    $desktop-division-left: 1088px;
-    $desktop-division-height: 1000px;
+    $desktop-zero-top: 33px;
+    $desktop-zero-left: 660px;
+    $desktop-zero-height: 666px;
+    $desktop-digit-top: 33px;
+    $desktop-digit-left: 1145.7px;
+    $desktop-digit-height: 1130px;
+    $desktop-digit-gap: 270px;
+    $desktop-digit-step: $desktop-digit-height + $desktop-digit-gap;
 
     width: 100%;
     height: 100%;
@@ -99,23 +96,32 @@
 
     &__number-window {
       position: absolute;
-      top: 0;
-      left: $desktop-content-left;
-      width: calc($desktop-division-left - $desktop-content-left + 154px);
+      inset: 0;
       height: 1080px;
       overflow: visible;
       z-index: 1;
     }
 
+    &__number-zero {
+      top: $desktop-zero-top;
+      left: $desktop-zero-left;
+      width: auto;
+      height: $desktop-zero-height;
+      max-height: $desktop-zero-height;
+      min-height: $desktop-zero-height;
+      object-fit: contain;
+      object-position: left top;
+    }
+
     &__number-container {
       position: relative;
-      top: $desktop-left-top;
-      left: 0;
-      width: 100%;
+      top: $desktop-digit-top;
+      left: $desktop-digit-left;
+      width: auto;
       height: auto;
-      gap: $desktop-left-gap;
+      gap: $desktop-digit-gap;
       overflow: visible;
-      align-items: flex-end;
+      align-items: flex-start;
     }
 
     &__number {
@@ -123,41 +129,12 @@
       display: block;
       position: relative;
       width: auto;
-      height: $desktop-left-height;
-      max-height: $desktop-left-height;
-      min-height: $desktop-left-height;
+      height: $desktop-digit-height;
+      max-height: $desktop-digit-height;
+      min-height: $desktop-digit-height;
       max-width: none;
       object-fit: contain;
-      object-position: right top;
-
-      &:first-child {
-        left: -150px;
-      }
-    }
-
-    &__division {
-      top: $desktop-division-top;
-      left: $desktop-division-left;
-      display: block;
-      width: auto;
-      height: $desktop-division-height;
-      max-height: $desktop-division-height;
-      object-fit: contain;
-      z-index: 2;
-    }
-
-    &__denominator {
-      top: $desktop-right-top;
-      right: $desktop-right-offset;
-      left: auto;
-      bottom: auto;
-      display: block;
-      width: auto;
-      height: $desktop-right-height;
-      max-height: $desktop-right-height;
-      object-fit: contain;
-      object-position: right top;
-      z-index: 3;
+      object-position: left top;
     }
 
     @for $i from 1 through 4 {
@@ -167,7 +144,7 @@
           $animation-speed
           ease-in-out
           forwards;
-        transform: translateY(calc(-1 * $desktop-left-step * #{$i}));
+        transform: translateY(calc(-1 * $desktop-digit-step * #{$i}));
       }
 
       &__number-container_#{$i + 2}-#{$i + 1} {
@@ -177,18 +154,18 @@
           $animation-speed
           ease-in-out
           forwards;
-        transform: translateY(calc(-1 * $desktop-left-step * #{$i}));
+        transform: translateY(calc(-1 * $desktop-digit-step * #{$i}));
       }
 
       &__number-container_#{$i + 1}-#{$i + 1} {
         animation: none;
-        transform: translateY(calc(-1 * $desktop-left-step * #{$i}));
+        transform: translateY(calc(-1 * $desktop-digit-step * #{$i}));
       }
     }
 
     @for $i from 0 through 4 {
-      $cur-pos: calc(-1 * $desktop-left-step * #{$i});
-      $next-pos: calc(-1 * $desktop-left-step * #{$i + 1});
+      $cur-pos: calc(-1 * $desktop-digit-step * #{$i});
+      $next-pos: calc(-1 * $desktop-digit-step * #{$i + 1});
 
       @include createKeyFrames_leanSlideAndBounce(
         $cur-pos,

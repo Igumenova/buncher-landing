@@ -837,6 +837,7 @@ export const setScrollingAnimations = function () {
         counter.style.paddingLeft = "";
         counter.style.removeProperty("--counter-shown-right");
         counter.style.removeProperty("--counter-scale");
+        contentContainer.style.removeProperty("--phone-x-offset");
         counter.style.top = "auto";
         counter.style.bottom = `${counterBottom}px`;
       });
@@ -856,10 +857,16 @@ export const setScrollingAnimations = function () {
         const counterHostRect = counterHost.getBoundingClientRect();
         const counterBaseWidth = 1920;
         const counterBaseHeight = 1080;
+        const zeroCenter = 660 + ((453 / 698) * 666) / 2;
         const counterScale = Math.min(
           counterHostRect.width / counterBaseWidth,
           counterHostRect.height / counterBaseHeight,
         );
+        const counterLeft = counterHostRect.right - counterBaseWidth * counterScale;
+        const phoneBaseLeft =
+          wrapper.getBoundingClientRect().left + contentContainer.offsetLeft;
+        const phoneXOffset =
+          counterLeft + zeroCenter * counterScale - phoneBaseLeft;
 
         counter.style.width = `${counterBaseWidth}px`;
         counter.style.height = `${counterBaseHeight}px`;
@@ -871,7 +878,11 @@ export const setScrollingAnimations = function () {
         counter.style.top = `${counterTopOffset}px`;
         counter.style.bottom = `auto`;
         counter.style.setProperty("--counter-scale", counterScale);
-        counter.style.setProperty("--counter-shown-right", "40px");
+        counter.style.setProperty("--counter-shown-right", "0px");
+        contentContainer.style.setProperty(
+          "--phone-x-offset",
+          `${phoneXOffset}px`,
+        );
       });
     };
     const changeMode = () => {
