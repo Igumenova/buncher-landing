@@ -19,7 +19,8 @@
     overflow: visible;
   }
 
-  &__number-zero {
+  &__number-zero,
+  &__number-zero-liquid {
     position: absolute;
     top: 0;
     left: -15%;
@@ -28,6 +29,24 @@
     max-height: $mobile-digit-height;
     min-height: $mobile-digit-height;
     width: auto;
+  }
+
+  &__number-zero-liquid {
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: url("../img/decorations/0.svg");
+    mask-position: left top;
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+    -webkit-mask-image: url("../img/decorations/0.svg");
+    -webkit-mask-position: left top;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+  }
+
+  &__number-zero-liquid-wave {
+    fill: #d6e7f2;
   }
 
   &__number-container {
@@ -102,7 +121,8 @@
       z-index: 1;
     }
 
-    &__number-zero {
+    &__number-zero,
+    &__number-zero-liquid {
       top: $desktop-zero-top;
       left: $desktop-zero-left;
       width: auto;
