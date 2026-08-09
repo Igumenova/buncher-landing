@@ -62,16 +62,39 @@
 
     .section-cover__typing-char {
       opacity: 0;
+      color: #d6e7f2;
     }
 
     &_erasing {
       .section-cover__typing-char {
-        transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1);
+        transition:
+          opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+          color 0.18s ease-out;
       }
     }
 
     .section-cover__typing-char_visible {
       opacity: 1;
+    }
+
+    .section-cover__typing-char_tail-1 {
+      color: #c2d8e6;
+      transition: color 0.16s ease-out;
+    }
+
+    .section-cover__typing-char_tail-2 {
+      color: #c7ddeb;
+      transition: color 0.16s ease-out;
+    }
+
+    .section-cover__typing-char_tail-3 {
+      color: #cce0ee;
+      transition: color 0.16s ease-out;
+    }
+
+    .section-cover__typing-char_tail-4 {
+      color: #d6e7f2;
+      transition: color 0.16s ease-out;
     }
   }
 

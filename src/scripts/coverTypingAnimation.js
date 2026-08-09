@@ -14,10 +14,12 @@ export const setCoverTypingAnimation = function () {
   const ERASE_DELAY = 90;
   const ERASE_END_DELAY = 200;
   const HOLD_DELAY = 1200;
+  const TYPING_TAIL_COLORS = 4;
 
   let phraseIndex = 0;
   let charIndex = 0;
   let fadeIndex = 0;
+  let tailIndex = 0;
   let phase = "typing";
   let timer = null;
   let renderedPhrase = "";
@@ -50,12 +52,25 @@ export const setCoverTypingAnimation = function () {
       );
     });
   };
+  const setTypingTailChars = (lastVisibleIndex) => {
+    Array.from(typingText.children).forEach((charNode, index) => {
+      const tailPosition = lastVisibleIndex - index + 1;
+
+      for (let colorIndex = 1; colorIndex <= TYPING_TAIL_COLORS; colorIndex++) {
+        charNode.classList.toggle(
+          `section-cover__typing-char_tail-${colorIndex}`,
+          tailPosition === colorIndex,
+        );
+      }
+    });
+  };
 
   const resetTyping = () => {
     clearTimeout(timer);
     phraseIndex = 0;
     charIndex = 0;
     fadeIndex = 0;
+    tailIndex = 0;
     phase = "typing";
     renderedPhrase = "";
     typingText.textContent = "";
@@ -71,11 +86,12 @@ export const setCoverTypingAnimation = function () {
     if (phase === "typing") {
       typingText.classList.remove("section-cover__typing-text_erasing");
       setVisibleChars((index) => index < charIndex);
+      setTypingTailChars(charIndex - 1);
 
       if (charIndex >= phrase.length) {
-        phase = "erasing";
-        fadeIndex = 0;
-        schedule(HOLD_DELAY);
+        phase = "tail";
+        tailIndex = 0;
+        schedule(TYPE_DELAY);
         return;
       }
 
@@ -84,7 +100,24 @@ export const setCoverTypingAnimation = function () {
       return;
     }
 
+    if (phase === "tail") {
+      tailIndex++;
+      setVisibleChars((index) => index < phrase.length);
+      setTypingTailChars(phrase.length - 1 + tailIndex);
+
+      if (tailIndex >= TYPING_TAIL_COLORS) {
+        phase = "erasing";
+        fadeIndex = 0;
+        schedule(HOLD_DELAY);
+        return;
+      }
+
+      schedule(TYPE_DELAY);
+      return;
+    }
+
     typingText.classList.add("section-cover__typing-text_erasing");
+    setTypingTailChars(-1);
 
     if (fadeIndex < phrase.length) {
       fadeIndex++;
@@ -97,6 +130,7 @@ export const setCoverTypingAnimation = function () {
     phraseIndex = (phraseIndex + 1) % phrases.length;
     charIndex = 0;
     fadeIndex = 0;
+    tailIndex = 0;
     renderedPhrase = "";
     typingText.classList.remove("section-cover__typing-text_erasing");
     schedule(TYPE_DELAY);
