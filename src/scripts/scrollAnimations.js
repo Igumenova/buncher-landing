@@ -683,6 +683,7 @@ export const setScrollingAnimations = function () {
     const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
+    const contentBlock = document.getElementById("section-main__content-block");
     const options = {
       root: scrollRoot,
       threshold: 0.05,
@@ -696,6 +697,7 @@ export const setScrollingAnimations = function () {
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.add("section-main__counter-block_shown");
+          contentBlock.classList.add("section-main__content-block_shown");
           dispatchTextStepChange(0);
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
@@ -708,6 +710,7 @@ export const setScrollingAnimations = function () {
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.remove("section-main__counter-block_shown");
+          contentBlock.classList.remove("section-main__content-block_shown");
           dispatchTextStepChange(-1);
           setMainCornerShown(false);
           setMainRightPlusShown(false);

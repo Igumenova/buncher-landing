@@ -166,6 +166,13 @@
     margin-left: auto;
     padding-top: $phone-upper-margin;
     padding-bottom: $phone-upper-margin;
+    transform: translateY(110vh);
+    transition: transform 0.7s ease-in-out;
+    will-change: transform;
+
+    &_shown {
+      transform: translateY(0);
+    }
   }
 
   &__phone-volume {
