@@ -181,18 +181,13 @@ export const setScrollingAnimations = function () {
     const getScrollProgress = () => {
       const rootRect = scrollRoot.getBoundingClientRect();
       const sectionRect = mainSection.getBoundingClientRect();
-      const sectionTop =
-        scrollRoot.scrollTop + sectionRect.top - rootRect.top;
+      const sectionTop = scrollRoot.scrollTop + sectionRect.top - rootRect.top;
       const scrollDistance = Math.max(
         mainSection.offsetHeight - scrollRoot.clientHeight,
         1,
       );
 
-      return clamp(
-        (scrollRoot.scrollTop - sectionTop) / scrollDistance,
-        0,
-        1,
-      );
+      return clamp((scrollRoot.scrollTop - sectionTop) / scrollDistance, 0, 1);
     };
     const drawWave = (time) => {
       const targetProgress = getScrollProgress();
@@ -424,7 +419,10 @@ export const setScrollingAnimations = function () {
     let animationToken = 0;
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
-    shuffleText.classList.add("section-main__shuffle-text");
+    shuffleText.classList.add(
+      "section-main__shuffle-text",
+      "section-main__shuffle-text_first-entry",
+    );
     shuffleLayer.appendChild(shuffleText);
     stage.appendChild(shuffleLayer);
 
@@ -811,7 +809,10 @@ export const setScrollingAnimations = function () {
       setStep(stepIndex);
     };
 
-    document.addEventListener(TEXT_STEP_CHANGE_EVENT, updateActiveStepFromNumber);
+    document.addEventListener(
+      TEXT_STEP_CHANGE_EVENT,
+      updateActiveStepFromNumber,
+    );
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
   };
   const createMainIntersectionObserver = function () {
@@ -823,6 +824,7 @@ export const setScrollingAnimations = function () {
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
     const numberCont = document.getElementById("changing-number");
+    const shuffleText = document.querySelector(".section-main__shuffle-text");
     const contentBlock = document.getElementById("section-main__content-block");
     let counterRevealTimer = null;
     let counterHideTimer = null;
@@ -859,6 +861,9 @@ export const setScrollingAnimations = function () {
               "section-main__counter-block_digits-waiting",
             );
             animateZeroVisibility(true);
+            shuffleText.classList.remove(
+              "section-main__shuffle-text_first-entry",
+            );
           }, COUNTER_REVEAL_DELAY);
           contentBlock.classList.add("section-main__content-block_shown");
           dispatchTextStepChange(0);
@@ -949,6 +954,7 @@ export const setScrollingAnimations = function () {
               NUMBER_CLASS_REGEX,
               `_0-${hiddenDigit}`,
             );
+            dispatchTextStepChange(hiddenDigit - 1);
             hiddenDigit = 0;
           }
 
@@ -1068,7 +1074,8 @@ export const setScrollingAnimations = function () {
           counterHostRect.width / counterBaseWidth,
           counterHostRect.height / counterBaseHeight,
         );
-        const counterLeft = counterHostRect.right - counterBaseWidth * counterScale;
+        const counterLeft =
+          counterHostRect.right - counterBaseWidth * counterScale;
         const phoneBaseLeft =
           wrapper.getBoundingClientRect().left + contentContainer.offsetLeft;
         const phoneXOffset =

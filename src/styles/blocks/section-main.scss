@@ -114,7 +114,7 @@
     width: 30vw;
     min-height: calc(1.13em * 3);
     margin: 0;
-    transform: translate(-120%, -50%);
+    transform: translate(0, -50%);
     color: #d6e7f2;
     font-family: Montserrat, sans-serif;
     font-size: clamp(42px, 3.125vw, 60px);
@@ -139,6 +139,14 @@
       transition:
         opacity 0.8s ease-in-out,
         transform 0.8s ease-in-out,
+        visibility 0s linear 0s;
+    }
+
+    &_first-entry {
+      transform: translate(0, -50%);
+      opacity: 0;
+      transition:
+        opacity 0.8s ease-in-out,
         visibility 0s linear 0s;
     }
   }
