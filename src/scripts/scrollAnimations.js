@@ -12,11 +12,47 @@ export const setScrollingAnimations = function () {
   const COUNTER_RATIO = 0.65;
   const SHUFFLE_DURATION = 1200;
   const TEXT_EXIT_DURATION = 800;
+  const DIGIT_TRANSITION_DURATION = 800;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
   const blocks = document.querySelectorAll(".trackable");
+  let zeroTransitionTimer = null;
+  let zeroIsVisible = false;
+  const animateZeroVisibility = (isVisible) => {
+    const counterBlock = document.getElementById("counter");
+
+    if (zeroIsVisible === isVisible) {
+      return;
+    }
+
+    zeroIsVisible = isVisible;
+    clearTimeout(zeroTransitionTimer);
+    counterBlock.classList.remove(
+      "section-main__counter-block_zero-entering",
+      "section-main__counter-block_zero-exiting",
+      "section-main__counter-block_zero-visible",
+      "section-main__counter-block_zero-hidden",
+    );
+    counterBlock.classList.add(
+      isVisible
+        ? "section-main__counter-block_zero-entering"
+        : "section-main__counter-block_zero-exiting",
+    );
+
+    zeroTransitionTimer = setTimeout(() => {
+      counterBlock.classList.remove(
+        "section-main__counter-block_zero-entering",
+        "section-main__counter-block_zero-exiting",
+      );
+      counterBlock.classList.add(
+        isVisible
+          ? "section-main__counter-block_zero-visible"
+          : "section-main__counter-block_zero-hidden",
+      );
+    }, DIGIT_TRANSITION_DURATION);
+  };
   const dispatchTextStepChange = (stepIndex) => {
     document.dispatchEvent(
       new CustomEvent(TEXT_STEP_CHANGE_EVENT, {
@@ -193,6 +229,38 @@ export const setScrollingAnimations = function () {
     const numberCont = document.getElementById("changing-number");
     const visibleBlocks = [];
 
+    const settleNumberTransition = (event) => {
+      const isEntering = event.animationName === "lcdDigitIn";
+      const isExiting = event.animationName === "lcdDigitOut";
+
+      if (!isEntering && !isExiting) {
+        return;
+      }
+
+      const transition = numberCont.className.match(REGEX);
+      if (!transition) {
+        return;
+      }
+
+      const [from, to] = transition[0].slice(1).split("-").map(Number);
+      const animatedDigit = numberCont.children[(isEntering ? to : from) - 1];
+
+      if (
+        from === to ||
+        event.target !== animatedDigit ||
+        (isEntering && to === 0) ||
+        (isExiting && to !== 0)
+      ) {
+        return;
+      }
+
+      const settledDigit = isEntering ? to : 0;
+      numberCont.className = numberCont.className.replace(
+        REGEX,
+        `_${settledDigit}-${settledDigit}`,
+      );
+    };
+
     const options = {
       root: scrollRoot,
       threshold: 0.5,
@@ -200,6 +268,7 @@ export const setScrollingAnimations = function () {
 
     visibleBlocks.length = NUMBER_OF_BLOCKS;
     visibleBlocks.fill(false);
+    numberCont.addEventListener("animationend", settleNumberTransition);
 
     let recount = true;
     const callback = (entries) => {
@@ -212,10 +281,15 @@ export const setScrollingAnimations = function () {
             visibleBlocks[curArrayIndex] = true;
             numberCont.className = numberCont.className.replace(
               REGEX,
-              `_${nextArrayIndex}-${nextArrayIndex}`,
+              `_0-${nextArrayIndex}`,
             );
             dispatchTextStepChange(nextArrayIndex - 1);
           }
+          return;
+        }
+
+        if (nextArrayIndex === 1) {
+          visibleBlocks[curArrayIndex] = entry.isIntersecting;
           return;
         }
 
@@ -741,12 +815,17 @@ export const setScrollingAnimations = function () {
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
   };
   const createMainIntersectionObserver = function () {
+    const COUNTER_REVEAL_DELAY = 700;
+    const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
     const coverSection = document.querySelector(".section-cover");
     const mainSection = document.getElementById("section-main");
     const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
+    const numberCont = document.getElementById("changing-number");
     const contentBlock = document.getElementById("section-main__content-block");
+    let counterRevealTimer = null;
+    let counterHideTimer = null;
     const options = {
       root: scrollRoot,
       threshold: 0.05,
@@ -755,11 +834,32 @@ export const setScrollingAnimations = function () {
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          const numberState = numberCont.className.match(NUMBER_CLASS_REGEX);
+          const [, from = 0, to = 0] = numberState
+            ? numberState[0].match(/_(\d+)-(\d+)/).map(Number)
+            : [];
+          const activeDigit = to || from || 1;
+
+          clearTimeout(counterRevealTimer);
+          clearTimeout(counterHideTimer);
+          counterBlock.classList.add(
+            "section-main__counter-block_digits-waiting",
+          );
+          numberCont.className = numberCont.className.replace(
+            NUMBER_CLASS_REGEX,
+            `_0-${activeDigit}`,
+          );
           coverSection.classList.add("section-cover_scrolled");
           // longDecorationLine.classList.add(
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.add("section-main__counter-block_shown");
+          counterRevealTimer = setTimeout(() => {
+            counterBlock.classList.remove(
+              "section-main__counter-block_digits-waiting",
+            );
+            animateZeroVisibility(true);
+          }, COUNTER_REVEAL_DELAY);
           contentBlock.classList.add("section-main__content-block_shown");
           dispatchTextStepChange(0);
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
@@ -768,11 +868,31 @@ export const setScrollingAnimations = function () {
           setMainCornerShown(true);
           setMainRightPlusShown(true);
         } else {
+          clearTimeout(counterRevealTimer);
+          counterBlock.classList.remove(
+            "section-main__counter-block_digits-waiting",
+          );
+          const numberState = numberCont.className.match(NUMBER_CLASS_REGEX);
+          const [, from = 0, to = 0] = numberState
+            ? numberState[0].match(/_(\d+)-(\d+)/).map(Number)
+            : [];
+          const activeDigit = to || from;
+
+          animateZeroVisibility(false);
+          if (activeDigit) {
+            numberCont.className = numberCont.className.replace(
+              NUMBER_CLASS_REGEX,
+              `_${activeDigit}-0`,
+            );
+          }
           coverSection.classList.remove("section-cover_scrolled");
           // longDecorationLine.classList.remove(
           //   "section-main__decoration_long_hidden",
           // );
-          counterBlock.classList.remove("section-main__counter-block_shown");
+          clearTimeout(counterHideTimer);
+          counterHideTimer = setTimeout(() => {
+            counterBlock.classList.remove("section-main__counter-block_shown");
+          }, DIGIT_TRANSITION_DURATION);
           contentBlock.classList.remove("section-main__content-block_shown");
           dispatchTextStepChange(-1);
           setMainCornerShown(false);
@@ -785,8 +905,11 @@ export const setScrollingAnimations = function () {
     observer.observe(mainSection);
   };
   const createEndIntersectionObserver = function () {
+    const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
     const endBlock = document.getElementById("section-footer");
     const mainSection = document.getElementById("section-main");
+    const numberCont = document.getElementById("changing-number");
+    let hiddenDigit = 0;
     const options = {
       root: scrollRoot,
       threshold: 0.1,
@@ -795,6 +918,17 @@ export const setScrollingAnimations = function () {
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          const numberState = numberCont.className.match(NUMBER_CLASS_REGEX);
+          const [, from = 0, to = 0] = numberState
+            ? numberState[0].match(/_(\d+)-(\d+)/).map(Number)
+            : [];
+
+          hiddenDigit = to || from || 5;
+          animateZeroVisibility(false);
+          numberCont.className = numberCont.className.replace(
+            NUMBER_CLASS_REGEX,
+            `_${hiddenDigit}-0`,
+          );
           endBlock.classList.add("section-footer_shown");
           dispatchTextStepChange(-1);
           setMainCornerShown(false);
@@ -807,6 +941,15 @@ export const setScrollingAnimations = function () {
 
           if (!isMainVisible) {
             return;
+          }
+
+          if (hiddenDigit) {
+            animateZeroVisibility(true);
+            numberCont.className = numberCont.className.replace(
+              NUMBER_CLASS_REGEX,
+              `_0-${hiddenDigit}`,
+            );
+            hiddenDigit = 0;
           }
 
           setMainCornerShown(true);
