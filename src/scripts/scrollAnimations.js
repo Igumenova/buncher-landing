@@ -201,7 +201,7 @@ export const setScrollingAnimations = function () {
       const fill = MIN_FILL + progress * (MAX_FILL - MIN_FILL);
       const surfaceY = ZERO_HEIGHT * (1 - fill);
       const phase = time * 0.0012;
-      let path = `M 0 ${ZERO_HEIGHT} L 0 ${surfaceY}`;
+      let path = `M 0 ${surfaceY}`;
 
       for (let x = 0; x <= ZERO_WIDTH + WAVE_STEP; x += WAVE_STEP) {
         const y =
@@ -212,7 +212,6 @@ export const setScrollingAnimations = function () {
         path += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
       }
 
-      path += ` L ${ZERO_WIDTH} ${ZERO_HEIGHT} Z`;
       wave.setAttribute("d", path);
       requestAnimationFrame(drawWave);
     };

@@ -53,7 +53,10 @@
   }
 
   &__number-zero-liquid-wave {
-    fill: #d6e7f2;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 5px;
+    vector-effect: non-scaling-stroke;
   }
 
   &__number-container {
