@@ -161,63 +161,6 @@ export const setScrollingAnimations = function () {
       applyProgress(progress);
     });
   };
-  const createZeroLiquidAnimation = function () {
-    const ZERO_WIDTH = 453;
-    const ZERO_HEIGHT = 698;
-    const MIN_FILL = 0.015;
-    const MAX_FILL = 0.985;
-    const WAVE_AMPLITUDE = 5;
-    const WAVE_STEP = 18;
-    const mainSection = document.getElementById("section-main");
-    const wave = document.getElementById("counter-zero-liquid-wave");
-
-    if (!mainSection || !wave || !scrollRoot) {
-      return;
-    }
-
-    let progress = 0;
-
-    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-    const getScrollProgress = () => {
-      const rootRect = scrollRoot.getBoundingClientRect();
-      const sectionRect = mainSection.getBoundingClientRect();
-      const sectionTop = scrollRoot.scrollTop + sectionRect.top - rootRect.top;
-      const scrollDistance = Math.max(
-        mainSection.offsetHeight - scrollRoot.clientHeight,
-        1,
-      );
-
-      return clamp((scrollRoot.scrollTop - sectionTop) / scrollDistance, 0, 1);
-    };
-    const drawWave = (time) => {
-      const targetProgress = getScrollProgress();
-      const distanceToTarget = targetProgress - progress;
-
-      progress += distanceToTarget * 0.14;
-      if (Math.abs(distanceToTarget) < 0.0001) {
-        progress = targetProgress;
-      }
-
-      const fill = MIN_FILL + progress * (MAX_FILL - MIN_FILL);
-      const surfaceY = ZERO_HEIGHT * (1 - fill);
-      const phase = time * 0.0012;
-      let path = `M 0 ${surfaceY}`;
-
-      for (let x = 0; x <= ZERO_WIDTH + WAVE_STEP; x += WAVE_STEP) {
-        const y =
-          surfaceY +
-          Math.sin(x * 0.035 + phase) * WAVE_AMPLITUDE +
-          Math.sin(x * 0.017 - phase * 1.35) * WAVE_AMPLITUDE * 0.45;
-
-        path += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
-      }
-
-      wave.setAttribute("d", path);
-      requestAnimationFrame(drawWave);
-    };
-
-    requestAnimationFrame(drawWave);
-  };
   const createNumberIntersectionObserver = function (blocks) {
     const REGEX = /_\d+-\d+$/;
     const numberCont = document.getElementById("changing-number");
@@ -1114,7 +1057,6 @@ export const setScrollingAnimations = function () {
   };
 
   refreshSizes = setNewScreenProps();
-  createZeroLiquidAnimation();
   createNumberIntersectionObserver(blocks);
   createPhoneAnimation(blocks);
   createShuffleTextAnimation(blocks);
