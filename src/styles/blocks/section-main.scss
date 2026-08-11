@@ -6,7 +6,7 @@
   $wrapper-padding-left: 197px;
   $wrapper-padding-right: min(25vw, 489px);
   $line-right-margin: 30%;
-  $phone-upper-margin: 10vh;
+  $phone-upper-margin: calc(74 / 1920 * 100vw);
   $decoration-side-offset: 120px;
   $decoration-edge-offset: $decoration-line-std-margin;
   $decoration-plus-top-offset: 43px;
@@ -267,7 +267,7 @@
     @media screen and (min-width: 601px) and (orientation: landscape) {
       aspect-ratio: auto;
       width: 1920px;
-      height: 1080px;
+      height: 960px;
       max-width: none;
       max-height: none;
       right: -1920px;
@@ -542,7 +542,6 @@
     $wrapper-padding-left: 146px;
     $wrapper-padding-right: 20vw;
     $horizontal-line-bottom: 182px;
-    $phone-upper-margin: 11vh;
     $currentDecorationLen: $decoration-line-bigger-35-dim;
 
     &__text-container {
@@ -556,10 +555,7 @@
     }
 
     &__content-block {
-      max-width: min(
-        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
-        300px
-      );
+      max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
     }
 
     @include mainSectionRecount(
@@ -575,7 +571,6 @@
     $wrapper-padding-left: 146px;
     $wrapper-padding-right: 22vw;
     $horizontal-line-bottom: 182px;
-    $phone-upper-margin: 11vh;
     $currentDecorationLen: $decoration-line-bigger-35-dim;
 
     &__text-container {
@@ -589,10 +584,7 @@
     }
 
     &__content-block {
-      max-width: min(
-        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
-        300px
-      );
+      max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
     }
 
     @include mainSectionRecount(
@@ -608,7 +600,6 @@
     $wrapper-padding-left: 157px;
     $wrapper-padding-right: 22vw;
     $horizontal-line-bottom: 182px;
-    $phone-upper-margin: 13vh;
     $currentDecorationLen: $decoration-line-bigger-35-dim;
 
     &__text-container {
@@ -622,10 +613,7 @@
     }
 
     &__content-block {
-      max-width: min(
-        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
-        250px
-      );
+      max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
     }
 
     @include mainSectionRecount(
@@ -641,7 +629,6 @@
     $wrapper-padding-left: 90px;
     $wrapper-padding-right: 22vw;
     $horizontal-line-bottom: 170px;
-    $phone-upper-margin: 13vh;
     $currentDecorationLen: $decoration-line-bigger-35-dim;
 
     &__text-container {
@@ -655,10 +642,7 @@
     }
 
     &__content-block {
-      max-width: min(
-        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
-        250px
-      );
+      max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
     }
 
     @include mainSectionRecount(
@@ -674,7 +658,6 @@
     $wrapper-padding-left: 90px;
     $wrapper-padding-right: 22vw;
     $horizontal-line-bottom: 105px;
-    $phone-upper-margin: 11vh;
     $currentDecorationLen: $decoration-line-bigger-25-dim;
 
     &__text-container {
@@ -688,10 +671,7 @@
     }
 
     &__content-block {
-      max-width: min(
-        calc((100vh - $phone-upper-margin * 2) * $phone-ratio),
-        190px
-      );
+      max-width: calc((100vh - $phone-upper-margin * 2) * $phone-ratio);
     }
 
     @include mainSectionRecount(

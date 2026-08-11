@@ -195,12 +195,14 @@
   }
 
   @media screen and (min-width: 601px) and (orientation: landscape) {
-    $desktop-zero-top: 33px;
-    $desktop-zero-left: 660px;
-    $desktop-zero-height: 666px;
-    $desktop-digit-top: 33px;
-    $desktop-digit-left: 1145.7px;
-    $desktop-digit-height: 1130px;
+    $desktop-zero-left: 897px;
+    $desktop-zero-bottom: 461px;
+    $desktop-zero-width: 418px;
+    $desktop-zero-height: 555px;
+    $desktop-zero-top: 960px - $desktop-zero-bottom - $desktop-zero-height;
+    $desktop-digit-top: $desktop-zero-top;
+    $desktop-digit-left: 1353px;
+    $desktop-digit-height: 1027px;
 
     width: 100%;
     height: 100%;
@@ -209,15 +211,16 @@
     &__number-window {
       position: absolute;
       inset: 0;
-      height: 1080px;
+      height: 960px;
       overflow: visible;
       z-index: 1;
     }
 
     &__number-zero-stack {
       top: $desktop-zero-top;
+      bottom: auto;
       left: $desktop-zero-left;
-      width: auto;
+      width: $desktop-zero-width;
       height: $desktop-zero-height;
       max-height: $desktop-zero-height;
       min-height: $desktop-zero-height;
@@ -226,7 +229,7 @@
     }
 
     &__number-container {
-      position: relative;
+      position: absolute;
       top: $desktop-digit-top;
       left: $desktop-digit-left;
       width: auto;

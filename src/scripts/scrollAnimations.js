@@ -927,6 +927,19 @@ export const setScrollingAnimations = function () {
     const socialContainer = footerContainer.querySelector(
       ".section-footer__socials-container",
     );
+    const centerPhone = () => {
+      const scrollRootRect = scrollRoot.getBoundingClientRect();
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const phoneBaseLeft = wrapperRect.left + contentContainer.offsetLeft;
+      const viewportCenter = scrollRootRect.left + scrollRoot.clientWidth / 2;
+      const phoneXOffset =
+        viewportCenter - (phoneBaseLeft + contentContainer.offsetWidth / 2);
+
+      contentContainer.style.setProperty(
+        "--phone-x-offset",
+        `${phoneXOffset}px`,
+      );
+    };
 
     const changeSmallerSocialsPosition = () => {
       if (socialContainer.parentNode === footerContainer) {
@@ -963,6 +976,7 @@ export const setScrollingAnimations = function () {
         wrapper.style.height = "100%";
         textContainer.style.minHeight = `${textContainerSize}px`;
 
+        centerPhone();
         const phoneRect = phone.getBoundingClientRect();
         const counterBottom = visibleSize - halfGap;
         let counterWidth = window.innerWidth - phoneRect.right + 8;
@@ -991,7 +1005,6 @@ export const setScrollingAnimations = function () {
         counter.style.paddingLeft = "";
         counter.style.removeProperty("--counter-shown-right");
         counter.style.removeProperty("--counter-scale");
-        contentContainer.style.removeProperty("--phone-x-offset");
         counter.style.top = "auto";
         counter.style.bottom = `${counterBottom}px`;
       });
@@ -1004,24 +1017,32 @@ export const setScrollingAnimations = function () {
       textContainer.style.minHeight = `100vh`;
 
       requestAnimationFrame(() => {
-        const counterTopOffset = 0;
         const counterHost = document.querySelector(
           ".section-main__decoration-container",
         );
         const counterHostRect = counterHost.getBoundingClientRect();
         const counterBaseWidth = 1920;
-        const counterBaseHeight = 1080;
-        const zeroCenter = 660 + ((453 / 698) * 666) / 2;
+        const counterBaseHeight = 960;
+        const digitTop = -56;
+        const digitHeight = 1027;
         const counterScale = Math.min(
           counterHostRect.width / counterBaseWidth,
           counterHostRect.height / counterBaseHeight,
         );
-        const counterLeft =
-          counterHostRect.right - counterBaseWidth * counterScale;
-        const phoneBaseLeft =
-          wrapper.getBoundingClientRect().left + contentContainer.offsetLeft;
-        const phoneXOffset =
-          counterLeft + zeroCenter * counterScale - phoneBaseLeft;
+        const extraHeight = Math.max(
+          counterHostRect.height - counterBaseHeight * counterScale,
+          0,
+        );
+        const topOverflow = Math.max(-digitTop * counterScale, 0);
+        const bottomOverflow = Math.max(
+          (digitTop + digitHeight - counterBaseHeight) * counterScale,
+          0,
+        );
+        const totalOverflow = topOverflow + bottomOverflow;
+        const counterTopOffset =
+          extraHeight <= totalOverflow
+            ? extraHeight * (topOverflow / totalOverflow)
+            : topOverflow + (extraHeight - totalOverflow) / 2;
 
         counter.style.width = `${counterBaseWidth}px`;
         counter.style.height = `${counterBaseHeight}px`;
@@ -1034,10 +1055,7 @@ export const setScrollingAnimations = function () {
         counter.style.bottom = `auto`;
         counter.style.setProperty("--counter-scale", counterScale);
         counter.style.setProperty("--counter-shown-right", "0px");
-        contentContainer.style.setProperty(
-          "--phone-x-offset",
-          `${phoneXOffset}px`,
-        );
+        centerPhone();
       });
     };
     const changeMode = () => {
