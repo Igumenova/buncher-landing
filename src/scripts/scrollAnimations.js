@@ -767,7 +767,7 @@ export const setScrollingAnimations = function () {
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
   };
   const createMainIntersectionObserver = function () {
-    const COUNTER_REVEAL_DELAY = 700;
+    const COUNTER_REVEAL_DELAY = 350;
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
     const coverSection = document.querySelector(".section-cover");
     const counterActiveZone = document.getElementById(
@@ -853,10 +853,13 @@ export const setScrollingAnimations = function () {
     observer.observe(counterActiveZone);
   };
   const createCounterBoundaryFade = function () {
-    const FADE_DISTANCE_IN_VIEWPORTS = 0.9;
+    const APPEAR_FADE_DISTANCE_IN_VIEWPORTS = 0.3;
+    const DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS = 0.9;
     const mainSection = document.getElementById("section-main");
     const counterBlock = document.getElementById("counter");
     let frameId = null;
+    let lastScrollTop = scrollRoot.scrollTop;
+    let isScrollingDown = true;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const updateOpacity = () => {
@@ -866,16 +869,31 @@ export const setScrollingAnimations = function () {
       const sectionTop =
         scrollRoot.scrollTop + sectionRect.top - rootRect.top;
       const localScroll = scrollRoot.scrollTop - sectionTop;
+      if (scrollRoot.scrollTop !== lastScrollTop) {
+        isScrollingDown = scrollRoot.scrollTop > lastScrollTop;
+        lastScrollTop = scrollRoot.scrollTop;
+      }
       const stickyDistance = Math.max(
         mainSection.offsetHeight - scrollRoot.clientHeight,
         0,
       );
-      const fadeDistance = Math.max(
-        scrollRoot.clientHeight * FADE_DISTANCE_IN_VIEWPORTS,
+      const entryFadeDistance = Math.max(
+        scrollRoot.clientHeight *
+          (isScrollingDown
+            ? APPEAR_FADE_DISTANCE_IN_VIEWPORTS
+            : DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS),
         1,
       );
-      const entryOpacity = localScroll / fadeDistance;
-      const exitOpacity = (stickyDistance - localScroll) / fadeDistance;
+      const exitFadeDistance = Math.max(
+        scrollRoot.clientHeight *
+          (isScrollingDown
+            ? DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS
+            : APPEAR_FADE_DISTANCE_IN_VIEWPORTS),
+        1,
+      );
+      const entryOpacity = localScroll / entryFadeDistance;
+      const exitOpacity =
+        (stickyDistance - localScroll) / exitFadeDistance;
       const opacity = clamp(Math.min(entryOpacity, exitOpacity), 0, 1);
 
       counterBlock.style.setProperty("--counter-boundary-opacity", opacity);
