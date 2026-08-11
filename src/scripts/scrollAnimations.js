@@ -12,12 +12,14 @@ export const setScrollingAnimations = function () {
   const COUNTER_RATIO = 0.65;
   const SHUFFLE_DURATION = 1200;
   const TEXT_EXIT_DURATION = 800;
-  const DIGIT_TRANSITION_DURATION = 800;
+  const DIGIT_TRANSITION_DURATION = 650;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
   const blocks = document.querySelectorAll(".trackable");
+  let counterIsActive = false;
+  let currentDigit = 1;
   let zeroTransitionTimer = null;
   let zeroIsVisible = false;
   const animateZeroVisibility = (isVisible) => {
@@ -210,12 +212,17 @@ export const setScrollingAnimations = function () {
     let recount = true;
     const callback = (entries) => {
       entries.forEach((entry) => {
+        if (!counterIsActive) {
+          return;
+        }
+
         const nextArrayIndex = Number(entry.target.dataset.num);
         const curArrayIndex = nextArrayIndex - 1;
 
         if (recount) {
           if (entry.isIntersecting) {
             visibleBlocks[curArrayIndex] = true;
+            currentDigit = nextArrayIndex;
             numberCont.className = numberCont.className.replace(
               REGEX,
               `_0-${nextArrayIndex}`,
@@ -239,6 +246,7 @@ export const setScrollingAnimations = function () {
         }
         if (entry.isIntersecting) {
           visibleBlocks[curArrayIndex] = true;
+          currentDigit = nextArrayIndex;
           numberCont.className = numberCont.className.replace(
             REGEX,
             `_${curArrayIndex}-${nextArrayIndex}`,
@@ -246,6 +254,7 @@ export const setScrollingAnimations = function () {
           dispatchTextStepChange(nextArrayIndex - 1);
         } else {
           visibleBlocks[curArrayIndex] = false;
+          currentDigit = curArrayIndex;
           numberCont.className = numberCont.className.replace(
             REGEX,
             `_${nextArrayIndex}-${curArrayIndex}`,
@@ -761,7 +770,9 @@ export const setScrollingAnimations = function () {
     const COUNTER_REVEAL_DELAY = 700;
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
     const coverSection = document.querySelector(".section-cover");
-    const mainSection = document.getElementById("section-main");
+    const counterActiveZone = document.getElementById(
+      "section-main__counter-active-zone",
+    );
     const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
@@ -772,17 +783,13 @@ export const setScrollingAnimations = function () {
     let counterHideTimer = null;
     const options = {
       root: scrollRoot,
-      threshold: 0.05,
+      threshold: 0,
     };
 
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const numberState = numberCont.className.match(NUMBER_CLASS_REGEX);
-          const [, from = 0, to = 0] = numberState
-            ? numberState[0].match(/_(\d+)-(\d+)/).map(Number)
-            : [];
-          const activeDigit = to || from || 1;
+          counterIsActive = true;
 
           clearTimeout(counterRevealTimer);
           clearTimeout(counterHideTimer);
@@ -791,7 +798,7 @@ export const setScrollingAnimations = function () {
           );
           numberCont.className = numberCont.className.replace(
             NUMBER_CLASS_REGEX,
-            `_0-${activeDigit}`,
+            `_0-${currentDigit}`,
           );
           coverSection.classList.add("section-cover_scrolled");
           // longDecorationLine.classList.add(
@@ -815,23 +822,17 @@ export const setScrollingAnimations = function () {
           setMainCornerShown(true);
           setMainRightPlusShown(true);
         } else {
+          counterIsActive = false;
           clearTimeout(counterRevealTimer);
           counterBlock.classList.remove(
             "section-main__counter-block_digits-waiting",
           );
-          const numberState = numberCont.className.match(NUMBER_CLASS_REGEX);
-          const [, from = 0, to = 0] = numberState
-            ? numberState[0].match(/_(\d+)-(\d+)/).map(Number)
-            : [];
-          const activeDigit = to || from;
 
           animateZeroVisibility(false);
-          if (activeDigit) {
-            numberCont.className = numberCont.className.replace(
-              NUMBER_CLASS_REGEX,
-              `_${activeDigit}-0`,
-            );
-          }
+          numberCont.className = numberCont.className.replace(
+            NUMBER_CLASS_REGEX,
+            `_${currentDigit}-0`,
+          );
           coverSection.classList.remove("section-cover_scrolled");
           // longDecorationLine.classList.remove(
           //   "section-main__decoration_long_hidden",
@@ -849,14 +850,50 @@ export const setScrollingAnimations = function () {
     };
 
     const observer = new IntersectionObserver(callback, options);
-    observer.observe(mainSection);
+    observer.observe(counterActiveZone);
+  };
+  const createCounterBoundaryFade = function () {
+    const FADE_DISTANCE_IN_VIEWPORTS = 0.9;
+    const mainSection = document.getElementById("section-main");
+    const counterBlock = document.getElementById("counter");
+    let frameId = null;
+
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const updateOpacity = () => {
+      frameId = null;
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const sectionRect = mainSection.getBoundingClientRect();
+      const sectionTop =
+        scrollRoot.scrollTop + sectionRect.top - rootRect.top;
+      const localScroll = scrollRoot.scrollTop - sectionTop;
+      const stickyDistance = Math.max(
+        mainSection.offsetHeight - scrollRoot.clientHeight,
+        0,
+      );
+      const fadeDistance = Math.max(
+        scrollRoot.clientHeight * FADE_DISTANCE_IN_VIEWPORTS,
+        1,
+      );
+      const entryOpacity = localScroll / fadeDistance;
+      const exitOpacity = (stickyDistance - localScroll) / fadeDistance;
+      const opacity = clamp(Math.min(entryOpacity, exitOpacity), 0, 1);
+
+      counterBlock.style.setProperty("--counter-boundary-opacity", opacity);
+    };
+    const requestOpacityUpdate = () => {
+      if (!frameId) {
+        frameId = requestAnimationFrame(updateOpacity);
+      }
+    };
+
+    scrollRoot.addEventListener("scroll", requestOpacityUpdate, {
+      passive: true,
+    });
+    window.addEventListener("resize", requestOpacityUpdate);
+    updateOpacity();
   };
   const createEndIntersectionObserver = function () {
-    const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
     const endBlock = document.getElementById("section-footer");
-    const mainSection = document.getElementById("section-main");
-    const numberCont = document.getElementById("changing-number");
-    let hiddenDigit = 0;
     const options = {
       root: scrollRoot,
       threshold: 0.1,
@@ -865,43 +902,9 @@ export const setScrollingAnimations = function () {
     const callback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const numberState = numberCont.className.match(NUMBER_CLASS_REGEX);
-          const [, from = 0, to = 0] = numberState
-            ? numberState[0].match(/_(\d+)-(\d+)/).map(Number)
-            : [];
-
-          hiddenDigit = to || from || 5;
-          animateZeroVisibility(false);
-          numberCont.className = numberCont.className.replace(
-            NUMBER_CLASS_REGEX,
-            `_${hiddenDigit}-0`,
-          );
           endBlock.classList.add("section-footer_shown");
-          dispatchTextStepChange(-1);
-          setMainCornerShown(false);
-          setMainRightPlusShown(false);
         } else {
           endBlock.classList.remove("section-footer_shown");
-          const mainRect = mainSection.getBoundingClientRect();
-          const isMainVisible =
-            mainRect.top < window.innerHeight && mainRect.bottom > 0;
-
-          if (!isMainVisible) {
-            return;
-          }
-
-          if (hiddenDigit) {
-            animateZeroVisibility(true);
-            numberCont.className = numberCont.className.replace(
-              NUMBER_CLASS_REGEX,
-              `_0-${hiddenDigit}`,
-            );
-            dispatchTextStepChange(hiddenDigit - 1);
-            hiddenDigit = 0;
-          }
-
-          setMainCornerShown(true);
-          setMainRightPlusShown(true);
         }
       });
     };
@@ -1079,6 +1082,7 @@ export const setScrollingAnimations = function () {
   createPhoneAnimation(blocks);
   createShuffleTextAnimation(blocks);
   createMainCornerAnimation();
+  createCounterBoundaryFade();
   createMainIntersectionObserver();
   createEndIntersectionObserver();
 };

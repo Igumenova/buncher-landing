@@ -28,6 +28,14 @@
     overflow: hidden;
   }
 
+  &__counter-active-zone {
+    position: absolute;
+    top: 100vh;
+    bottom: 100vh;
+    width: 1px;
+    pointer-events: none;
+  }
+
   &__wrapper {
     position: relative;
     z-index: 2;
@@ -60,7 +68,7 @@
     &:after {
       display: block;
       content: "";
-      height: 60vh;
+      height: 120vh;
     }
 
     &_small {
