@@ -362,6 +362,12 @@ export const setScrollingAnimations = function () {
     const mainSection = document.getElementById("section-main");
     const stage = mainSection.querySelector(".section-main__stage");
     const shuffleLayer = document.createElement("div");
+    const shufflePanel = document.createElement("div");
+    const lineNumbers = document.createElement("div");
+    const divider = document.createElement("div");
+    const codeArea = document.createElement("div");
+    const syntaxStart = document.createElement("span");
+    const syntaxEnd = document.createElement("span");
     const shuffleText = document.createElement("h2");
     let textSteps = getScrollAnimationTextSteps();
     let activeStep = -1;
@@ -370,12 +376,51 @@ export const setScrollingAnimations = function () {
     let animationToken = 0;
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
+    shufflePanel.classList.add("section-main__shuffle-panel");
+    lineNumbers.classList.add("section-main__shuffle-line-numbers");
+    divider.classList.add("section-main__shuffle-divider");
+    codeArea.classList.add("section-main__shuffle-code");
+    syntaxStart.classList.add(
+      "section-main__shuffle-syntax",
+      "section-main__shuffle-syntax_start",
+    );
+    syntaxEnd.classList.add(
+      "section-main__shuffle-syntax",
+      "section-main__shuffle-syntax_end",
+    );
+    lineNumbers.append(
+      ...Array.from({ length: 6 }, (_, index) => {
+        const lineNumber = document.createElement("span");
+        lineNumber.textContent = index + 1;
+        return lineNumber;
+      }),
+    );
+    syntaxStart.textContent = "*{";
+    syntaxEnd.textContent = "}";
     shuffleText.classList.add(
       "section-main__shuffle-text",
       "section-main__shuffle-text_first-entry",
     );
-    shuffleLayer.appendChild(shuffleText);
+    codeArea.append(syntaxStart, shuffleText, syntaxEnd);
+    shufflePanel.append(lineNumbers, divider, codeArea);
+    shuffleLayer.appendChild(shufflePanel);
     stage.appendChild(shuffleLayer);
+
+    const updatePanelScale = () => {
+      const layoutScale = Math.min(
+        scrollRoot.clientWidth / 1980,
+        scrollRoot.clientHeight / 960,
+      );
+      const layoutLeft =
+        (scrollRoot.clientWidth - 1980 * layoutScale) / 2 +
+        100 * layoutScale;
+
+      shufflePanel.style.setProperty("--shuffle-layout-scale", layoutScale);
+      shufflePanel.style.setProperty("--shuffle-layout-left", `${layoutLeft}px`);
+    };
+
+    window.addEventListener("resize", updatePanelScale);
+    updatePanelScale();
 
     const isHighlighted = (ranges, index) =>
       ranges.some((range) => index >= range.start && index < range.end);
@@ -462,7 +507,7 @@ export const setScrollingAnimations = function () {
 
       context.font = `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
 
-      return (text) => context.measureText(text.toLocaleUpperCase("ru")).width;
+      return (text) => context.measureText(text).width;
     };
     const wrapLine = (line, maxWidth, measureText) => {
       const words = line.trim().split(/\s+/);
@@ -487,18 +532,74 @@ export const setScrollingAnimations = function () {
 
       return lines.length ? lines : [line];
     };
+    const wrapLineToCount = (line, lineCount, maxWidth, measureText) => {
+      const words = line.trim().split(/\s+/);
+
+      if (words.length < lineCount) {
+        return wrapLine(line, maxWidth, measureText);
+      }
+
+      let bestLayout = null;
+      let bestScore = Infinity;
+      const visitLayouts = (startIndex, linesLeft, lines, widths) => {
+        if (linesLeft === 1) {
+          const lastLine = words.slice(startIndex).join(" ");
+          const layout = [...lines, lastLine];
+          const layoutWidths = [...widths, measureText(lastLine)];
+          const widestLine = Math.max(...layoutWidths);
+          const averageWidth =
+            layoutWidths.reduce((sum, width) => sum + width, 0) / lineCount;
+          const unevenness = layoutWidths.reduce(
+            (sum, width) => sum + Math.pow(width - averageWidth, 2),
+            0,
+          );
+          const overflow = layoutWidths.reduce(
+            (sum, width) => sum + Math.max(width - maxWidth, 0),
+            0,
+          );
+          const score = overflow * 1000 + widestLine + unevenness * 0.001;
+
+          if (score < bestScore) {
+            bestScore = score;
+            bestLayout = layout;
+          }
+          return;
+        }
+
+        const lastEndIndex = words.length - linesLeft + 1;
+        for (let endIndex = startIndex + 1; endIndex <= lastEndIndex; endIndex++) {
+          const nextLine = words.slice(startIndex, endIndex).join(" ");
+          visitLayouts(
+            endIndex,
+            linesLeft - 1,
+            [...lines, nextLine],
+            [...widths, measureText(nextLine)],
+          );
+        }
+      };
+
+      visitLayouts(0, lineCount, [], []);
+      return bestLayout ?? wrapLine(line, maxWidth, measureText);
+    };
+    const capitalizeFirstLetter = (text) =>
+      text.replace(/\p{L}/u, (letter) => letter.toLocaleUpperCase("ru"));
     const wrapPhraseText = (phraseElement, text) => {
       const maxWidth = phraseElement.clientWidth;
+      const capitalizedText = capitalizeFirstLetter(text);
 
       if (!maxWidth) {
-        return text;
+        return capitalizedText;
       }
 
       const measureText = getTextMeasurer(phraseElement);
+      const sourceLines = capitalizedText.split("\n");
 
-      return text
-        .split("\n")
-        .flatMap((line) => wrapLine(line, maxWidth, measureText))
+      return sourceLines
+        .flatMap((line) =>
+          sourceLines.length === 1
+            ? wrapLineToCount(line, 4, maxWidth, measureText)
+            : wrapLine(line, maxWidth, measureText),
+        )
         .join("\n");
     };
     const createHighlightRanges = (phraseElement, phrase) => {
@@ -727,6 +828,7 @@ export const setScrollingAnimations = function () {
       activeStep = nextStep;
       clearTimeout(hideTimer);
       animateSyncText(shuffleText, textSteps[nextStep]);
+      shufflePanel.classList.add("section-main__shuffle-panel_visible");
       shuffleText.classList.add("section-main__shuffle-text_visible");
     };
     const hideText = () => {
@@ -735,6 +837,7 @@ export const setScrollingAnimations = function () {
       if (shuffleFrame) {
         cancelAnimationFrame(shuffleFrame);
       }
+      shufflePanel.classList.remove("section-main__shuffle-panel_visible");
       shuffleText.classList.remove("section-main__shuffle-text_visible");
       clearTimeout(hideTimer);
       hideTimer = setTimeout(() => {
