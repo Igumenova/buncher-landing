@@ -876,6 +876,7 @@ export const setScrollingAnimations = function () {
     const counterActiveZone = document.getElementById(
       "section-main__counter-active-zone",
     );
+    const mainSection = document.getElementById("section-main");
     const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
@@ -887,6 +888,19 @@ export const setScrollingAnimations = function () {
     const options = {
       root: scrollRoot,
       threshold: 0,
+    };
+    const updateCounterActivationPoint = () => {
+      const logoAnchor = document.querySelector(".anchor__item_0-0");
+
+      if (!logoAnchor) {
+        return;
+      }
+
+      const mainRect = mainSection.getBoundingClientRect();
+      const anchorRect = logoAnchor.getBoundingClientRect();
+      const activationGap = scrollRoot.clientHeight * 0.35;
+
+      counterActiveZone.style.top = `${anchorRect.top - mainRect.top + activationGap}px`;
     };
 
     const callback = (entries) => {
@@ -916,9 +930,9 @@ export const setScrollingAnimations = function () {
             shuffleText.classList.remove(
               "section-main__shuffle-text_first-entry",
             );
+            dispatchTextStepChange(0);
           }, COUNTER_REVEAL_DELAY);
           contentBlock.classList.add("section-main__content-block_shown");
-          dispatchTextStepChange(0);
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
           }
@@ -953,6 +967,8 @@ export const setScrollingAnimations = function () {
     };
 
     const observer = new IntersectionObserver(callback, options);
+    updateCounterActivationPoint();
+    window.addEventListener("resize", updateCounterActivationPoint);
     observer.observe(counterActiveZone);
   };
   const createCounterBoundaryFade = function () {
