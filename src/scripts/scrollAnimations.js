@@ -70,6 +70,7 @@ export const setScrollingAnimations = function () {
     element.style.setProperty(`-o-${styleName}`, value);
     element.style.setProperty(styleName, value);
   };
+  /* Side decoration animations temporarily disabled.
   let setMainCornerShown = function () {
     // initialized in createMainCornerAnimation
   };
@@ -163,6 +164,7 @@ export const setScrollingAnimations = function () {
       applyProgress(progress);
     });
   };
+  */
   const createNumberIntersectionObserver = function (blocks) {
     const REGEX = /_\d+-\d+$/;
     const numberCont = document.getElementById("changing-number");
@@ -917,7 +919,7 @@ export const setScrollingAnimations = function () {
             NUMBER_CLASS_REGEX,
             `_0-${currentDigit}`,
           );
-          coverSection.classList.add("section-cover_scrolled");
+          // coverSection.classList.add("section-cover_scrolled");
           // longDecorationLine.classList.add(
           //   "section-main__decoration_long_hidden",
           // );
@@ -936,8 +938,8 @@ export const setScrollingAnimations = function () {
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
           }
-          setMainCornerShown(true);
-          setMainRightPlusShown(true);
+          // setMainCornerShown(true);
+          // setMainRightPlusShown(true);
         } else {
           counterIsActive = false;
           clearTimeout(counterRevealTimer);
@@ -950,7 +952,7 @@ export const setScrollingAnimations = function () {
             NUMBER_CLASS_REGEX,
             `_${currentDigit}-0`,
           );
-          coverSection.classList.remove("section-cover_scrolled");
+          // coverSection.classList.remove("section-cover_scrolled");
           // longDecorationLine.classList.remove(
           //   "section-main__decoration_long_hidden",
           // );
@@ -960,8 +962,8 @@ export const setScrollingAnimations = function () {
           }, DIGIT_TRANSITION_DURATION);
           contentBlock.classList.remove("section-main__content-block_shown");
           dispatchTextStepChange(-1);
-          setMainCornerShown(false);
-          setMainRightPlusShown(false);
+          // setMainCornerShown(false);
+          // setMainRightPlusShown(false);
         }
       });
     };
@@ -1218,7 +1220,7 @@ export const setScrollingAnimations = function () {
   createNumberIntersectionObserver(blocks);
   createPhoneAnimation(blocks);
   createShuffleTextAnimation(blocks);
-  createMainCornerAnimation();
+  // createMainCornerAnimation();
   createCounterBoundaryFade();
   createMainIntersectionObserver();
   createEndIntersectionObserver();
