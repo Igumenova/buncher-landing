@@ -20,6 +20,7 @@
 
     .anchor__item:first-child {
       top: -25%;
+      transform: translateY(-50vh);
     }
 
     .anchor__item:nth-child(2) {
@@ -29,6 +30,7 @@
     .anchor__item:last-child {
       top: -8%;
     }
+
   }
 
   &_2 {

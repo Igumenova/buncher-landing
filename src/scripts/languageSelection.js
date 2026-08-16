@@ -38,46 +38,46 @@ const lang = {
 const scrollAnimationTextSteps = {
   ru: [
     {
-      text: "общие вызовы, идеи и интересы внутри поиска",
-      highlight: ["внутри"],
+      text: "Нишевый матчмейкер по активностям внутри комьюнити",
+      highlight: ["матчмейкер"],
     },
     {
-      text: "Адаптивный и понятный личный мессенджер",
-      highlight: ["понятный"],
+      text: "Единая дружеская, деловая и академическая сеть контактов",
+      highlight: ["сеть контактов"],
     },
     {
-      text: "поддержка проектного комьюнити и рабочих команд",
-      highlight: ["поддержка"],
+      text: "Воркспейс для ваших рабочих команд и проектного сообщества",
+      highlight: ["воркспейс"],
     },
     {
-      text: "нативные и безопасные интеракции с git",
-      highlight: ["безопасные"],
+      text: "Нативные и безопасные интеракции с git платформами",
+      highlight: ["интеракции с git"],
     },
     {
-      text: "удобная подписочная фримиум модель",
-      highlight: ["фримиум"],
+      text: "Независимый и бесплатный личный мессенджер",
+      highlight: ["личный мессенджер"],
     },
   ],
   en: [
     {
-      text: "common challenges, ideas and interests inside search",
-      highlight: ["inside"],
+      text: "Niche activity-based matchmaking within the community",
+      highlight: ["matchmaking"],
     },
     {
-      text: "Adaptive and clear personal messenger",
-      highlight: ["clear"],
+      text: "A unified network for social, professional, and academic connections",
+      highlight: ["network"],
     },
     {
-      text: "support for project communities and working teams",
-      highlight: ["support"],
+      text: "A workspace for your teams and project community",
+      highlight: ["workspace"],
     },
     {
-      text: "native and secure interactions with git",
-      highlight: ["secure"],
+      text: "Native and secure interactions with Git platforms",
+      highlight: ["Git interactions"],
     },
     {
-      text: "convenient subscription freemium model",
-      highlight: ["freemium"],
+      text: "An independent and free private messenger",
+      highlight: ["private messenger"],
     },
   ],
 };

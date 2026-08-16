@@ -872,7 +872,6 @@ export const setScrollingAnimations = function () {
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
   };
   const createMainIntersectionObserver = function () {
-    const COUNTER_REVEAL_DELAY = 350;
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
     const coverSection = document.querySelector(".section-cover");
     const counterActiveZone = document.getElementById(
@@ -885,24 +884,24 @@ export const setScrollingAnimations = function () {
     const numberCont = document.getElementById("changing-number");
     const shuffleText = document.querySelector(".section-main__shuffle-text");
     const contentBlock = document.getElementById("section-main__content-block");
-    let counterRevealTimer = null;
     let counterHideTimer = null;
     const options = {
       root: scrollRoot,
       threshold: 0,
     };
     const updateCounterActivationPoint = () => {
-      const logoAnchor = document.querySelector(".anchor__item_0-0");
+      const nextPhoneStateAnchor = document.querySelector(
+        ".anchor__item_1-0",
+      );
 
-      if (!logoAnchor) {
+      if (!nextPhoneStateAnchor) {
         return;
       }
 
       const mainRect = mainSection.getBoundingClientRect();
-      const anchorRect = logoAnchor.getBoundingClientRect();
-      const activationGap = scrollRoot.clientHeight * 0.35;
+      const anchorRect = nextPhoneStateAnchor.getBoundingClientRect();
 
-      counterActiveZone.style.top = `${anchorRect.top - mainRect.top + activationGap}px`;
+      counterActiveZone.style.top = `${anchorRect.top - mainRect.top + anchorRect.height / 2}px`;
     };
 
     const callback = (entries) => {
@@ -910,11 +909,7 @@ export const setScrollingAnimations = function () {
         if (entry.isIntersecting) {
           counterIsActive = true;
 
-          clearTimeout(counterRevealTimer);
           clearTimeout(counterHideTimer);
-          counterBlock.classList.add(
-            "section-main__counter-block_digits-waiting",
-          );
           numberCont.className = numberCont.className.replace(
             NUMBER_CLASS_REGEX,
             `_0-${currentDigit}`,
@@ -924,16 +919,11 @@ export const setScrollingAnimations = function () {
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.add("section-main__counter-block_shown");
-          counterRevealTimer = setTimeout(() => {
-            counterBlock.classList.remove(
-              "section-main__counter-block_digits-waiting",
-            );
-            animateZeroVisibility(true);
-            shuffleText.classList.remove(
-              "section-main__shuffle-text_first-entry",
-            );
-            dispatchTextStepChange(0);
-          }, COUNTER_REVEAL_DELAY);
+          animateZeroVisibility(true);
+          shuffleText.classList.remove(
+            "section-main__shuffle-text_first-entry",
+          );
+          dispatchTextStepChange(0);
           contentBlock.classList.add("section-main__content-block_shown");
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
@@ -942,7 +932,6 @@ export const setScrollingAnimations = function () {
           // setMainRightPlusShown(true);
         } else {
           counterIsActive = false;
-          clearTimeout(counterRevealTimer);
           counterBlock.classList.remove(
             "section-main__counter-block_digits-waiting",
           );
