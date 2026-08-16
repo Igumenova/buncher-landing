@@ -5,12 +5,12 @@
   width: 100%;
 
   &__container {
-    box-sizing: content-box;
+    box-sizing: border-box;
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
     width: 100%;
-    max-width: 1690px;
+    max-width: none;
     padding: 0 120px;
   }
 
