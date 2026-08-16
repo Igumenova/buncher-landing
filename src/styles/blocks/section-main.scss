@@ -126,12 +126,20 @@
     position: absolute;
     z-index: 4;
     inset: 0;
+    opacity: var(--shuffle-boundary-opacity, 1);
     pointer-events: none;
+    transition: opacity 0.14s linear;
+    will-change: opacity;
   }
 
   &__shuffle-panel,
   &__shuffle-code {
     display: contents;
+  }
+
+  &__shuffle-panel {
+    --shuffle-phase-duration: 0.75s;
+    --shuffle-phase-easing: ease-in-out;
   }
 
   &__shuffle-line-numbers,
@@ -188,9 +196,53 @@
     white-space: nowrap;
   }
 
+  &__shuffle-phrase {
+    position: absolute;
+    inset: 0;
+    display: block;
+    transform: translateY(0);
+    opacity: 1;
+    transition:
+      transform var(--shuffle-phase-duration) var(--shuffle-phase-easing),
+      opacity var(--shuffle-phase-duration) var(--shuffle-phase-easing);
+    will-change: transform, opacity;
+
+    &_active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    &_exit-up {
+      transform: translateY(var(--shuffle-phrase-shift, -1.13em));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &_exit-down {
+      transform: translateY(var(--shuffle-phrase-shift, 1.13em));
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  &__shuffle-line {
+    display: block;
+    min-height: 1.13em;
+  }
+
+  &__shuffle-phrase-syntax {
+    display: none;
+  }
+
   &__shuffle-letter {
     display: inline-block;
     color: inherit;
+    opacity: 0;
+    transition: opacity 0.18s ease-out;
+
+    &_visible {
+      opacity: 1;
+    }
 
     &_highlight {
       color: #384d60;
@@ -1068,9 +1120,10 @@
     }
 
     &__shuffle-line-numbers {
-      display: grid;
-      flex: 0 0 29px;
-      grid-template-rows: repeat(6, 58px);
+      display: block;
+      flex: 0 0 58px;
+      height: 348px;
+      overflow: hidden;
       color: #d6e7f2;
       font-family: Montserrat, sans-serif;
       font-size: 48px;
@@ -1080,13 +1133,21 @@
       text-align: left;
     }
 
+    &__shuffle-line-number-track {
+      display: grid;
+      grid-auto-rows: 58px;
+      transition: transform var(--shuffle-phase-duration)
+        var(--shuffle-phase-easing);
+      will-change: transform;
+    }
+
     &__shuffle-divider {
       display: block;
       flex: 0 0 2px;
       width: 2px;
       height: 352px;
-      margin-left: 23px;
-      margin-right: 48px;
+      margin-left: 12px;
+      margin-right: 30px;
       background-color: #d6e7f2;
     }
 
@@ -1096,6 +1157,35 @@
       flex: 0 0 500px;
       width: 500px;
       height: 352px;
+      overflow: hidden;
+
+      &::before,
+      &::after {
+        position: absolute;
+        z-index: 2;
+        right: 0;
+        left: 0;
+        height: 58px;
+        content: "";
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease-in-out;
+      }
+
+      &::before {
+        top: 0;
+        background: linear-gradient(to bottom, #fff 0%, transparent 100%);
+      }
+
+      &::after {
+        bottom: 0;
+        background: linear-gradient(to top, #fff 0%, transparent 100%);
+      }
+
+      &_transitioning::before,
+      &_transitioning::after {
+        opacity: 1;
+      }
     }
 
     &__shuffle-syntax {
@@ -1137,6 +1227,30 @@
       &_first-entry {
         transform: none;
       }
+    }
+
+    &__shuffle-phrase {
+      top: -58px;
+      bottom: auto;
+      height: 348px;
+
+      &_exit-up {
+        transform: translateY(var(--shuffle-phrase-shift, -290px));
+      }
+
+      &_exit-down {
+        transform: translateY(var(--shuffle-phrase-shift, 290px));
+      }
+    }
+
+    &__shuffle-phrase-syntax {
+      display: block;
+      min-height: 58px;
+      color: #d6e7f2;
+    }
+
+    &__shuffle-line {
+      min-height: 58px;
     }
   }
 }

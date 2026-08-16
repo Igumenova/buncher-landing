@@ -10,8 +10,9 @@ export let refreshSizes = function () {
 export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
-  const SHUFFLE_DURATION = 1200;
-  const TEXT_EXIT_DURATION = 800;
+  const TEXT_TYPE_DELAY = 28;
+  const TEXT_PHASE_DELAY = 800;
+  const TEXT_EXIT_DURATION = 850;
   const DIGIT_TRANSITION_DURATION = 650;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
@@ -366,44 +367,39 @@ export const setScrollingAnimations = function () {
     const shuffleLayer = document.createElement("div");
     const shufflePanel = document.createElement("div");
     const lineNumbers = document.createElement("div");
+    const lineNumberTrack = document.createElement("div");
     const divider = document.createElement("div");
     const codeArea = document.createElement("div");
-    const syntaxStart = document.createElement("span");
-    const syntaxEnd = document.createElement("span");
     const shuffleText = document.createElement("h2");
     let textSteps = getScrollAnimationTextSteps();
     let activeStep = -1;
-    let shuffleFrame = null;
+    let typingTimer = null;
     let hideTimer = null;
+    let phraseCleanupTimer = null;
     let animationToken = 0;
+    let activePhrase = null;
+    let lastTextScrollTop = scrollRoot.scrollTop;
+    let textScrollDirection = 1;
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
     shufflePanel.classList.add("section-main__shuffle-panel");
     lineNumbers.classList.add("section-main__shuffle-line-numbers");
+    lineNumberTrack.classList.add("section-main__shuffle-line-number-track");
     divider.classList.add("section-main__shuffle-divider");
     codeArea.classList.add("section-main__shuffle-code");
-    syntaxStart.classList.add(
-      "section-main__shuffle-syntax",
-      "section-main__shuffle-syntax_start",
-    );
-    syntaxEnd.classList.add(
-      "section-main__shuffle-syntax",
-      "section-main__shuffle-syntax_end",
-    );
-    lineNumbers.append(
-      ...Array.from({ length: 6 }, (_, index) => {
+    lineNumberTrack.append(
+      ...Array.from({ length: textSteps.length * 5 + 1 }, (_, index) => {
         const lineNumber = document.createElement("span");
         lineNumber.textContent = index + 1;
         return lineNumber;
       }),
     );
-    syntaxStart.textContent = "*{";
-    syntaxEnd.textContent = "}";
+    lineNumbers.append(lineNumberTrack);
     shuffleText.classList.add(
       "section-main__shuffle-text",
       "section-main__shuffle-text_first-entry",
     );
-    codeArea.append(syntaxStart, shuffleText, syntaxEnd);
+    codeArea.appendChild(shuffleText);
     shufflePanel.append(lineNumbers, divider, codeArea);
     shuffleLayer.appendChild(shufflePanel);
     stage.appendChild(shuffleLayer);
@@ -422,6 +418,17 @@ export const setScrollingAnimations = function () {
     };
 
     window.addEventListener("resize", updatePanelScale);
+    scrollRoot.addEventListener(
+      "scroll",
+      () => {
+        const nextScrollTop = scrollRoot.scrollTop;
+        if (nextScrollTop !== lastTextScrollTop) {
+          textScrollDirection = Math.sign(nextScrollTop - lastTextScrollTop);
+          lastTextScrollTop = nextScrollTop;
+        }
+      },
+      { passive: true },
+    );
     updatePanelScale();
 
     const isHighlighted = (ranges, index) =>
@@ -821,29 +828,155 @@ export const setScrollingAnimations = function () {
 
       frame(performance.now());
     };
+    const createTypedPhrase = (phrase) => {
+      const phraseElement = document.createElement("span");
+      const syntaxStart = document.createElement("span");
+      const syntaxEnd = document.createElement("span");
+      const layoutText = wrapPhraseText(shuffleText, phrase.text);
+      const ranges = createHighlightRanges(shuffleText, phrase);
+      let characterIndex = 0;
+
+      phraseElement.className = "section-main__shuffle-phrase";
+      syntaxStart.className = "section-main__shuffle-phrase-syntax";
+      syntaxEnd.className = "section-main__shuffle-phrase-syntax";
+      syntaxStart.textContent = "*{";
+      syntaxEnd.textContent = "}";
+      phraseElement.appendChild(syntaxStart);
+      layoutText.split("\n").forEach((lineText, lineIndex) => {
+        const line = document.createElement("span");
+        line.className = "section-main__shuffle-line";
+        line.style.setProperty("--line-index", lineIndex);
+
+        [...lineText].forEach((character) => {
+          const letter = document.createElement("span");
+          letter.className = "section-main__shuffle-letter";
+          if (isIndexInRanges(ranges, characterIndex)) {
+            letter.classList.add("section-main__shuffle-letter_highlight");
+          }
+          letter.textContent = character === " " ? "\u00a0" : character;
+          line.appendChild(letter);
+          characterIndex++;
+        });
+
+        phraseElement.appendChild(line);
+        characterIndex++;
+      });
+      phraseElement.appendChild(syntaxEnd);
+
+      return phraseElement;
+    };
+    const typePhrase = (phrase, stepIndex) => {
+      animationToken++;
+      const currentToken = animationToken;
+      const phraseElement = createTypedPhrase(phrase);
+      const letters = Array.from(
+        phraseElement.querySelectorAll(".section-main__shuffle-letter"),
+      );
+      let letterIndex = 0;
+
+      clearTimeout(typingTimer);
+      codeArea.classList.remove("section-main__shuffle-code_transitioning");
+      phraseElement.dataset.step = stepIndex;
+      shuffleText.appendChild(phraseElement);
+      activePhrase = phraseElement;
+      requestAnimationFrame(() => {
+        phraseElement.classList.add("section-main__shuffle-phrase_active");
+      });
+
+      const revealNextLetter = () => {
+        if (currentToken !== animationToken) {
+          return;
+        }
+
+        letters[letterIndex]?.classList.add(
+          "section-main__shuffle-letter_visible",
+        );
+        letterIndex++;
+        if (letterIndex < letters.length) {
+          typingTimer = setTimeout(revealNextLetter, TEXT_TYPE_DELAY);
+        }
+      };
+
+      revealNextLetter();
+    };
+    const moveLineNumbers = (stepIndex) => {
+      lineNumberTrack.style.transform = `translateY(${-stepIndex * 5 * 58}px)`;
+    };
     const setStep = (stepIndex, forceRender = false) => {
       const nextStep = Math.max(0, Math.min(textSteps.length - 1, stepIndex));
       if (nextStep === activeStep && !forceRender) {
         return;
       }
+      if (
+        !forceRender &&
+        activeStep !== -1 &&
+        ((textScrollDirection > 0 && nextStep < activeStep) ||
+          (textScrollDirection < 0 && nextStep > activeStep))
+      ) {
+        return;
+      }
 
+      const previousStep = activeStep;
+      const outgoingPhrase = activePhrase;
       activeStep = nextStep;
       clearTimeout(hideTimer);
-      animateSyncText(shuffleText, textSteps[nextStep]);
+      clearTimeout(typingTimer);
+      clearTimeout(phraseCleanupTimer);
+      animationToken++;
+
+      shuffleText
+        .querySelectorAll(".section-main__shuffle-phrase")
+        .forEach((phraseElement) => {
+          if (phraseElement !== outgoingPhrase) {
+            phraseElement.remove();
+          }
+        });
+
+      if (outgoingPhrase) {
+        const outgoingStep = Number(outgoingPhrase.dataset.step);
+        const stepDistance = Number.isFinite(outgoingStep)
+          ? nextStep - outgoingStep
+          : nextStep - previousStep;
+
+        outgoingPhrase.classList.remove(
+          "section-main__shuffle-phrase_exit-up",
+          "section-main__shuffle-phrase_exit-down",
+        );
+        outgoingPhrase.style.setProperty(
+          "--shuffle-phrase-shift",
+          `${-stepDistance * 5 * 58}px`,
+        );
+        outgoingPhrase.classList.add(
+          nextStep >= previousStep
+            ? "section-main__shuffle-phrase_exit-up"
+            : "section-main__shuffle-phrase_exit-down",
+        );
+        codeArea.classList.add("section-main__shuffle-code_transitioning");
+        phraseCleanupTimer = setTimeout(() => {
+          outgoingPhrase.remove();
+        }, TEXT_EXIT_DURATION);
+      }
+
+      moveLineNumbers(nextStep);
+      typingTimer = setTimeout(
+        () => typePhrase(textSteps[nextStep], nextStep),
+        outgoingPhrase ? TEXT_PHASE_DELAY : 0,
+      );
       shufflePanel.classList.add("section-main__shuffle-panel_visible");
       shuffleText.classList.add("section-main__shuffle-text_visible");
     };
     const hideText = () => {
       activeStep = -1;
       animationToken++;
-      if (shuffleFrame) {
-        cancelAnimationFrame(shuffleFrame);
-      }
+      clearTimeout(typingTimer);
+      clearTimeout(phraseCleanupTimer);
+      activePhrase = null;
+      codeArea.classList.remove("section-main__shuffle-code_transitioning");
       shufflePanel.classList.remove("section-main__shuffle-panel_visible");
-      shuffleText.classList.remove("section-main__shuffle-text_visible");
       clearTimeout(hideTimer);
       hideTimer = setTimeout(() => {
         if (activeStep === -1) {
+          shuffleText.classList.remove("section-main__shuffle-text_visible");
           shuffleText.replaceChildren();
         }
       }, TEXT_EXIT_DURATION);
@@ -923,7 +1056,7 @@ export const setScrollingAnimations = function () {
           shuffleText.classList.remove(
             "section-main__shuffle-text_first-entry",
           );
-          dispatchTextStepChange(0);
+          dispatchTextStepChange(currentDigit - 1);
           contentBlock.classList.add("section-main__content-block_shown");
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
@@ -967,6 +1100,9 @@ export const setScrollingAnimations = function () {
     const DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS = 0.9;
     const mainSection = document.getElementById("section-main");
     const counterBlock = document.getElementById("counter");
+    const shuffleLayer = document.querySelector(
+      ".section-main__shuffle-layer",
+    );
     let frameId = null;
     let lastScrollTop = scrollRoot.scrollTop;
     let isScrollingDown = true;
@@ -1005,8 +1141,14 @@ export const setScrollingAnimations = function () {
       const exitOpacity =
         (stickyDistance - localScroll) / exitFadeDistance;
       const opacity = clamp(Math.min(entryOpacity, exitOpacity), 0, 1);
+      const textOpacity =
+        currentDigit === NUMBER_OF_BLOCKS ? opacity : 1;
 
       counterBlock.style.setProperty("--counter-boundary-opacity", opacity);
+      shuffleLayer.style.setProperty(
+        "--shuffle-boundary-opacity",
+        textOpacity,
+      );
     };
     const requestOpacityUpdate = () => {
       if (!frameId) {
