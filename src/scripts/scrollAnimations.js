@@ -16,6 +16,13 @@ export const setScrollingAnimations = function () {
   const TEXT_PHASE_DELAY = PHASE_TRANSITION_DURATION;
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
+  const PHASE_SYNTAX = [
+    { start: "*/& (", end: ");" },
+    { start: "*//", end: "//" },
+    { start: "*{", end: "}" },
+    { start: "*(", end: ");" },
+    { start: "*[", end: "]" },
+  ];
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
@@ -439,12 +446,10 @@ export const setScrollingAnimations = function () {
 
     const updatePanelScale = () => {
       const layoutScale = Math.min(
-        scrollRoot.clientWidth / 1980,
+        scrollRoot.clientWidth / 1920,
         scrollRoot.clientHeight / 960,
       );
-      const layoutLeft =
-        (scrollRoot.clientWidth - 1980 * layoutScale) / 2 +
-        100 * layoutScale;
+      const layoutLeft = 50 * layoutScale;
 
       shufflePanel.style.setProperty("--shuffle-layout-scale", layoutScale);
       shufflePanel.style.setProperty("--shuffle-layout-left", `${layoutLeft}px`);
@@ -922,11 +927,13 @@ export const setScrollingAnimations = function () {
 
       frame(performance.now());
     };
-    const createTypedPhrase = (phrase) => {
+    const createTypedPhrase = (phrase, stepIndex) => {
       const phraseElement = document.createElement("span");
       const syntaxStart = document.createElement("span");
       const syntaxEnd = document.createElement("span");
       const layoutText = wrapPhraseText(shuffleText, phrase.text);
+      const layoutLines = layoutText.split("\n");
+      const syntax = PHASE_SYNTAX[stepIndex % PHASE_SYNTAX.length];
       const ranges = createHighlightRanges(shuffleText, phrase);
       let characterIndex = 0;
 
@@ -942,10 +949,10 @@ export const setScrollingAnimations = function () {
         });
       };
 
-      appendSyntaxLetters(syntaxStart, "*{");
-      appendSyntaxLetters(syntaxEnd, "}");
+      appendSyntaxLetters(syntaxStart, syntax.start);
+      appendSyntaxLetters(syntaxEnd, syntax.end);
       phraseElement.appendChild(syntaxStart);
-      layoutText.split("\n").forEach((lineText, lineIndex) => {
+      layoutLines.forEach((lineText, lineIndex) => {
         const line = document.createElement("span");
         line.className = "section-main__shuffle-line";
         line.style.setProperty("--line-index", lineIndex);
@@ -971,7 +978,7 @@ export const setScrollingAnimations = function () {
     const typePhrase = (phrase, stepIndex) => {
       animationToken++;
       const currentToken = animationToken;
-      const phraseElement = createTypedPhrase(phrase);
+      const phraseElement = createTypedPhrase(phrase, stepIndex);
       const syntaxBlocks = phraseElement.querySelectorAll(
         ".section-main__shuffle-phrase-syntax",
       );
@@ -1034,6 +1041,13 @@ export const setScrollingAnimations = function () {
       const layoutText = wrapPhraseText(shuffleText, phrase.text);
       const contentRowCount = layoutText.split("\n").length;
       const rowWindowHeight = (contentRowCount + 2) * 58;
+      const maxContentRowCount = Math.max(
+        ...textSteps.map(
+          (textStep) =>
+            wrapPhraseText(shuffleText, textStep.text).split("\n").length,
+        ),
+      );
+      const maxPanelHeight = (maxContentRowCount + 2) * 58 + 4;
 
       shufflePanel.style.setProperty(
         "--shuffle-content-height",
@@ -1044,9 +1058,57 @@ export const setScrollingAnimations = function () {
         `${rowWindowHeight}px`,
       );
       shufflePanel.style.setProperty(
-        "--shuffle-panel-height",
+        "--shuffle-current-panel-height",
         `${rowWindowHeight + 4}px`,
       );
+      shufflePanel.style.setProperty(
+        "--shuffle-max-panel-height",
+        `${maxPanelHeight}px`,
+      );
+    };
+    const animatePhraseRowsExit = (phraseElement, isForward) => {
+      const phraseRows = Array.from(phraseElement.children);
+      const orderedRows = isForward ? phraseRows : [...phraseRows].reverse();
+      const rowCount = orderedRows.length;
+      const horizontalExit = isForward ? -110 : 110;
+
+      orderedRows.forEach((row, rowIndex) => {
+        const exitStartOffset = rowIndex / rowCount;
+        const exitEndOffset = (rowIndex + 1) / rowCount;
+        const frames = [
+          {
+            offset: 0,
+            transform: "translate(0%, 0px)",
+            easing: "linear",
+          },
+        ];
+
+        if (exitStartOffset > 0) {
+          frames.push({
+            offset: exitStartOffset,
+            transform: "translate(0%, 0px)",
+            easing: "ease-in",
+          });
+        }
+
+        frames[frames.length - 1].easing = "ease-in";
+        frames.push({
+          offset: exitEndOffset,
+          transform: `translate(${horizontalExit}%, 0px)`,
+        });
+
+        if (exitEndOffset < 1) {
+          frames.push({
+            offset: 1,
+            transform: `translate(${horizontalExit}%, 0px)`,
+          });
+        }
+
+        row.animate(frames, {
+          duration: PHASE_TRANSITION_DURATION,
+          fill: "forwards",
+        });
+      });
     };
     const setStep = (stepIndex, forceRender = false) => {
       const nextStep = Math.max(0, Math.min(textSteps.length - 1, stepIndex));
@@ -1079,24 +1141,16 @@ export const setScrollingAnimations = function () {
         });
 
       if (outgoingPhrase) {
-        const outgoingStep = Number(outgoingPhrase.dataset.step);
-        const stepDistance = Number.isFinite(outgoingStep)
-          ? nextStep - outgoingStep
-          : nextStep - previousStep;
-
         outgoingPhrase.classList.remove(
-          "section-main__shuffle-phrase_exit-up",
-          "section-main__shuffle-phrase_exit-down",
-        );
-        outgoingPhrase.style.setProperty(
-          "--shuffle-phrase-shift",
-          `${-stepDistance * 5 * 58}px`,
+          "section-main__shuffle-phrase_exit-left",
+          "section-main__shuffle-phrase_exit-right",
         );
         outgoingPhrase.classList.add(
           nextStep >= previousStep
-            ? "section-main__shuffle-phrase_exit-up"
-            : "section-main__shuffle-phrase_exit-down",
+            ? "section-main__shuffle-phrase_exit-left"
+            : "section-main__shuffle-phrase_exit-right",
         );
+        animatePhraseRowsExit(outgoingPhrase, nextStep >= previousStep);
         codeArea.classList.add("section-main__shuffle-code_transitioning");
         phraseCleanupTimer = setTimeout(() => {
           outgoingPhrase.remove();
@@ -1106,7 +1160,9 @@ export const setScrollingAnimations = function () {
       updatePanelRowCount(textSteps[nextStep]);
       moveLineNumbers(nextStep);
       typingTimer = setTimeout(
-        () => typePhrase(textSteps[nextStep], nextStep),
+        () => {
+          typePhrase(textSteps[nextStep], nextStep);
+        },
         outgoingPhrase ? TEXT_PHASE_DELAY : 0,
       );
       shuffleText.classList.add("section-main__shuffle-text_visible");
@@ -1148,6 +1204,7 @@ export const setScrollingAnimations = function () {
       updateActiveStepFromNumber,
     );
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
+    updatePanelRowCount(textSteps[0]);
   };
   const createMainIntersectionObserver = function () {
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;

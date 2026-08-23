@@ -212,16 +212,16 @@
       opacity: 1;
     }
 
-    &_exit-up {
-      transform: translateY(var(--shuffle-phrase-shift, -1.13em));
-      opacity: 0;
+    &_exit-left,
+    &_exit-right {
+      transform: translateY(0);
+      opacity: 1;
       pointer-events: none;
-    }
 
-    &_exit-down {
-      transform: translateY(var(--shuffle-phrase-shift, 1.13em));
-      opacity: 0;
-      pointer-events: none;
+      > .section-main__shuffle-line,
+      > .section-main__shuffle-phrase-syntax {
+        will-change: transform;
+      }
     }
   }
 
@@ -1112,7 +1112,7 @@
       display: flex;
       align-items: flex-start;
       width: 700px;
-      height: var(--shuffle-panel-height, 352px);
+      height: var(--shuffle-max-panel-height, 352px);
       transform: translateY(-50%) scale(var(--shuffle-layout-scale, 1));
       transform-origin: left center;
       opacity: 0;
@@ -1150,7 +1150,8 @@
         opacity var(--shuffle-scaffold-entry-duration)
           var(--shuffle-scaffold-entry-easing),
         transform var(--shuffle-scaffold-entry-duration)
-          var(--shuffle-scaffold-entry-easing);
+          var(--shuffle-scaffold-entry-easing),
+        height var(--shuffle-phase-duration) var(--shuffle-phase-easing);
     }
 
     &__shuffle-line-number-track {
@@ -1165,13 +1166,15 @@
       display: block;
       flex: 0 0 2px;
       width: 2px;
-      height: var(--shuffle-panel-height, 352px);
-      margin-left: 12px;
-      margin-right: 30px;
+      height: var(--shuffle-current-panel-height, 352px);
+      margin-left: 27px;
+      margin-right: 43px;
       clip-path: inset(50% 0 50% 0);
       background-color: #d6e7f2;
-      transition: clip-path var(--shuffle-scaffold-entry-duration)
-        var(--shuffle-scaffold-entry-easing);
+      transition:
+        clip-path var(--shuffle-scaffold-entry-duration)
+          var(--shuffle-scaffold-entry-easing),
+        height var(--shuffle-phase-duration) var(--shuffle-phase-easing);
       will-change: clip-path;
     }
 
@@ -1191,7 +1194,7 @@
       display: block;
       flex: 0 0 500px;
       width: 500px;
-      height: var(--shuffle-panel-height, 352px);
+      height: var(--shuffle-max-panel-height, 352px);
       overflow: hidden;
 
       &::before,
@@ -1269,13 +1272,6 @@
       bottom: auto;
       height: var(--shuffle-row-window-height, 348px);
 
-      &_exit-up {
-        transform: translateY(var(--shuffle-phrase-shift, -290px));
-      }
-
-      &_exit-down {
-        transform: translateY(var(--shuffle-phrase-shift, 290px));
-      }
     }
 
     &__shuffle-phrase-syntax {
@@ -1288,4 +1284,5 @@
       min-height: 58px;
     }
   }
+
 }
