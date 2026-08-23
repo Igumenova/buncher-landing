@@ -414,6 +414,8 @@
       top: 38.79%;
       width: 57.06%;
       height: auto;
+      transition: opacity $main-entry-duration $main-entry-easing;
+      will-change: opacity;
     }
 
     &_cont-bottom {
