@@ -1112,7 +1112,7 @@
       display: flex;
       align-items: flex-start;
       width: 700px;
-      height: 352px;
+      height: var(--shuffle-panel-height, 352px);
       transform: translateY(-50%) scale(var(--shuffle-layout-scale, 1));
       transform-origin: left center;
       opacity: 0;
@@ -1135,7 +1135,7 @@
     &__shuffle-line-numbers {
       display: block;
       flex: 0 0 58px;
-      height: 348px;
+      height: var(--shuffle-row-window-height, 348px);
       overflow: hidden;
       transform: translateY(12px);
       color: #d6e7f2;
@@ -1165,7 +1165,7 @@
       display: block;
       flex: 0 0 2px;
       width: 2px;
-      height: 352px;
+      height: var(--shuffle-panel-height, 352px);
       margin-left: 12px;
       margin-right: 30px;
       clip-path: inset(50% 0 50% 0);
@@ -1191,7 +1191,7 @@
       display: block;
       flex: 0 0 500px;
       width: 500px;
-      height: 352px;
+      height: var(--shuffle-panel-height, 352px);
       overflow: hidden;
 
       &::before,
@@ -1247,7 +1247,7 @@
       top: 58px;
       left: 0;
       width: 500px;
-      min-height: 232px;
+      min-height: var(--shuffle-content-height, 232px);
       margin: 0;
       transform: none;
       font-size: 48px;
@@ -1267,7 +1267,7 @@
     &__shuffle-phrase {
       top: -58px;
       bottom: auto;
-      height: 348px;
+      height: var(--shuffle-row-window-height, 348px);
 
       &_exit-up {
         transform: translateY(var(--shuffle-phrase-shift, -290px));

@@ -675,7 +675,14 @@ export const setScrollingAnimations = function () {
       };
 
       visitLayouts(0, lineCount, [], []);
-      return bestLayout ?? wrapLine(line, maxWidth, measureText);
+      if (
+        bestLayout &&
+        bestLayout.every((layoutLine) => measureText(layoutLine) <= maxWidth)
+      ) {
+        return bestLayout;
+      }
+
+      return wrapLine(line, maxWidth, measureText);
     };
     const capitalizeFirstLetter = (text) =>
       text.replace(/\p{L}/u, (letter) => letter.toLocaleUpperCase("ru"));
@@ -1023,6 +1030,24 @@ export const setScrollingAnimations = function () {
     const moveLineNumbers = (stepIndex) => {
       lineNumberTrack.style.transform = `translateY(${-stepIndex * 5 * 58}px)`;
     };
+    const updatePanelRowCount = (phrase) => {
+      const layoutText = wrapPhraseText(shuffleText, phrase.text);
+      const contentRowCount = layoutText.split("\n").length;
+      const rowWindowHeight = (contentRowCount + 2) * 58;
+
+      shufflePanel.style.setProperty(
+        "--shuffle-content-height",
+        `${contentRowCount * 58}px`,
+      );
+      shufflePanel.style.setProperty(
+        "--shuffle-row-window-height",
+        `${rowWindowHeight}px`,
+      );
+      shufflePanel.style.setProperty(
+        "--shuffle-panel-height",
+        `${rowWindowHeight + 4}px`,
+      );
+    };
     const setStep = (stepIndex, forceRender = false) => {
       const nextStep = Math.max(0, Math.min(textSteps.length - 1, stepIndex));
       if (nextStep === activeStep && !forceRender) {
@@ -1078,6 +1103,7 @@ export const setScrollingAnimations = function () {
         }, TEXT_EXIT_DURATION);
       }
 
+      updatePanelRowCount(textSteps[nextStep]);
       moveLineNumbers(nextStep);
       typingTimer = setTimeout(
         () => typePhrase(textSteps[nextStep], nextStep),
