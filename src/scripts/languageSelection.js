@@ -38,7 +38,7 @@ const lang = {
 const scrollAnimationTextSteps = {
   ru: [
     {
-      text: "Нишевый матчмейкер по активностям внутри комьюнити",
+      text: "Матчмейкер по активностям внутри комьюнити",
       highlight: ["матчмейкер"],
     },
     {
@@ -60,7 +60,7 @@ const scrollAnimationTextSteps = {
   ],
   en: [
     {
-      text: "Niche activity-based matchmaking within the community",
+      text: "Activity-based matchmaking within the community",
       highlight: ["matchmaking"],
     },
     {
@@ -83,8 +83,8 @@ const scrollAnimationTextSteps = {
 };
 
 const coverTypingPhrases = {
-  ru: ["Мессенджер", "Рабочее пространство", "нишевый матчмейкер"],
-  en: ["Messenger", "Workspace", "niche matchmaker"],
+  ru: ["Мессенджер", "Рабочее пространство", "матчмейкер"],
+  en: ["Messenger", "Workspace", "matchmaker"],
 };
 
 export const getCoverTypingPhrases = () =>

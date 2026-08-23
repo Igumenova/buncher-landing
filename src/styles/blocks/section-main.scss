@@ -1124,13 +1124,18 @@
       flex: 0 0 58px;
       height: 348px;
       overflow: hidden;
+      transform: translateY(12px);
       color: #d6e7f2;
       font-family: Montserrat, sans-serif;
       font-size: 48px;
       font-weight: 400;
       line-height: 58px;
       letter-spacing: 0;
-      text-align: left;
+      text-align: right;
+      opacity: 0;
+      transition:
+        opacity 0.65s ease-out 0.08s,
+        transform 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
     }
 
     &__shuffle-line-number-track {
@@ -1148,7 +1153,25 @@
       height: 352px;
       margin-left: 12px;
       margin-right: 30px;
+      transform: scaleY(0);
+      transform-origin: center;
       background-color: #d6e7f2;
+      opacity: 0;
+      transition:
+        opacity 0.35s ease-out,
+        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    &__shuffle-panel_visible {
+      .section-main__shuffle-line-numbers {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .section-main__shuffle-divider {
+        transform: scaleY(1);
+        opacity: 1;
+      }
     }
 
     &__shuffle-code {
