@@ -47,10 +47,11 @@
 
   &__typing-text {
     min-height: 1.08em;
-    width: 100%;
-    margin-top: clamp(34px, 7vh, 72px);
+    width: calc(100% + 0.1em);
+    margin-left: -0.1em;
+    margin-top: clamp(34px, 4.1667vw, 80px);
     color: #d6e7f2;
-    font-family: Montserrat, sans-serif;
+    font-family: Inconsolata, "Noto Sans", sans-serif;
     font-size: clamp(40px, 4.1667vw, 80px);
     font-weight: 700;
     font-style: normal;
@@ -78,12 +79,12 @@
 
   &__store-buttons {
     position: absolute;
-    bottom: clamp(100px, 9.4271vw, 181px);
+    bottom: clamp(100px, 7.65625vw, 147px);
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(24px, 3.125vw, 60px);
+    gap: clamp(10px, 2.7604vw, 53px);
     margin: 0;
   }
 
@@ -94,7 +95,7 @@
 
   &__store-icon {
     display: block;
-    width: clamp(44px, 4.2vw, 76px);
+    width: clamp(44px, 4.6875vw, 90px);
     height: auto;
     transition:
       opacity $small-transition-time ease-out,
