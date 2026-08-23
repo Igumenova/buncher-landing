@@ -1,7 +1,7 @@
 .counter-block {
   $mobile-digit-height: 68%;
   $desktop-offset: 50px;
-  $animation-speed: 0.65s;
+  $animation-speed: $phase-transition-duration;
 
   position: relative;
   width: 100%;
@@ -273,14 +273,16 @@
 
 .section-main__counter-block_zero-entering
   .counter-block__number-zero-stack {
-  animation: zeroDigitIn 0.65s cubic-bezier(0.35, 0, 0.2, 1) forwards;
+  animation: zeroDigitIn $phase-transition-duration
+    cubic-bezier(0.35, 0, 0.2, 1) forwards;
   transform-origin: center center;
   will-change: transform, opacity;
 }
 
 .section-main__counter-block_zero-exiting
   .counter-block__number-zero-stack {
-  animation: zeroDigitOut 0.65s cubic-bezier(0.45, 0, 0.3, 1) forwards;
+  animation: zeroDigitOut $phase-transition-duration
+    cubic-bezier(0.45, 0, 0.3, 1) forwards;
   transform-origin: center center;
   will-change: transform, opacity;
 }

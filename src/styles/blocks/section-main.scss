@@ -138,7 +138,7 @@
   }
 
   &__shuffle-panel {
-    --shuffle-phase-duration: 0.75s;
+    --shuffle-phase-duration: #{$phase-transition-duration};
     --shuffle-phase-easing: ease-in-out;
   }
 

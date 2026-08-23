@@ -10,10 +10,10 @@ export let refreshSizes = function () {
 export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
+  const PHASE_TRANSITION_DURATION = 650;
   const SYNTAX_PHASE_DELAY = 220;
-  const TEXT_PHASE_DELAY = 800;
-  const TEXT_EXIT_DURATION = 850;
-  const DIGIT_TRANSITION_DURATION = 650;
+  const TEXT_PHASE_DELAY = PHASE_TRANSITION_DURATION;
+  const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
   const measure100vh = document.querySelector(".section-footer");
@@ -54,7 +54,7 @@ export const setScrollingAnimations = function () {
           ? "section-main__counter-block_zero-visible"
           : "section-main__counter-block_zero-hidden",
       );
-    }, DIGIT_TRANSITION_DURATION);
+    }, PHASE_TRANSITION_DURATION);
   };
   const dispatchTextStepChange = (stepIndex) => {
     document.dispatchEvent(
@@ -1151,7 +1151,7 @@ export const setScrollingAnimations = function () {
           clearTimeout(counterHideTimer);
           counterHideTimer = setTimeout(() => {
             counterBlock.classList.remove("section-main__counter-block_shown");
-          }, DIGIT_TRANSITION_DURATION);
+          }, PHASE_TRANSITION_DURATION);
           contentBlock.classList.remove("section-main__content-block_shown");
           dispatchTextStepChange(-1);
           // setMainCornerShown(false);
