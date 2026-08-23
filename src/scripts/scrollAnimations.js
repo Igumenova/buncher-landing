@@ -10,6 +10,7 @@ export let refreshSizes = function () {
 export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
+  const INTRO_TRANSITION_DURATION = 1000;
   const PHASE_TRANSITION_DURATION = 650;
   const SYNTAX_PHASE_DELAY = 220;
   const TEXT_PHASE_DELAY = PHASE_TRANSITION_DURATION;
@@ -23,7 +24,7 @@ export const setScrollingAnimations = function () {
   let currentDigit = 1;
   let zeroTransitionTimer = null;
   let zeroIsVisible = false;
-  const animateZeroVisibility = (isVisible) => {
+  const animateZeroVisibility = (isVisible, isIntro = false) => {
     const counterBlock = document.getElementById("counter");
 
     if (zeroIsVisible === isVisible) {
@@ -35,26 +36,30 @@ export const setScrollingAnimations = function () {
     counterBlock.classList.remove(
       "section-main__counter-block_zero-entering",
       "section-main__counter-block_zero-exiting",
+      "section-main__counter-block_zero-intro-entering",
+      "section-main__counter-block_zero-intro-exiting",
       "section-main__counter-block_zero-visible",
       "section-main__counter-block_zero-hidden",
     );
     counterBlock.classList.add(
-      isVisible
-        ? "section-main__counter-block_zero-entering"
-        : "section-main__counter-block_zero-exiting",
+      `section-main__counter-block_zero-${isIntro ? "intro-" : ""}${
+        isVisible ? "entering" : "exiting"
+      }`,
     );
 
     zeroTransitionTimer = setTimeout(() => {
       counterBlock.classList.remove(
         "section-main__counter-block_zero-entering",
         "section-main__counter-block_zero-exiting",
+        "section-main__counter-block_zero-intro-entering",
+        "section-main__counter-block_zero-intro-exiting",
       );
       counterBlock.classList.add(
         isVisible
           ? "section-main__counter-block_zero-visible"
           : "section-main__counter-block_zero-hidden",
       );
-    }, PHASE_TRANSITION_DURATION);
+    }, isIntro ? INTRO_TRANSITION_DURATION : PHASE_TRANSITION_DURATION);
   };
   const dispatchTextStepChange = (stepIndex) => {
     document.dispatchEvent(
@@ -391,6 +396,7 @@ export const setScrollingAnimations = function () {
     const codeArea = document.createElement("div");
     const shuffleText = document.createElement("h2");
     const phone = document.getElementById("phone");
+    const counterBlock = document.getElementById("counter");
     let textSteps = getScrollAnimationTextSteps();
     let activeStep = -1;
     let typingTimer = null;
@@ -400,6 +406,13 @@ export const setScrollingAnimations = function () {
     let activePhrase = null;
     let lastTextScrollTop = scrollRoot.scrollTop;
     let textScrollDirection = 1;
+    let introCounterHideTimer = null;
+    let introScrollUnlockTimer = null;
+    let previousPhoneStage = phone.classList.contains("phone__content_0-0")
+      ? "logo"
+      : phone.classList.contains("phone__content_999-999")
+        ? "before-logo"
+        : "content";
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
     shufflePanel.classList.add("section-main__shuffle-panel");
@@ -452,14 +465,50 @@ export const setScrollingAnimations = function () {
     updatePanelScale();
 
     const updateScaffoldVisibility = () => {
-      const logoStageHasStarted = !phone.classList.contains(
+      const isBeforeLogo = phone.classList.contains(
         "phone__content_999-999",
       );
+      const isLogoStage = phone.classList.contains("phone__content_0-0");
+      const logoStageHasStarted = !isBeforeLogo;
+      const nextPhoneStage = isLogoStage
+        ? "logo"
+        : isBeforeLogo
+          ? "before-logo"
+          : "content";
+
+      if (previousPhoneStage === "logo" && nextPhoneStage === "before-logo") {
+        clearTimeout(introScrollUnlockTimer);
+        scrollRoot.classList.add("custom-scrollbar_intro-locked");
+        introScrollUnlockTimer = setTimeout(() => {
+          scrollRoot.classList.remove("custom-scrollbar_intro-locked");
+        }, INTRO_TRANSITION_DURATION);
+      }
+
+      previousPhoneStage = nextPhoneStage;
 
       shufflePanel.classList.toggle(
         "section-main__shuffle-panel_visible",
         logoStageHasStarted,
       );
+
+      clearTimeout(introCounterHideTimer);
+
+      if (isLogoStage) {
+        counterBlock.classList.add("section-main__counter-block_intro");
+        counterBlock.classList.add("section-main__counter-block_shown");
+        animateZeroVisibility(true, true);
+      } else if (isBeforeLogo) {
+        counterBlock.classList.add("section-main__counter-block_intro");
+        animateZeroVisibility(false, true);
+        counterBlock.classList.remove("section-main__counter-block_shown");
+        introCounterHideTimer = setTimeout(() => {
+          if (phone.classList.contains("phone__content_999-999")) {
+            counterBlock.classList.remove("section-main__counter-block_intro");
+          }
+        }, INTRO_TRANSITION_DURATION);
+      } else {
+        counterBlock.classList.remove("section-main__counter-block_intro");
+      }
     };
 
     const phoneStageObserver = new MutationObserver(updateScaffoldVisibility);
@@ -1084,6 +1133,7 @@ export const setScrollingAnimations = function () {
     const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
+    const phone = document.getElementById("phone");
     const numberCont = document.getElementById("changing-number");
     const shuffleText = document.querySelector(".section-main__shuffle-text");
     const contentBlock = document.getElementById("section-main__content-block");
@@ -1139,7 +1189,15 @@ export const setScrollingAnimations = function () {
             "section-main__counter-block_digits-waiting",
           );
 
-          animateZeroVisibility(false);
+          const isLogoStage = phone.classList.contains("phone__content_0-0");
+          const rootRect = scrollRoot.getBoundingClientRect();
+          const activeZoneRect = entry.target.getBoundingClientRect();
+          const isReturningToIntro = activeZoneRect.top >= rootRect.bottom;
+          const shouldKeepIntroZero = isLogoStage || isReturningToIntro;
+
+          if (!shouldKeepIntroZero) {
+            animateZeroVisibility(false);
+          }
           numberCont.className = numberCont.className.replace(
             NUMBER_CLASS_REGEX,
             `_${currentDigit}-0`,
@@ -1149,9 +1207,11 @@ export const setScrollingAnimations = function () {
           //   "section-main__decoration_long_hidden",
           // );
           clearTimeout(counterHideTimer);
-          counterHideTimer = setTimeout(() => {
-            counterBlock.classList.remove("section-main__counter-block_shown");
-          }, PHASE_TRANSITION_DURATION);
+          if (!shouldKeepIntroZero) {
+            counterHideTimer = setTimeout(() => {
+              counterBlock.classList.remove("section-main__counter-block_shown");
+            }, PHASE_TRANSITION_DURATION);
+          }
           contentBlock.classList.remove("section-main__content-block_shown");
           dispatchTextStepChange(-1);
           // setMainCornerShown(false);

@@ -349,6 +349,15 @@
       opacity: 1;
     }
 
+    &_intro {
+      transition: opacity $main-entry-duration $main-entry-easing;
+
+      .counter-block__number-window {
+        opacity: 1;
+        transition: none;
+      }
+    }
+
     @media screen and (min-width: 601px) and (orientation: landscape) {
       aspect-ratio: auto;
       width: 1920px;

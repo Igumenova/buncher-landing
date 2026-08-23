@@ -4,6 +4,10 @@
   overflow-y: scroll;
   overflow-x: hidden;
 
+  &_intro-locked {
+    overflow-y: hidden;
+  }
+
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
   }
