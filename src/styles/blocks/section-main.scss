@@ -189,6 +189,15 @@
         opacity 0.8s ease-in-out,
         visibility 0s linear 0s;
     }
+
+    &_phase-exit {
+      transform: translate(0, -50%);
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity var(--shuffle-phase-duration) var(--shuffle-phase-easing),
+        visibility 0s linear var(--shuffle-phase-duration);
+    }
   }
 
   &__shuffle-word {
@@ -220,7 +229,7 @@
 
       > .section-main__shuffle-line,
       > .section-main__shuffle-phrase-syntax {
-        will-change: transform;
+        will-change: transform, opacity;
       }
     }
   }
@@ -1271,6 +1280,10 @@
 
       &_visible,
       &_first-entry {
+        transform: none;
+      }
+
+      &_phase-exit {
         transform: none;
       }
     }

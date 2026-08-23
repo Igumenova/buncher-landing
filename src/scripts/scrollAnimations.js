@@ -1092,6 +1092,12 @@ export const setScrollingAnimations = function () {
       const rowCount = orderedRows.length;
       const horizontalExit = isForward ? -110 : 110;
 
+      phraseElement.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: PHASE_TRANSITION_DURATION,
+        easing: "cubic-bezier(0.45, 0, 0.3, 1)",
+        fill: "forwards",
+      });
+
       orderedRows.forEach((row, rowIndex) => {
         const exitStartOffset = rowIndex / rowCount;
         const exitEndOffset = (rowIndex + 1) / rowCount;
@@ -1099,6 +1105,7 @@ export const setScrollingAnimations = function () {
           {
             offset: 0,
             transform: "translate(0%, 0px)",
+            opacity: 1,
             easing: "linear",
           },
         ];
@@ -1107,6 +1114,7 @@ export const setScrollingAnimations = function () {
           frames.push({
             offset: exitStartOffset,
             transform: "translate(0%, 0px)",
+            opacity: 1,
             easing: "ease-in",
           });
         }
@@ -1115,12 +1123,14 @@ export const setScrollingAnimations = function () {
         frames.push({
           offset: exitEndOffset,
           transform: `translate(${horizontalExit}%, 0px)`,
+          opacity: 0,
         });
 
         if (exitEndOffset < 1) {
           frames.push({
             offset: 1,
             transform: `translate(${horizontalExit}%, 0px)`,
+            opacity: 0,
           });
         }
 
@@ -1185,6 +1195,7 @@ export const setScrollingAnimations = function () {
         },
         outgoingPhrase ? TEXT_PHASE_DELAY : 0,
       );
+      shuffleText.classList.remove("section-main__shuffle-text_phase-exit");
       shuffleText.classList.add("section-main__shuffle-text_visible");
     };
     const hideText = () => {
@@ -1195,9 +1206,10 @@ export const setScrollingAnimations = function () {
       activePhrase = null;
       codeArea.classList.remove("section-main__shuffle-code_transitioning");
       clearTimeout(hideTimer);
+      shuffleText.classList.add("section-main__shuffle-text_phase-exit");
+      shuffleText.classList.remove("section-main__shuffle-text_visible");
       hideTimer = setTimeout(() => {
         if (activeStep === -1) {
-          shuffleText.classList.remove("section-main__shuffle-text_visible");
           shuffleText.replaceChildren();
         }
       }, TEXT_EXIT_DURATION);
