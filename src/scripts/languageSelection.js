@@ -40,44 +40,64 @@ const scrollAnimationTextSteps = {
     {
       text: "Матчмейкер по активностям внутри комьюнити",
       highlight: ["матчмейкер"],
+      greenHighlight: ["активностям"],
+      orangeHighlight: ["комьюнити"],
     },
     {
       text: "Единая дружеская, деловая и академическая сеть контактов",
       highlight: ["сеть контактов"],
+      greenHighlight: ["дружеская"],
+      orangeHighlight: ["академическая"],
     },
     {
       text: "Воркспейс для ваших рабочих команд и проектного сообщества",
       highlight: ["воркспейс"],
+      greenHighlight: ["команд"],
+      orangeHighlight: ["проектного"],
     },
     {
       text: "Нативные и безопасные интеракции с git платформами",
       highlight: ["интеракции с git"],
+      greenHighlight: ["нативные"],
+      orangeHighlight: ["безопасные"],
     },
     {
       text: "Независимый и бесплатный личный мессенджер",
       highlight: ["личный мессенджер"],
+      greenHighlight: ["независимый"],
+      orangeHighlight: ["бесплатный"],
     },
   ],
   en: [
     {
       text: "Activity-based matchmaking within the community",
       highlight: ["matchmaking"],
+      greenHighlight: ["Activity-based"],
+      orangeHighlight: ["community"],
     },
     {
       text: "A unified network for social, professional, and academic connections",
       highlight: ["network"],
+      greenHighlight: ["social"],
+      orangeHighlight: ["academic"],
     },
     {
       text: "A workspace for your teams and project community",
       highlight: ["workspace"],
+      greenHighlight: ["teams"],
+      orangeHighlight: ["project"],
     },
     {
       text: "Native and secure interactions with Git platforms",
       highlight: ["Git interactions"],
+      greenHighlight: ["Native"],
+      orangeHighlight: ["secure"],
     },
     {
       text: "An independent and free private messenger",
       highlight: ["private messenger"],
+      greenHighlight: ["independent"],
+      orangeHighlight: ["free"],
     },
   ],
 };

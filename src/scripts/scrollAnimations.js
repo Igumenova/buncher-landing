@@ -710,11 +710,11 @@ export const setScrollingAnimations = function () {
         )
         .join("\n");
     };
-    const createHighlightRanges = (phraseElement, phrase) => {
+    const createPhraseRanges = (phraseElement, phrase, property) => {
       const layoutText = wrapPhraseText(phraseElement, phrase.text);
-      const highlights = Array.isArray(phrase.highlight)
-        ? phrase.highlight
-        : [phrase.highlight];
+      const highlights = Array.isArray(phrase[property])
+        ? phrase[property]
+        : [phrase[property]];
       const lowerLayoutText = layoutText.toLocaleLowerCase("ru");
 
       return highlights
@@ -733,6 +733,8 @@ export const setScrollingAnimations = function () {
         })
         .filter(Boolean);
     };
+    const createHighlightRanges = (phraseElement, phrase) =>
+      createPhraseRanges(phraseElement, phrase, "highlight");
     const createLineCharacterGroups = (text) => {
       const lines = [];
       let line = [];
@@ -935,6 +937,16 @@ export const setScrollingAnimations = function () {
       const layoutLines = layoutText.split("\n");
       const syntax = PHASE_SYNTAX[stepIndex % PHASE_SYNTAX.length];
       const ranges = createHighlightRanges(shuffleText, phrase);
+      const greenRanges = createPhraseRanges(
+        shuffleText,
+        phrase,
+        "greenHighlight",
+      );
+      const orangeRanges = createPhraseRanges(
+        shuffleText,
+        phrase,
+        "orangeHighlight",
+      );
       let characterIndex = 0;
 
       phraseElement.className = "section-main__shuffle-phrase";
@@ -962,6 +974,14 @@ export const setScrollingAnimations = function () {
           letter.className = "section-main__shuffle-letter";
           if (isIndexInRanges(ranges, characterIndex)) {
             letter.classList.add("section-main__shuffle-letter_highlight");
+          } else if (isIndexInRanges(greenRanges, characterIndex)) {
+            letter.classList.add(
+              "section-main__shuffle-letter_highlight-green",
+            );
+          } else if (isIndexInRanges(orangeRanges, characterIndex)) {
+            letter.classList.add(
+              "section-main__shuffle-letter_highlight-orange",
+            );
           }
           letter.textContent = character === " " ? "\u00a0" : character;
           line.appendChild(letter);
