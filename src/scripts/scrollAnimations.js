@@ -10,7 +10,6 @@ export let refreshSizes = function () {
 export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
-  const INTRO_TRANSITION_DURATION = 1000;
   const PHASE_TRANSITION_DURATION = 650;
   const SYNTAX_PHASE_DELAY = 220;
   const TEXT_PHASE_DELAY = PHASE_TRANSITION_DURATION;
@@ -31,7 +30,7 @@ export const setScrollingAnimations = function () {
   let currentDigit = 1;
   let zeroTransitionTimer = null;
   let zeroIsVisible = false;
-  const animateZeroVisibility = (isVisible, isIntro = false) => {
+  const animateZeroVisibility = (isVisible) => {
     const counterBlock = document.getElementById("counter");
 
     if (zeroIsVisible === isVisible) {
@@ -43,13 +42,12 @@ export const setScrollingAnimations = function () {
     counterBlock.classList.remove(
       "section-main__counter-block_zero-entering",
       "section-main__counter-block_zero-exiting",
-      "section-main__counter-block_zero-intro-entering",
-      "section-main__counter-block_zero-intro-exiting",
+      "section-main__counter-block_zero-scroll-controlled",
       "section-main__counter-block_zero-visible",
       "section-main__counter-block_zero-hidden",
     );
     counterBlock.classList.add(
-      `section-main__counter-block_zero-${isIntro ? "intro-" : ""}${
+      `section-main__counter-block_zero-${
         isVisible ? "entering" : "exiting"
       }`,
     );
@@ -58,15 +56,13 @@ export const setScrollingAnimations = function () {
       counterBlock.classList.remove(
         "section-main__counter-block_zero-entering",
         "section-main__counter-block_zero-exiting",
-        "section-main__counter-block_zero-intro-entering",
-        "section-main__counter-block_zero-intro-exiting",
       );
       counterBlock.classList.add(
         isVisible
           ? "section-main__counter-block_zero-visible"
           : "section-main__counter-block_zero-hidden",
       );
-    }, isIntro ? INTRO_TRANSITION_DURATION : PHASE_TRANSITION_DURATION);
+    }, PHASE_TRANSITION_DURATION);
   };
   const dispatchTextStepChange = (stepIndex) => {
     document.dispatchEvent(
@@ -413,13 +409,6 @@ export const setScrollingAnimations = function () {
     let activePhrase = null;
     let lastTextScrollTop = scrollRoot.scrollTop;
     let textScrollDirection = 1;
-    let introCounterHideTimer = null;
-    let introScrollUnlockTimer = null;
-    let previousPhoneStage = phone.classList.contains("phone__content_0-0")
-      ? "logo"
-      : phone.classList.contains("phone__content_999-999")
-        ? "before-logo"
-        : "content";
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
     shufflePanel.classList.add("section-main__shuffle-panel");
@@ -474,44 +463,40 @@ export const setScrollingAnimations = function () {
         "phone__content_999-999",
       );
       const isLogoStage = phone.classList.contains("phone__content_0-0");
-      const logoStageHasStarted = !isBeforeLogo;
-      const nextPhoneStage = isLogoStage
-        ? "logo"
-        : isBeforeLogo
-          ? "before-logo"
-          : "content";
-
-      if (previousPhoneStage === "logo" && nextPhoneStage === "before-logo") {
-        clearTimeout(introScrollUnlockTimer);
-        scrollRoot.classList.add("custom-scrollbar_intro-locked");
-        introScrollUnlockTimer = setTimeout(() => {
-          scrollRoot.classList.remove("custom-scrollbar_intro-locked");
-        }, INTRO_TRANSITION_DURATION);
-      }
-
-      previousPhoneStage = nextPhoneStage;
-
-      shufflePanel.classList.toggle(
-        "section-main__shuffle-panel_visible",
-        logoStageHasStarted,
+      const isIntroVisualStage = isBeforeLogo || isLogoStage;
+      const wasIntroStage = counterBlock.classList.contains(
+        "section-main__counter-block_intro",
       );
+      shufflePanel.classList.add("section-main__shuffle-panel_visible");
 
-      clearTimeout(introCounterHideTimer);
-
-      if (isLogoStage) {
+      if (isIntroVisualStage) {
+        clearTimeout(zeroTransitionTimer);
+        zeroIsVisible = true;
+        counterBlock.classList.remove(
+          "section-main__counter-block_zero-entering",
+          "section-main__counter-block_zero-exiting",
+          "section-main__counter-block_zero-visible",
+          "section-main__counter-block_zero-hidden",
+        );
         counterBlock.classList.add("section-main__counter-block_intro");
         counterBlock.classList.add("section-main__counter-block_shown");
-        animateZeroVisibility(true, true);
-      } else if (isBeforeLogo) {
-        counterBlock.classList.add("section-main__counter-block_intro");
-        animateZeroVisibility(false, true);
-        counterBlock.classList.remove("section-main__counter-block_shown");
-        introCounterHideTimer = setTimeout(() => {
-          if (phone.classList.contains("phone__content_999-999")) {
-            counterBlock.classList.remove("section-main__counter-block_intro");
-          }
-        }, INTRO_TRANSITION_DURATION);
+        counterBlock.classList.add(
+          "section-main__counter-block_zero-scroll-controlled",
+        );
       } else {
+        if (wasIntroStage) {
+          clearTimeout(zeroTransitionTimer);
+          zeroIsVisible = true;
+          counterBlock.classList.remove(
+            "section-main__counter-block_zero-entering",
+            "section-main__counter-block_zero-exiting",
+            "section-main__counter-block_zero-scroll-controlled",
+            "section-main__counter-block_zero-hidden",
+          );
+          counterBlock.classList.add(
+            "section-main__counter-block_zero-visible",
+          );
+        }
         counterBlock.classList.remove("section-main__counter-block_intro");
       }
     };
@@ -1341,16 +1326,9 @@ export const setScrollingAnimations = function () {
     observer.observe(counterActiveZone);
   };
   const createCounterBoundaryFade = function () {
-    const APPEAR_FADE_DISTANCE_IN_VIEWPORTS = 0.3;
-    const DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS = 0.9;
+    const BOUNDARY_FADE_DISTANCE_IN_VIEWPORTS = 0.9;
     const mainSection = document.getElementById("section-main");
-    const counterBlock = document.getElementById("counter");
-    const shuffleLayer = document.querySelector(
-      ".section-main__shuffle-layer",
-    );
     let frameId = null;
-    let lastScrollTop = scrollRoot.scrollTop;
-    let isScrollingDown = true;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const updateOpacity = () => {
@@ -1360,40 +1338,19 @@ export const setScrollingAnimations = function () {
       const sectionTop =
         scrollRoot.scrollTop + sectionRect.top - rootRect.top;
       const localScroll = scrollRoot.scrollTop - sectionTop;
-      if (scrollRoot.scrollTop !== lastScrollTop) {
-        isScrollingDown = scrollRoot.scrollTop > lastScrollTop;
-        lastScrollTop = scrollRoot.scrollTop;
-      }
       const stickyDistance = Math.max(
         mainSection.offsetHeight - scrollRoot.clientHeight,
         0,
       );
-      const entryFadeDistance = Math.max(
-        scrollRoot.clientHeight *
-          (isScrollingDown
-            ? APPEAR_FADE_DISTANCE_IN_VIEWPORTS
-            : DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS),
+      const fadeDistance = Math.max(
+        scrollRoot.clientHeight * BOUNDARY_FADE_DISTANCE_IN_VIEWPORTS,
         1,
       );
-      const exitFadeDistance = Math.max(
-        scrollRoot.clientHeight *
-          (isScrollingDown
-            ? DISAPPEAR_FADE_DISTANCE_IN_VIEWPORTS
-            : APPEAR_FADE_DISTANCE_IN_VIEWPORTS),
-        1,
-      );
-      const entryOpacity = localScroll / entryFadeDistance;
+      const entryOpacity = localScroll / fadeDistance;
       const exitOpacity =
-        (stickyDistance - localScroll) / exitFadeDistance;
+        (stickyDistance - localScroll) / fadeDistance;
       const opacity = clamp(Math.min(entryOpacity, exitOpacity), 0, 1);
-      const textOpacity =
-        currentDigit === NUMBER_OF_BLOCKS ? opacity : 1;
-
-      counterBlock.style.setProperty("--counter-boundary-opacity", opacity);
-      shuffleLayer.style.setProperty(
-        "--shuffle-boundary-opacity",
-        textOpacity,
-      );
+      mainSection.style.setProperty("--boundary-opacity", opacity);
     };
     const requestOpacityUpdate = () => {
       if (!frameId) {

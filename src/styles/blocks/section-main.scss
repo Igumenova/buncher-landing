@@ -126,9 +126,9 @@
     position: absolute;
     z-index: 4;
     inset: 0;
-    opacity: var(--shuffle-boundary-opacity, 1);
+    opacity: var(--boundary-opacity, 1);
     pointer-events: none;
-    transition: opacity 0.14s linear;
+    transition: none;
     will-change: opacity;
   }
 
@@ -367,10 +367,10 @@
     }
 
     &_intro {
-      transition: opacity $main-entry-duration $main-entry-easing;
+      transition: none;
 
       .counter-block__number-window {
-        opacity: 1;
+        opacity: var(--boundary-opacity, 0);
         transition: none;
       }
     }
@@ -1121,8 +1121,6 @@
 
   @media screen and (min-width: 601px) and (orientation: landscape) {
     &__shuffle-panel {
-      --shuffle-scaffold-entry-duration: #{$main-entry-duration};
-      --shuffle-scaffold-entry-easing: #{$main-entry-easing};
       position: absolute;
       top: 50%;
       left: var(--shuffle-layout-left, 100px);
@@ -1134,18 +1132,12 @@
       transform-origin: left center;
       opacity: 0;
       visibility: hidden;
-      transition:
-        opacity var(--shuffle-scaffold-entry-duration)
-          var(--shuffle-scaffold-entry-easing),
-        visibility 0s linear var(--shuffle-scaffold-entry-duration);
+      transition: none;
 
       &_visible {
         opacity: 1;
         visibility: visible;
-        transition:
-          opacity var(--shuffle-scaffold-entry-duration)
-            var(--shuffle-scaffold-entry-easing),
-          visibility 0s linear 0s;
+        transition: none;
       }
     }
 
@@ -1164,10 +1156,6 @@
       text-align: right;
       opacity: 0;
       transition:
-        opacity var(--shuffle-scaffold-entry-duration)
-          var(--shuffle-scaffold-entry-easing),
-        transform var(--shuffle-scaffold-entry-duration)
-          var(--shuffle-scaffold-entry-easing),
         height var(--shuffle-phase-duration) var(--shuffle-phase-easing);
     }
 
@@ -1189,8 +1177,6 @@
       clip-path: inset(50% 0 50% 0);
       background-color: #d6e7f2;
       transition:
-        clip-path var(--shuffle-scaffold-entry-duration)
-          var(--shuffle-scaffold-entry-easing),
         height var(--shuffle-phase-duration) var(--shuffle-phase-easing);
       will-change: clip-path;
     }

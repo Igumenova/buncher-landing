@@ -25,7 +25,12 @@
       pointer-events: none;
     }
 
-    &_999-999 {
+    &_999-999,
+    &_0-0 {
+      .phone__item_logo {
+        opacity: var(--boundary-opacity, 0);
+      }
+
       .phone__sec-search {
         opacity: 0;
       }
@@ -33,10 +38,6 @@
 
     //buncher logo
     &_0-0 {
-      .phone__item_logo {
-        opacity: 1;
-      }
-
       .phone__sec-search {
         opacity: 0;
       }
@@ -426,7 +427,7 @@
       top: 38.79%;
       width: 57.06%;
       height: auto;
-      transition: opacity $main-entry-duration $main-entry-easing;
+      transition: none;
       will-change: opacity;
     }
 
