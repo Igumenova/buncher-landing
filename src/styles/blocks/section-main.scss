@@ -266,11 +266,11 @@
     }
 
     &_highlight-green {
-      color: #5abf36;
+      color: inherit;
     }
 
     &_highlight-orange {
-      color: #e1c858;
+      color: inherit;
     }
   }
 
@@ -1240,7 +1240,7 @@
     &__shuffle-syntax {
       position: absolute;
       left: 0;
-      display: block;
+      display: none;
       color: #d6e7f2;
       font-family: Montserrat, sans-serif;
       font-size: 48px;
@@ -1283,14 +1283,14 @@
     }
 
     &__shuffle-phrase {
-      top: -58px;
+      top: 0;
       bottom: auto;
       height: var(--shuffle-row-window-height, 348px);
 
     }
 
     &__shuffle-phrase-syntax {
-      display: block;
+      display: none;
       min-height: 58px;
       color: #d6e7f2;
     }

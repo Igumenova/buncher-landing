@@ -11,17 +11,9 @@ export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
   const PHASE_TRANSITION_DURATION = 650;
-  const SYNTAX_PHASE_DELAY = 220;
   const TEXT_PHASE_DELAY = PHASE_TRANSITION_DURATION;
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
-  const PHASE_SYNTAX = [
-    { start: "*/& (", end: ");" },
-    { start: "*//", end: "//" },
-    { start: "*{", end: "}" },
-    { start: "*(", end: ");" },
-    { start: "*[", end: "]" },
-  ];
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
@@ -914,41 +906,14 @@ export const setScrollingAnimations = function () {
 
       frame(performance.now());
     };
-    const createTypedPhrase = (phrase, stepIndex) => {
+    const createTypedPhrase = (phrase) => {
       const phraseElement = document.createElement("span");
-      const syntaxStart = document.createElement("span");
-      const syntaxEnd = document.createElement("span");
       const layoutText = wrapPhraseText(shuffleText, phrase.text);
       const layoutLines = layoutText.split("\n");
-      const syntax = PHASE_SYNTAX[stepIndex % PHASE_SYNTAX.length];
       const ranges = createHighlightRanges(shuffleText, phrase);
-      const greenRanges = createPhraseRanges(
-        shuffleText,
-        phrase,
-        "greenHighlight",
-      );
-      const orangeRanges = createPhraseRanges(
-        shuffleText,
-        phrase,
-        "orangeHighlight",
-      );
       let characterIndex = 0;
 
       phraseElement.className = "section-main__shuffle-phrase";
-      syntaxStart.className = "section-main__shuffle-phrase-syntax";
-      syntaxEnd.className = "section-main__shuffle-phrase-syntax";
-      const appendSyntaxLetters = (container, syntax) => {
-        [...syntax].forEach((character) => {
-          const letter = document.createElement("span");
-          letter.className = "section-main__shuffle-letter";
-          letter.textContent = character;
-          container.appendChild(letter);
-        });
-      };
-
-      appendSyntaxLetters(syntaxStart, syntax.start);
-      appendSyntaxLetters(syntaxEnd, syntax.end);
-      phraseElement.appendChild(syntaxStart);
       layoutLines.forEach((lineText, lineIndex) => {
         const line = document.createElement("span");
         line.className = "section-main__shuffle-line";
@@ -959,14 +924,6 @@ export const setScrollingAnimations = function () {
           letter.className = "section-main__shuffle-letter";
           if (isIndexInRanges(ranges, characterIndex)) {
             letter.classList.add("section-main__shuffle-letter_highlight");
-          } else if (isIndexInRanges(greenRanges, characterIndex)) {
-            letter.classList.add(
-              "section-main__shuffle-letter_highlight-green",
-            );
-          } else if (isIndexInRanges(orangeRanges, characterIndex)) {
-            letter.classList.add(
-              "section-main__shuffle-letter_highlight-orange",
-            );
           }
           letter.textContent = character === " " ? "\u00a0" : character;
           line.appendChild(letter);
@@ -976,28 +933,18 @@ export const setScrollingAnimations = function () {
         phraseElement.appendChild(line);
         characterIndex++;
       });
-      phraseElement.appendChild(syntaxEnd);
 
       return phraseElement;
     };
     const typePhrase = (phrase, stepIndex) => {
       animationToken++;
       const currentToken = animationToken;
-      const phraseElement = createTypedPhrase(phrase, stepIndex);
-      const syntaxBlocks = phraseElement.querySelectorAll(
-        ".section-main__shuffle-phrase-syntax",
-      );
+      const phraseElement = createTypedPhrase(phrase);
       const letterGroups = [
-        Array.from(
-          syntaxBlocks[0].querySelectorAll(".section-main__shuffle-letter"),
-        ),
         Array.from(
           phraseElement.querySelectorAll(
             ".section-main__shuffle-line .section-main__shuffle-letter",
           ),
-        ),
-        Array.from(
-          syntaxBlocks[1].querySelectorAll(".section-main__shuffle-letter"),
         ),
       ];
       let groupIndex = 0;
@@ -1033,7 +980,7 @@ export const setScrollingAnimations = function () {
         groupIndex++;
         letterIndex = 0;
         if (groupIndex < letterGroups.length) {
-          typingTimer = setTimeout(revealNextLetter, SYNTAX_PHASE_DELAY);
+          revealNextLetter();
         }
       };
 
@@ -1043,16 +990,11 @@ export const setScrollingAnimations = function () {
       lineNumberTrack.style.transform = `translateY(${-stepIndex * 5 * 58}px)`;
     };
     const updatePanelRowCount = (phrase) => {
+      const visibleLineNumberCount = 6;
       const layoutText = wrapPhraseText(shuffleText, phrase.text);
       const contentRowCount = layoutText.split("\n").length;
-      const rowWindowHeight = (contentRowCount + 2) * 58;
-      const maxContentRowCount = Math.max(
-        ...textSteps.map(
-          (textStep) =>
-            wrapPhraseText(shuffleText, textStep.text).split("\n").length,
-        ),
-      );
-      const maxPanelHeight = (maxContentRowCount + 2) * 58 + 4;
+      const rowWindowHeight = visibleLineNumberCount * 58;
+      const panelHeight = rowWindowHeight + 4;
 
       shufflePanel.style.setProperty(
         "--shuffle-content-height",
@@ -1064,11 +1006,11 @@ export const setScrollingAnimations = function () {
       );
       shufflePanel.style.setProperty(
         "--shuffle-current-panel-height",
-        `${rowWindowHeight + 4}px`,
+        `${panelHeight}px`,
       );
       shufflePanel.style.setProperty(
         "--shuffle-max-panel-height",
-        `${maxPanelHeight}px`,
+        `${panelHeight}px`,
       );
     };
     const animatePhraseRowsExit = (phraseElement, isForward) => {
