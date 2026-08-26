@@ -692,13 +692,15 @@ export const setScrollingAnimations = function () {
       const highlights = Array.isArray(phrase[property])
         ? phrase[property]
         : [phrase[property]];
-      const lowerLayoutText = layoutText.toLocaleLowerCase("ru");
+      const lowerLayoutText = layoutText
+        .toLocaleLowerCase("ru")
+        .replace(/\s/g, " ");
 
       return highlights
         .filter(Boolean)
         .map((highlight) => {
           const start = lowerLayoutText.indexOf(
-            highlight.toLocaleLowerCase("ru"),
+            highlight.toLocaleLowerCase("ru").replace(/\s/g, " "),
           );
 
           return start < 0
