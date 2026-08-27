@@ -11,7 +11,6 @@ export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
   const PHASE_TRANSITION_DURATION = 650;
-  const TEXT_PHASE_DELAY = PHASE_TRANSITION_DURATION;
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
 
@@ -63,26 +62,6 @@ export const setScrollingAnimations = function () {
       }),
     );
   };
-  const getHumanTypingDelay = (character) => {
-    const randomDelay = (min, max) =>
-      Math.round(min + Math.random() * (max - min));
-
-    if (/[,;:]/.test(character)) {
-      return randomDelay(180, 290);
-    }
-
-    if (/[.!?]/.test(character)) {
-      return randomDelay(300, 480);
-    }
-
-    if (/\s/.test(character)) {
-      return randomDelay(100, 175);
-    }
-
-    const hesitation = Math.random() < 0.08 ? randomDelay(130, 260) : 0;
-    return randomDelay(62, 118) + hesitation;
-  };
-
   const addStyleWithPrefixes = function (element, styleName, value) {
     element.style.setProperty(`-webkit-${styleName}`, value);
     element.style.setProperty(`-moz-${styleName}`, value);
@@ -392,15 +371,92 @@ export const setScrollingAnimations = function () {
     const shuffleText = document.createElement("h2");
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
+    const TYPING_COMPLETE_PHASE_PROGRESS = 0.7;
     let textSteps = getScrollAnimationTextSteps();
     let activeStep = -1;
-    let typingTimer = null;
     let hideTimer = null;
     let phraseCleanupTimer = null;
     let animationToken = 0;
     let activePhrase = null;
+    let activeLetters = [];
+    let typingRanges = [];
+    let typingFrameId = null;
+    let lastVisibleLetterCount = -1;
+    let typingIsLocked = false;
+    let typingDirection = 1;
+    let typingOriginScrollTop = null;
     let lastTextScrollTop = scrollRoot.scrollTop;
     let textScrollDirection = 1;
+
+    const clampProgress = (value) => Math.min(Math.max(value, 0), 1);
+    const refreshTypingRanges = () => {
+      const rootRect = scrollRoot.getBoundingClientRect();
+
+      typingRanges = Array.from(blocks).map((block) => {
+        const blockRect = block.getBoundingClientRect();
+        const blockTop =
+          scrollRoot.scrollTop + blockRect.top - rootRect.top;
+        const start = blockTop - scrollRoot.clientHeight / 2;
+
+        return {
+          start,
+          end: start + Math.max(block.offsetHeight, 1),
+        };
+      });
+    };
+    const updateTypingProgress = () => {
+      typingFrameId = null;
+
+      if (activeStep < 0 || !activeLetters.length) {
+        return;
+      }
+
+      const range = typingRanges[activeStep];
+      if (!range) {
+        return;
+      }
+
+      if (
+        typingDirection > 0 &&
+        typingOriginScrollTop === null &&
+        !typingIsLocked
+      ) {
+        typingOriginScrollTop = typingDirection > 0 ? range.start : range.end;
+      }
+
+      const phaseProgress = typingDirection > 0
+        ? clampProgress(
+            (scrollRoot.scrollTop - typingOriginScrollTop) /
+              Math.max(range.end - typingOriginScrollTop, 1),
+          )
+        : clampProgress(
+            (scrollRoot.scrollTop - range.start) /
+              Math.max(range.end - range.start, 1),
+          );
+      const typingProgress = clampProgress(
+        phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
+      );
+      const visibleLetterCount = typingIsLocked
+        ? typingDirection < 0
+          ? activeLetters.length
+          : 0
+        : Math.floor(activeLetters.length * typingProgress);
+
+      if (visibleLetterCount !== lastVisibleLetterCount) {
+        activeLetters.forEach((letter, index) => {
+          letter.classList.toggle(
+            "section-main__shuffle-letter_visible",
+            index < visibleLetterCount,
+          );
+        });
+        lastVisibleLetterCount = visibleLetterCount;
+      }
+    };
+    const requestTypingProgressUpdate = () => {
+      if (!typingFrameId) {
+        typingFrameId = requestAnimationFrame(updateTypingProgress);
+      }
+    };
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
     shufflePanel.classList.add("section-main__shuffle-panel");
@@ -445,10 +501,20 @@ export const setScrollingAnimations = function () {
           textScrollDirection = Math.sign(nextScrollTop - lastTextScrollTop);
           lastTextScrollTop = nextScrollTop;
         }
+        requestTypingProgressUpdate();
       },
       { passive: true },
     );
     updatePanelScale();
+    refreshTypingRanges();
+    window.addEventListener("resize", () => {
+      refreshTypingRanges();
+      requestTypingProgressUpdate();
+    });
+    requestAnimationFrame(() => {
+      refreshTypingRanges();
+      requestTypingProgressUpdate();
+    });
 
     const updateScaffoldVisibility = () => {
       const isBeforeLogo = phone.classList.contains(
@@ -938,55 +1004,41 @@ export const setScrollingAnimations = function () {
 
       return phraseElement;
     };
-    const typePhrase = (phrase, stepIndex) => {
+    const typePhrase = (phrase, stepIndex, entryShift = 0) => {
       animationToken++;
-      const currentToken = animationToken;
       const phraseElement = createTypedPhrase(phrase);
-      const letterGroups = [
-        Array.from(
-          phraseElement.querySelectorAll(
-            ".section-main__shuffle-line .section-main__shuffle-letter",
-          ),
-        ),
-      ];
-      let groupIndex = 0;
-      let letterIndex = 0;
 
-      clearTimeout(typingTimer);
       codeArea.classList.remove("section-main__shuffle-code_transitioning");
       phraseElement.dataset.step = stepIndex;
+      if (entryShift) {
+        phraseElement.style.setProperty(
+          "--shuffle-phrase-entry-shift",
+          `${entryShift}px`,
+        );
+        phraseElement.classList.add(
+          "section-main__shuffle-phrase_entering",
+        );
+      }
       shuffleText.appendChild(phraseElement);
       activePhrase = phraseElement;
+      activeLetters = Array.from(
+        phraseElement.querySelectorAll(
+          ".section-main__shuffle-line .section-main__shuffle-letter",
+        ),
+      );
+      lastVisibleLetterCount = -1;
+      updateTypingProgress();
+      if (entryShift) {
+        phraseElement.getBoundingClientRect();
+      }
       requestAnimationFrame(() => {
+        phraseElement.classList.remove(
+          "section-main__shuffle-phrase_entering",
+        );
         phraseElement.classList.add("section-main__shuffle-phrase_active");
       });
 
-      const revealNextLetter = () => {
-        if (currentToken !== animationToken) {
-          return;
-        }
-
-        const letters = letterGroups[groupIndex];
-        const currentLetter = letters[letterIndex];
-        currentLetter?.classList.add("section-main__shuffle-letter_visible");
-        letterIndex++;
-
-        if (letterIndex < letters.length) {
-          typingTimer = setTimeout(
-            revealNextLetter,
-            getHumanTypingDelay(currentLetter?.textContent ?? ""),
-          );
-          return;
-        }
-
-        groupIndex++;
-        letterIndex = 0;
-        if (groupIndex < letterGroups.length) {
-          revealNextLetter();
-        }
-      };
-
-      revealNextLetter();
+      return phraseElement;
     };
     const moveLineNumbers = (stepIndex) => {
       lineNumberTrack.style.transform = `translateY(${-stepIndex * 5 * 58}px)`;
@@ -1031,9 +1083,9 @@ export const setScrollingAnimations = function () {
 
       const previousStep = activeStep;
       const outgoingPhrase = activePhrase;
+      let stepDistance = nextStep - previousStep;
       activeStep = nextStep;
       clearTimeout(hideTimer);
-      clearTimeout(typingTimer);
       clearTimeout(phraseCleanupTimer);
       animationToken++;
 
@@ -1047,9 +1099,14 @@ export const setScrollingAnimations = function () {
 
       if (outgoingPhrase) {
         const outgoingStep = Number(outgoingPhrase.dataset.step);
-        const stepDistance = Number.isFinite(outgoingStep)
+        stepDistance = Number.isFinite(outgoingStep)
           ? nextStep - outgoingStep
           : nextStep - previousStep;
+
+        typingIsLocked = true;
+        typingDirection =
+          stepDistance === 0 ? textScrollDirection : Math.sign(stepDistance);
+        typingOriginScrollTop = null;
 
         outgoingPhrase.classList.remove(
           "section-main__shuffle-phrase_exit-up",
@@ -1067,16 +1124,34 @@ export const setScrollingAnimations = function () {
         codeArea.classList.add("section-main__shuffle-code_transitioning");
         phraseCleanupTimer = setTimeout(() => {
           outgoingPhrase.remove();
+          typingIsLocked = false;
+          typingOriginScrollTop =
+            typingDirection > 0 ? scrollRoot.scrollTop : null;
+          lastVisibleLetterCount = -1;
+          updateTypingProgress();
         }, TEXT_EXIT_DURATION);
+      } else if (previousStep === -1) {
+        typingIsLocked = true;
+        typingDirection = textScrollDirection || 1;
+        typingOriginScrollTop = null;
+        phraseCleanupTimer = setTimeout(() => {
+          typingIsLocked = false;
+          typingOriginScrollTop = scrollRoot.scrollTop;
+          lastVisibleLetterCount = -1;
+          updateTypingProgress();
+        }, TEXT_EXIT_DURATION);
+      } else {
+        typingIsLocked = false;
+        typingDirection = textScrollDirection || 1;
+        typingOriginScrollTop = null;
       }
 
       updatePanelRowCount(textSteps[nextStep]);
       moveLineNumbers(nextStep);
-      typingTimer = setTimeout(
-        () => {
-          typePhrase(textSteps[nextStep], nextStep);
-        },
-        outgoingPhrase ? TEXT_PHASE_DELAY : 0,
+      typePhrase(
+        textSteps[nextStep],
+        nextStep,
+        outgoingPhrase ? stepDistance * 5 * 58 : 0,
       );
       shuffleText.classList.remove("section-main__shuffle-text_phase-exit");
       shuffleText.classList.add("section-main__shuffle-text_visible");
@@ -1084,9 +1159,12 @@ export const setScrollingAnimations = function () {
     const hideText = () => {
       activeStep = -1;
       animationToken++;
-      clearTimeout(typingTimer);
       clearTimeout(phraseCleanupTimer);
       activePhrase = null;
+      activeLetters = [];
+      lastVisibleLetterCount = -1;
+      typingIsLocked = false;
+      typingOriginScrollTop = null;
       codeArea.classList.remove("section-main__shuffle-code_transitioning");
       clearTimeout(hideTimer);
       shuffleText.classList.add("section-main__shuffle-text_phase-exit");

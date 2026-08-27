@@ -175,7 +175,6 @@
     opacity: 0;
     visibility: hidden;
     transition:
-      opacity 0.8s ease-in-out,
       transform 0.8s ease-in-out,
       visibility 0s linear 0.8s;
     will-change: transform, opacity;
@@ -185,7 +184,6 @@
       opacity: 1;
       visibility: visible;
       transition:
-        opacity 0.8s ease-in-out,
         transform 0.8s ease-in-out,
         visibility 0s linear 0s;
     }
@@ -194,7 +192,6 @@
       transform: translate(0, -50%);
       opacity: 0;
       transition:
-        opacity 0.8s ease-in-out,
         visibility 0s linear 0s;
     }
 
@@ -229,6 +226,12 @@
       opacity: 1;
     }
 
+    &_entering {
+      transform: translateY(var(--shuffle-phrase-entry-shift, 0));
+      opacity: 1;
+      pointer-events: none;
+    }
+
     &_exit-up {
       transform: translateY(var(--shuffle-phrase-shift, -1.13em));
       opacity: 0;
@@ -255,7 +258,7 @@
     display: inline-block;
     color: inherit;
     opacity: 0;
-    transition: opacity 0.18s ease-out;
+    transition: none;
 
     &_visible {
       opacity: 1;
