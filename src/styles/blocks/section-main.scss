@@ -1132,6 +1132,10 @@
   }
 
   @media screen and (min-width: 601px) and (orientation: landscape) {
+    &__shuffle-layer {
+      opacity: 1;
+    }
+
     &__shuffle-panel {
       position: absolute;
       top: 50%;
@@ -1167,10 +1171,8 @@
       letter-spacing: 0;
       text-align: right;
       opacity: 0;
-      clip-path: inset(0 0 var(--intro-reveal-bottom, 100%) 0);
       transition:
         height var(--shuffle-phase-duration) var(--shuffle-phase-easing);
-      will-change: clip-path;
     }
 
     &__shuffle-line-number-track {
@@ -1180,41 +1182,45 @@
         var(--shuffle-phase-easing);
       will-change: transform;
 
+      > span {
+        opacity: var(--boundary-opacity, 1);
+      }
+
       > span:nth-child(-n + 6) {
         --line-reveal: clamp(
           0,
           calc(
-            (var(--intro-reveal-progress, 0) - var(--line-reveal-delay, 0)) * 4
+            (var(--intro-reveal-progress, 0) - var(--line-reveal-delay)) * 4.5
           ),
           1
         );
-        opacity: var(--line-reveal);
-        transform: translateY(calc((1 - var(--line-reveal)) * -8px));
-        will-change: transform, opacity;
+        opacity: min(var(--boundary-opacity, 1), var(--line-reveal));
+        transition: none;
+        will-change: opacity;
       }
 
       > span:nth-child(1) {
-        --line-reveal-delay: 0;
+        --line-reveal-delay: 0.04;
       }
 
       > span:nth-child(2) {
-        --line-reveal-delay: 0.08;
+        --line-reveal-delay: 0.12;
       }
 
       > span:nth-child(3) {
-        --line-reveal-delay: 0.16;
+        --line-reveal-delay: 0.2;
       }
 
       > span:nth-child(4) {
-        --line-reveal-delay: 0.24;
+        --line-reveal-delay: 0.28;
       }
 
       > span:nth-child(5) {
-        --line-reveal-delay: 0.32;
+        --line-reveal-delay: 0.36;
       }
 
       > span:nth-child(6) {
-        --line-reveal-delay: 0.4;
+        --line-reveal-delay: 0.44;
       }
     }
 
@@ -1225,21 +1231,48 @@
       height: var(--shuffle-current-panel-height, 352px);
       margin-left: 27px;
       margin-right: 43px;
-      clip-path: inset(50% 0 50% 0);
-      background-color: #d6e7f2;
+      --divider-row-1: min(
+        var(--boundary-opacity, 1),
+        clamp(0, calc((var(--intro-reveal-progress, 0) - 0.04) * 4.5), 1)
+      );
+      --divider-row-2: min(
+        var(--boundary-opacity, 1),
+        clamp(0, calc((var(--intro-reveal-progress, 0) - 0.12) * 4.5), 1)
+      );
+      --divider-row-3: min(
+        var(--boundary-opacity, 1),
+        clamp(0, calc((var(--intro-reveal-progress, 0) - 0.2) * 4.5), 1)
+      );
+      --divider-row-4: min(
+        var(--boundary-opacity, 1),
+        clamp(0, calc((var(--intro-reveal-progress, 0) - 0.28) * 4.5), 1)
+      );
+      --divider-row-5: min(
+        var(--boundary-opacity, 1),
+        clamp(0, calc((var(--intro-reveal-progress, 0) - 0.36) * 4.5), 1)
+      );
+      --divider-row-6: min(
+        var(--boundary-opacity, 1),
+        clamp(0, calc((var(--intro-reveal-progress, 0) - 0.44) * 4.5), 1)
+      );
+      background: linear-gradient(
+        to bottom,
+        rgb(214 231 242 / var(--divider-row-1)) 0 16.666%,
+        rgb(214 231 242 / var(--divider-row-2)) 16.666% 33.333%,
+        rgb(214 231 242 / var(--divider-row-3)) 33.333% 50%,
+        rgb(214 231 242 / var(--divider-row-4)) 50% 66.666%,
+        rgb(214 231 242 / var(--divider-row-5)) 66.666% 83.333%,
+        rgb(214 231 242 / var(--divider-row-6)) 83.333% 100%
+      );
       transition:
         height var(--shuffle-phase-duration) var(--shuffle-phase-easing);
-      will-change: clip-path;
+      will-change: background;
     }
 
     &__shuffle-panel_visible {
       .section-main__shuffle-line-numbers {
         transform: translateY(0);
         opacity: 1;
-      }
-
-      .section-main__shuffle-divider {
-        clip-path: inset(0 0 var(--intro-reveal-bottom, 100%) 0);
       }
     }
 
@@ -1250,6 +1283,8 @@
       width: 500px;
       height: var(--shuffle-max-panel-height, 352px);
       overflow: hidden;
+      opacity: var(--boundary-opacity, 1);
+      will-change: opacity;
 
       &::before,
       &::after {

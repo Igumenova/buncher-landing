@@ -1367,10 +1367,6 @@ export const setScrollingAnimations = function () {
           "--intro-reveal-progress",
           entryProgress.toFixed(4),
         );
-        shuffleLayer.style.setProperty(
-          "--intro-reveal-bottom",
-          `${((1 - entryProgress) * 100).toFixed(3)}%`,
-        );
         lastEntryProgress = entryProgress;
       }
 
