@@ -1287,6 +1287,7 @@ export const setScrollingAnimations = function () {
     let maxPhoneOffset = 6;
     let lastOpacity = null;
     let lastPhoneOffset = null;
+    let lastEntryProgress = null;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const refreshMetrics = () => {
@@ -1324,6 +1325,21 @@ export const setScrollingAnimations = function () {
         shuffleLayer.style.setProperty("--boundary-opacity", opacityValue);
         phoneLogo.style.setProperty("--boundary-opacity", opacityValue);
         lastOpacity = opacity;
+      }
+
+      if (
+        lastEntryProgress === null ||
+        Math.abs(entryProgress - lastEntryProgress) > 0.0001
+      ) {
+        shuffleLayer.style.setProperty(
+          "--intro-reveal-progress",
+          entryProgress.toFixed(4),
+        );
+        shuffleLayer.style.setProperty(
+          "--intro-reveal-bottom",
+          `${((1 - entryProgress) * 100).toFixed(3)}%`,
+        );
+        lastEntryProgress = entryProgress;
       }
 
       if (
