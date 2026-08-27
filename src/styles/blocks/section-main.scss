@@ -229,16 +229,16 @@
       opacity: 1;
     }
 
-    &_exit-left,
-    &_exit-right {
-      transform: translateY(0);
-      opacity: 1;
+    &_exit-up {
+      transform: translateY(var(--shuffle-phrase-shift, -1.13em));
+      opacity: 0;
       pointer-events: none;
+    }
 
-      > .section-main__shuffle-line,
-      > .section-main__shuffle-phrase-syntax {
-        will-change: transform, opacity;
-      }
+    &_exit-down {
+      transform: translateY(var(--shuffle-phrase-shift, 1.13em));
+      opacity: 0;
+      pointer-events: none;
     }
   }
 

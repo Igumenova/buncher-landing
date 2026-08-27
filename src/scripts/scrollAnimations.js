@@ -1015,60 +1015,6 @@ export const setScrollingAnimations = function () {
         `${panelHeight}px`,
       );
     };
-    const animatePhraseRowsExit = (phraseElement, isForward) => {
-      const phraseRows = Array.from(phraseElement.children);
-      const orderedRows = isForward ? phraseRows : [...phraseRows].reverse();
-      const rowCount = orderedRows.length;
-      const horizontalExit = isForward ? -110 : 110;
-
-      phraseElement.animate([{ opacity: 1 }, { opacity: 0 }], {
-        duration: PHASE_TRANSITION_DURATION,
-        easing: "cubic-bezier(0.45, 0, 0.3, 1)",
-        fill: "forwards",
-      });
-
-      orderedRows.forEach((row, rowIndex) => {
-        const exitStartOffset = rowIndex / rowCount;
-        const exitEndOffset = (rowIndex + 1) / rowCount;
-        const frames = [
-          {
-            offset: 0,
-            transform: "translate(0%, 0px)",
-            opacity: 1,
-            easing: "linear",
-          },
-        ];
-
-        if (exitStartOffset > 0) {
-          frames.push({
-            offset: exitStartOffset,
-            transform: "translate(0%, 0px)",
-            opacity: 1,
-            easing: "ease-in",
-          });
-        }
-
-        frames[frames.length - 1].easing = "ease-in";
-        frames.push({
-          offset: exitEndOffset,
-          transform: `translate(${horizontalExit}%, 0px)`,
-          opacity: 0,
-        });
-
-        if (exitEndOffset < 1) {
-          frames.push({
-            offset: 1,
-            transform: `translate(${horizontalExit}%, 0px)`,
-            opacity: 0,
-          });
-        }
-
-        row.animate(frames, {
-          duration: PHASE_TRANSITION_DURATION,
-          fill: "forwards",
-        });
-      });
-    };
     const setStep = (stepIndex, forceRender = false) => {
       const nextStep = Math.max(0, Math.min(textSteps.length - 1, stepIndex));
       if (nextStep === activeStep && !forceRender) {
@@ -1100,16 +1046,24 @@ export const setScrollingAnimations = function () {
         });
 
       if (outgoingPhrase) {
+        const outgoingStep = Number(outgoingPhrase.dataset.step);
+        const stepDistance = Number.isFinite(outgoingStep)
+          ? nextStep - outgoingStep
+          : nextStep - previousStep;
+
         outgoingPhrase.classList.remove(
-          "section-main__shuffle-phrase_exit-left",
-          "section-main__shuffle-phrase_exit-right",
+          "section-main__shuffle-phrase_exit-up",
+          "section-main__shuffle-phrase_exit-down",
+        );
+        outgoingPhrase.style.setProperty(
+          "--shuffle-phrase-shift",
+          `${-stepDistance * 5 * 58}px`,
         );
         outgoingPhrase.classList.add(
           nextStep >= previousStep
-            ? "section-main__shuffle-phrase_exit-left"
-            : "section-main__shuffle-phrase_exit-right",
+            ? "section-main__shuffle-phrase_exit-up"
+            : "section-main__shuffle-phrase_exit-down",
         );
-        animatePhraseRowsExit(outgoingPhrase, nextStep >= previousStep);
         codeArea.classList.add("section-main__shuffle-code_transitioning");
         phraseCleanupTimer = setTimeout(() => {
           outgoingPhrase.remove();
