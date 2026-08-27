@@ -91,6 +91,15 @@
   &__store-link {
     display: block;
     cursor: default;
+
+    &_disabled {
+      pointer-events: none;
+
+      .section-cover__store-icon {
+        transition: none;
+        transform: none;
+      }
+    }
   }
 
   &__store-icon {
@@ -101,7 +110,7 @@
       opacity $small-transition-time ease-out,
       transform $small-transition-time ease-out;
 
-    .section-cover__store-link:hover & {
+    .section-cover__store-link:not(.section-cover__store-link_disabled):hover & {
       transform: scale(1.08);
       opacity: 0.92;
     }
