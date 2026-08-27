@@ -1272,29 +1272,70 @@ export const setScrollingAnimations = function () {
   const createCounterBoundaryFade = function () {
     const BOUNDARY_FADE_DISTANCE_IN_VIEWPORTS = 0.9;
     const mainSection = document.getElementById("section-main");
+    const counterBlock = document.getElementById("counter");
+    const shuffleLayer = document.querySelector(
+      ".section-main__shuffle-layer",
+    );
+    const phoneLogo = document.querySelector(".phone__item_logo");
+    const phoneContentBlock = document.getElementById(
+      "section-main__content-block",
+    );
     let frameId = null;
+    let sectionTop = 0;
+    let stickyDistance = 0;
+    let fadeDistance = 1;
+    let maxPhoneOffset = 6;
+    let lastOpacity = null;
+    let lastPhoneOffset = null;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-    const updateOpacity = () => {
-      frameId = null;
+    const refreshMetrics = () => {
       const rootRect = scrollRoot.getBoundingClientRect();
       const sectionRect = mainSection.getBoundingClientRect();
-      const sectionTop =
-        scrollRoot.scrollTop + sectionRect.top - rootRect.top;
-      const localScroll = scrollRoot.scrollTop - sectionTop;
-      const stickyDistance = Math.max(
+
+      sectionTop = scrollRoot.scrollTop + sectionRect.top - rootRect.top;
+      stickyDistance = Math.max(
         mainSection.offsetHeight - scrollRoot.clientHeight,
         0,
       );
-      const fadeDistance = Math.max(
+      fadeDistance = Math.max(
         scrollRoot.clientHeight * BOUNDARY_FADE_DISTANCE_IN_VIEWPORTS,
         1,
       );
+      maxPhoneOffset = clamp(scrollRoot.clientHeight * 0.012, 6, 12);
+    };
+    const updateOpacity = () => {
+      frameId = null;
+      const localScroll = scrollRoot.scrollTop - sectionTop;
       const entryOpacity = localScroll / fadeDistance;
       const exitOpacity =
         (stickyDistance - localScroll) / fadeDistance;
-      const opacity = clamp(Math.min(entryOpacity, exitOpacity), 0, 1);
-      mainSection.style.setProperty("--boundary-opacity", opacity);
+      const entryProgress = clamp(entryOpacity, 0, 1);
+      const exitProgress = clamp(exitOpacity, 0, 1);
+      const opacity = Math.min(entryProgress, exitProgress);
+      const phoneBoundaryOffset =
+        (1 - entryProgress) * maxPhoneOffset -
+        (1 - exitProgress) * maxPhoneOffset;
+
+      if (lastOpacity === null || Math.abs(opacity - lastOpacity) > 0.0001) {
+        const opacityValue = opacity.toFixed(4);
+
+        counterBlock.style.setProperty("--boundary-opacity", opacityValue);
+        shuffleLayer.style.setProperty("--boundary-opacity", opacityValue);
+        phoneLogo.style.setProperty("--boundary-opacity", opacityValue);
+        lastOpacity = opacity;
+      }
+
+      if (
+        lastPhoneOffset === null ||
+        Math.abs(phoneBoundaryOffset - lastPhoneOffset) > 0.01
+      ) {
+        phoneContentBlock.style.setProperty(
+          "--phone-boundary-y",
+          `${phoneBoundaryOffset.toFixed(3)}px`,
+        );
+        lastPhoneOffset = phoneBoundaryOffset;
+      }
     };
     const requestOpacityUpdate = () => {
       if (!frameId) {
@@ -1305,8 +1346,16 @@ export const setScrollingAnimations = function () {
     scrollRoot.addEventListener("scroll", requestOpacityUpdate, {
       passive: true,
     });
-    window.addEventListener("resize", requestOpacityUpdate);
+    window.addEventListener("resize", () => {
+      refreshMetrics();
+      requestOpacityUpdate();
+    });
+    refreshMetrics();
     updateOpacity();
+    requestAnimationFrame(() => {
+      refreshMetrics();
+      requestOpacityUpdate();
+    });
   };
   const createEndIntersectionObserver = function () {
     const endBlock = document.getElementById("section-footer");
