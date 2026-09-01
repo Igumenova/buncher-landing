@@ -89,16 +89,39 @@
   }
 
   &__store-link {
+    position: relative;
     display: block;
     cursor: default;
+    transition:
+      opacity $small-transition-time ease-out,
+      transform $small-transition-time ease-out;
 
-    &_disabled {
+    &:hover {
+      transform: scale(1.08);
+      opacity: 0.92;
+    }
+
+    .section-cover__store-clock-ring {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity $small-transition-time ease-out;
+    }
 
-      .section-cover__store-icon {
-        transition: none;
-        transform: none;
-      }
+    &:hover .section-cover__store-clock-ring {
+      opacity: 1;
+    }
+
+    &:hover .section-cover__store-clock-orbit {
+      animation: storeClockOrbit 1.7s linear infinite;
+    }
+
+    .section-cover__store-clock-glow {
+      opacity: 0.32;
     }
   }
 
@@ -106,14 +129,6 @@
     display: block;
     width: clamp(44px, 4.6875vw, 90px);
     height: auto;
-    transition:
-      opacity $small-transition-time ease-out,
-      transform $small-transition-time ease-out;
-
-    .section-cover__store-link:not(.section-cover__store-link_disabled):hover & {
-      transform: scale(1.08);
-      opacity: 0.92;
-    }
   }
 
   &__tagline {
@@ -268,5 +283,17 @@
       font-size: 13px;
       line-height: 13px;
     }
+  }
+}
+
+@keyframes storeClockOrbit {
+  to {
+    stroke-dashoffset: -63.62;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-cover__store-link:hover .section-cover__store-clock-orbit {
+    animation: none;
   }
 }
