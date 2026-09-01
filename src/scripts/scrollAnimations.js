@@ -13,6 +13,7 @@ export const setScrollingAnimations = function () {
   const PHASE_TRANSITION_DURATION = 650;
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
+  const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
@@ -209,6 +210,26 @@ export const setScrollingAnimations = function () {
     visibleBlocks.length = NUMBER_OF_BLOCKS;
     visibleBlocks.fill(false);
     numberCont.addEventListener("animationend", settleNumberTransition);
+    document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
+      const nextDigit = event.detail.stepIndex + 1;
+      const transition = numberCont.className.match(REGEX);
+
+      if (!counterIsActive || nextDigit !== currentDigit || !transition) {
+        return;
+      }
+
+      const [, activeTarget] = transition[0].slice(1).split("-").map(Number);
+      animateZeroVisibility(true);
+
+      if (activeTarget === nextDigit) {
+        return;
+      }
+
+      numberCont.className = numberCont.className.replace(
+        REGEX,
+        `_${activeTarget}-${nextDigit}`,
+      );
+    });
 
     let recount = true;
     const callback = (entries) => {
@@ -224,10 +245,6 @@ export const setScrollingAnimations = function () {
           if (entry.isIntersecting) {
             visibleBlocks[curArrayIndex] = true;
             currentDigit = nextArrayIndex;
-            numberCont.className = numberCont.className.replace(
-              REGEX,
-              `_0-${nextArrayIndex}`,
-            );
             dispatchTextStepChange(nextArrayIndex - 1);
           }
           return;
@@ -248,18 +265,10 @@ export const setScrollingAnimations = function () {
         if (entry.isIntersecting) {
           visibleBlocks[curArrayIndex] = true;
           currentDigit = nextArrayIndex;
-          numberCont.className = numberCont.className.replace(
-            REGEX,
-            `_${curArrayIndex}-${nextArrayIndex}`,
-          );
           dispatchTextStepChange(nextArrayIndex - 1);
         } else {
           visibleBlocks[curArrayIndex] = false;
           currentDigit = curArrayIndex;
-          numberCont.className = numberCont.className.replace(
-            REGEX,
-            `_${nextArrayIndex}-${curArrayIndex}`,
-          );
           dispatchTextStepChange(curArrayIndex - 1);
         }
       });
@@ -311,6 +320,40 @@ export const setScrollingAnimations = function () {
         root: scrollRoot,
         threshold: 0.5,
       };
+      let pendingPhoneState = "999-999";
+      let expectedTextStep = -1;
+      let phoneStageIsUnlocked = false;
+
+      const isIntroPhoneState = (state) =>
+        state === "999-999" || state === "0-0";
+      const applyPhoneState = (state) => {
+        pendingPhoneState = state;
+
+        if (!isIntroPhoneState(state) && !phoneStageIsUnlocked) {
+          return;
+        }
+
+        phone.className = phone.className.replace(REGEX, state);
+      };
+
+      document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
+        const nextTextStep = event.detail.stepIndex;
+
+        if (nextTextStep === expectedTextStep) {
+          return;
+        }
+
+        expectedTextStep = nextTextStep;
+        phoneStageIsUnlocked = expectedTextStep < 0;
+      });
+      document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
+        if (event.detail.stepIndex !== expectedTextStep) {
+          return;
+        }
+
+        phoneStageIsUnlocked = true;
+        applyPhoneState(pendingPhoneState);
+      });
 
       let first = true;
       const callback = (entries) => {
@@ -320,10 +363,7 @@ export const setScrollingAnimations = function () {
 
           if (first) {
             if (entry.isIntersecting) {
-              phone.className = phone.className.replace(
-                REGEX,
-                anchors[prevNum].dataset.id,
-              );
+              applyPhoneState(anchors[prevNum].dataset.id);
             }
             return;
           }
@@ -335,13 +375,9 @@ export const setScrollingAnimations = function () {
           }
 
           if (entry.isIntersecting) {
-            phone.className = phone.className.replace(
-              REGEX,
-              anchors[prevNum].dataset.id,
-            );
+            applyPhoneState(anchors[prevNum].dataset.id);
           } else {
-            phone.className = phone.className.replace(
-              REGEX,
+            applyPhoneState(
               anchors[prevNum - 1]?.dataset.id ?? "999-999",
             );
           }
@@ -371,7 +407,11 @@ export const setScrollingAnimations = function () {
     const shuffleText = document.createElement("h2");
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
-    const TYPING_COMPLETE_PHASE_PROGRESS = 0.7;
+    const TYPING_COMPLETE_PHASE_PROGRESS = 0.82;
+    const LINE_NUMBER_ROW_HEIGHT = 58;
+    const LINES_PER_TEXT_STEP = 5;
+    const TEXT_STEP_VERTICAL_OFFSET =
+      LINE_NUMBER_ROW_HEIGHT * LINES_PER_TEXT_STEP;
     let textSteps = getScrollAnimationTextSteps();
     let activeStep = -1;
     let hideTimer = null;
@@ -382,6 +422,7 @@ export const setScrollingAnimations = function () {
     let typingRanges = [];
     let typingFrameId = null;
     let lastVisibleLetterCount = -1;
+    let typingStartedStep = -1;
     let typingIsLocked = false;
     let typingDirection = 1;
     let typingOriginScrollTop = null;
@@ -451,6 +492,20 @@ export const setScrollingAnimations = function () {
         });
         lastVisibleLetterCount = visibleLetterCount;
       }
+
+      if (
+        !typingIsLocked &&
+        visibleLetterCount > 0 &&
+        typingStartedStep !== activeStep
+      ) {
+        typingStartedStep = activeStep;
+        document.dispatchEvent(
+          new CustomEvent(TEXT_TYPING_START_EVENT, {
+            detail: { stepIndex: activeStep },
+          }),
+        );
+      }
+
     };
     const requestTypingProgressUpdate = () => {
       if (!typingFrameId) {
@@ -522,39 +577,12 @@ export const setScrollingAnimations = function () {
       );
       const isLogoStage = phone.classList.contains("phone__content_0-0");
       const isIntroVisualStage = isBeforeLogo || isLogoStage;
-      const wasIntroStage = counterBlock.classList.contains(
-        "section-main__counter-block_intro",
-      );
       shufflePanel.classList.add("section-main__shuffle-panel_visible");
 
       if (isIntroVisualStage) {
-        clearTimeout(zeroTransitionTimer);
-        zeroIsVisible = true;
-        counterBlock.classList.remove(
-          "section-main__counter-block_zero-entering",
-          "section-main__counter-block_zero-exiting",
-          "section-main__counter-block_zero-visible",
-          "section-main__counter-block_zero-hidden",
-        );
         counterBlock.classList.add("section-main__counter-block_intro");
         counterBlock.classList.add("section-main__counter-block_shown");
-        counterBlock.classList.add(
-          "section-main__counter-block_zero-scroll-controlled",
-        );
       } else {
-        if (wasIntroStage) {
-          clearTimeout(zeroTransitionTimer);
-          zeroIsVisible = true;
-          counterBlock.classList.remove(
-            "section-main__counter-block_zero-entering",
-            "section-main__counter-block_zero-exiting",
-            "section-main__counter-block_zero-scroll-controlled",
-            "section-main__counter-block_zero-hidden",
-          );
-          counterBlock.classList.add(
-            "section-main__counter-block_zero-visible",
-          );
-        }
         counterBlock.classList.remove("section-main__counter-block_intro");
       }
     };
@@ -1027,21 +1055,18 @@ export const setScrollingAnimations = function () {
         ),
       );
       lastVisibleLetterCount = -1;
+      typingStartedStep = -1;
       updateTypingProgress();
       if (entryShift) {
         phraseElement.getBoundingClientRect();
       }
-      requestAnimationFrame(() => {
-        phraseElement.classList.remove(
-          "section-main__shuffle-phrase_entering",
-        );
-        phraseElement.classList.add("section-main__shuffle-phrase_active");
-      });
 
       return phraseElement;
     };
     const moveLineNumbers = (stepIndex) => {
-      lineNumberTrack.style.transform = `translateY(${-stepIndex * 5 * 58}px)`;
+      lineNumberTrack.style.transform = `translateY(${
+        -stepIndex * TEXT_STEP_VERTICAL_OFFSET
+      }px)`;
     };
     const updatePanelRowCount = (phrase) => {
       const visibleLineNumberCount = 6;
@@ -1083,6 +1108,7 @@ export const setScrollingAnimations = function () {
 
       const previousStep = activeStep;
       const outgoingPhrase = activePhrase;
+      let outgoingTransitionClass = null;
       let stepDistance = nextStep - previousStep;
       activeStep = nextStep;
       clearTimeout(hideTimer);
@@ -1114,13 +1140,12 @@ export const setScrollingAnimations = function () {
         );
         outgoingPhrase.style.setProperty(
           "--shuffle-phrase-shift",
-          `${-stepDistance * 5 * 58}px`,
+          `${-stepDistance * TEXT_STEP_VERTICAL_OFFSET}px`,
         );
-        outgoingPhrase.classList.add(
+        outgoingTransitionClass =
           nextStep >= previousStep
             ? "section-main__shuffle-phrase_exit-up"
-            : "section-main__shuffle-phrase_exit-down",
-        );
+            : "section-main__shuffle-phrase_exit-down";
         codeArea.classList.add("section-main__shuffle-code_transitioning");
         phraseCleanupTimer = setTimeout(() => {
           outgoingPhrase.remove();
@@ -1147,12 +1172,27 @@ export const setScrollingAnimations = function () {
       }
 
       updatePanelRowCount(textSteps[nextStep]);
-      moveLineNumbers(nextStep);
-      typePhrase(
+      const incomingPhrase = typePhrase(
         textSteps[nextStep],
         nextStep,
-        outgoingPhrase ? stepDistance * 5 * 58 : 0,
+        outgoingPhrase
+          ? stepDistance * TEXT_STEP_VERTICAL_OFFSET
+          : 0,
       );
+      requestAnimationFrame(() => {
+        if (activeStep === nextStep) {
+          if (outgoingTransitionClass) {
+            outgoingPhrase.classList.add(outgoingTransitionClass);
+          }
+          incomingPhrase.classList.remove(
+            "section-main__shuffle-phrase_entering",
+          );
+          incomingPhrase.classList.add(
+            "section-main__shuffle-phrase_active",
+          );
+          moveLineNumbers(nextStep);
+        }
+      });
       shuffleText.classList.remove("section-main__shuffle-text_phase-exit");
       shuffleText.classList.add("section-main__shuffle-text_visible");
     };
@@ -1163,6 +1203,7 @@ export const setScrollingAnimations = function () {
       activePhrase = null;
       activeLetters = [];
       lastVisibleLetterCount = -1;
+      typingStartedStep = -1;
       typingIsLocked = false;
       typingOriginScrollTop = null;
       codeArea.classList.remove("section-main__shuffle-code_transitioning");
@@ -1239,16 +1280,11 @@ export const setScrollingAnimations = function () {
           counterIsActive = true;
 
           clearTimeout(counterHideTimer);
-          numberCont.className = numberCont.className.replace(
-            NUMBER_CLASS_REGEX,
-            `_0-${currentDigit}`,
-          );
           // coverSection.classList.add("section-cover_scrolled");
           // longDecorationLine.classList.add(
           //   "section-main__decoration_long_hidden",
           // );
           counterBlock.classList.add("section-main__counter-block_shown");
-          animateZeroVisibility(true);
           shuffleText.classList.remove(
             "section-main__shuffle-text_first-entry",
           );
@@ -1271,9 +1307,7 @@ export const setScrollingAnimations = function () {
           const isReturningToIntro = activeZoneRect.top >= rootRect.bottom;
           const shouldKeepIntroZero = isLogoStage || isReturningToIntro;
 
-          if (!shouldKeepIntroZero) {
-            animateZeroVisibility(false);
-          }
+          animateZeroVisibility(false);
           numberCont.className = numberCont.className.replace(
             NUMBER_CLASS_REGEX,
             `_${currentDigit}-0`,
@@ -1478,7 +1512,13 @@ export const setScrollingAnimations = function () {
         const halfGap = gap_between_numbers * 0.5;
         const rect = contentContainer.getBoundingClientRect();
         const visibleSize = measure100vh.clientHeight - rect.height;
-        const textContainerSize = visibleSize * (NUMBER_OF_BLOCKS + 1.4); //+1.4 as we have pseudo-elements;
+        const introStageScrollMultiplier = 0.9;
+        const stageScrollMultiplier = 1.35;
+        const textContainerSize =
+          visibleSize *
+          (introStageScrollMultiplier +
+            (NUMBER_OF_BLOCKS - 1) * stageScrollMultiplier +
+            1.4); //+1.4 as we have pseudo-elements;
         // addStyleWithPrefixes(
         //   arrowEl,
         //   "mask-size",

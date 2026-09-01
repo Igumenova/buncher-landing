@@ -83,7 +83,7 @@
     &:before {
       display: block;
       content: "";
-      height: 60vh;
+      height: 30vh;
     }
 
     &:after {
@@ -108,16 +108,24 @@
 
       .section-main__text-block {
         height: auto;
-        flex: 1 1;
+        flex: 1.35 1;
+
+        &:first-of-type {
+          flex-grow: 0.9;
+        }
       }
     }
   }
 
   &__text-block {
     position: relative;
-    height: 100vh;
+    height: 135vh;
     display: flex;
     flex-direction: column;
+
+    &:first-of-type {
+      height: 100vh;
+    }
 
     &:before {
       content: "";
