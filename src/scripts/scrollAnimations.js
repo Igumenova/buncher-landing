@@ -14,6 +14,7 @@ export const setScrollingAnimations = function () {
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
   const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
+  const STAGE_CHANGE_POINT = 0.72;
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
@@ -168,7 +169,7 @@ export const setScrollingAnimations = function () {
   const createNumberIntersectionObserver = function (blocks) {
     const REGEX = /_\d+-\d+$/;
     const numberCont = document.getElementById("changing-number");
-    const visibleBlocks = [];
+    let stageFrameId = null;
 
     const settleNumberTransition = (event) => {
       const isEntering = event.animationName === "lcdDigitIn";
@@ -202,13 +203,6 @@ export const setScrollingAnimations = function () {
       );
     };
 
-    const options = {
-      root: scrollRoot,
-      threshold: 0.5,
-    };
-
-    visibleBlocks.length = NUMBER_OF_BLOCKS;
-    visibleBlocks.fill(false);
     numberCont.addEventListener("animationend", settleNumberTransition);
     document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
       const nextDigit = event.detail.stepIndex + 1;
@@ -231,55 +225,46 @@ export const setScrollingAnimations = function () {
       );
     });
 
-    let recount = true;
-    const callback = (entries) => {
-      entries.forEach((entry) => {
-        if (!counterIsActive) {
+    const updateCurrentDigit = () => {
+      stageFrameId = null;
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const viewportCenter = rootRect.top + scrollRoot.clientHeight / 2;
+      let nextDigit = 1;
+
+      blocks.forEach((block, index) => {
+        if (index === 0) {
           return;
         }
 
-        const nextArrayIndex = Number(entry.target.dataset.num);
-        const curArrayIndex = nextArrayIndex - 1;
+        const blockRect = block.getBoundingClientRect();
+        const stageMarker =
+          blockRect.top + blockRect.height * STAGE_CHANGE_POINT;
 
-        if (recount) {
-          if (entry.isIntersecting) {
-            visibleBlocks[curArrayIndex] = true;
-            currentDigit = nextArrayIndex;
-            dispatchTextStepChange(nextArrayIndex - 1);
-          }
-          return;
-        }
-
-        if (nextArrayIndex === 1) {
-          visibleBlocks[curArrayIndex] = entry.isIntersecting;
-          return;
-        }
-
-        if (
-          visibleBlocks[nextArrayIndex] === true ||
-          (nextArrayIndex === NUMBER_OF_BLOCKS &&
-            entry.target.getBoundingClientRect().top < 0)
-        ) {
-          return;
-        }
-        if (entry.isIntersecting) {
-          visibleBlocks[curArrayIndex] = true;
-          currentDigit = nextArrayIndex;
-          dispatchTextStepChange(nextArrayIndex - 1);
-        } else {
-          visibleBlocks[curArrayIndex] = false;
-          currentDigit = curArrayIndex;
-          dispatchTextStepChange(curArrayIndex - 1);
+        if (stageMarker <= viewportCenter) {
+          nextDigit = index + 1;
         }
       });
-      recount = false;
+
+      if (nextDigit === currentDigit) {
+        return;
+      }
+
+      currentDigit = nextDigit;
+      if (counterIsActive) {
+        dispatchTextStepChange(currentDigit - 1);
+      }
+    };
+    const requestStageUpdate = () => {
+      if (!stageFrameId) {
+        stageFrameId = requestAnimationFrame(updateCurrentDigit);
+      }
     };
 
-    const observer = new IntersectionObserver(callback, options);
-
-    blocks.forEach((block) => {
-      observer.observe(block);
+    scrollRoot.addEventListener("scroll", requestStageUpdate, {
+      passive: true,
     });
+    window.addEventListener("resize", requestStageUpdate);
+    requestStageUpdate();
   };
   const createPhoneAnimation = function (blocks) {
     const REGEX = /\d+-\d+$/;
@@ -322,18 +307,53 @@ export const setScrollingAnimations = function () {
       };
       let pendingPhoneState = "999-999";
       let expectedTextStep = -1;
+      let unlockedTextStep = -1;
       let phoneStageIsUnlocked = false;
+      const PHONE_STAGE_FIRST_STATES = [
+        "1-0",
+        "1-2",
+        "2-1",
+        "3-2",
+        "4-1",
+      ];
+      const PHONE_STATE_TEXT_STEPS = {
+        "1-0": 0,
+        "1-1": 0,
+        "1-2": 1,
+        "2-0": 1,
+        "2-1": 2,
+        "3-0": 2,
+        "3-1": 2,
+        "3-2": 3,
+        "3-3": 3,
+        "4-0": 3,
+        "4-1": 4,
+      };
 
       const isIntroPhoneState = (state) =>
         state === "999-999" || state === "0-0";
+      const getRequiredTextStep = (state) => {
+        if (isIntroPhoneState(state)) {
+          return -1;
+        }
+
+        return PHONE_STATE_TEXT_STEPS[state] ?? Infinity;
+      };
+      const commitPhoneState = (state) => {
+        phone.className = phone.className.replace(REGEX, state);
+      };
       const applyPhoneState = (state) => {
         pendingPhoneState = state;
 
-        if (!isIntroPhoneState(state) && !phoneStageIsUnlocked) {
+        if (
+          !isIntroPhoneState(state) &&
+          (!phoneStageIsUnlocked ||
+            getRequiredTextStep(state) > unlockedTextStep)
+        ) {
           return;
         }
 
-        phone.className = phone.className.replace(REGEX, state);
+        commitPhoneState(state);
       };
 
       document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
@@ -373,8 +393,11 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        unlockedTextStep = expectedTextStep;
         phoneStageIsUnlocked = true;
-        applyPhoneState(pendingPhoneState);
+        commitPhoneState(
+          PHONE_STAGE_FIRST_STATES[expectedTextStep] ?? pendingPhoneState,
+        );
       });
 
       let first = true;
@@ -430,6 +453,7 @@ export const setScrollingAnimations = function () {
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
     const TYPING_COMPLETE_PHASE_PROGRESS = 0.82;
+    const TYPING_SLOW_START_POWER = 1.6;
     const LINE_NUMBER_ROW_HEIGHT = 58;
     const LINES_PER_TEXT_STEP = 5;
     const TEXT_STEP_VERTICAL_OFFSET =
@@ -454,18 +478,38 @@ export const setScrollingAnimations = function () {
     const clampProgress = (value) => Math.min(Math.max(value, 0), 1);
     const refreshTypingRanges = () => {
       const rootRect = scrollRoot.getBoundingClientRect();
+      const blockElements = Array.from(blocks);
+      const getScrollPoint = (element, ratio = 0) => {
+        const rect = element.getBoundingClientRect();
 
-      typingRanges = Array.from(blocks).map((block) => {
-        const blockRect = block.getBoundingClientRect();
-        const blockTop =
-          scrollRoot.scrollTop + blockRect.top - rootRect.top;
-        const start = blockTop - scrollRoot.clientHeight / 2;
+        return (
+          scrollRoot.scrollTop +
+          rect.top -
+          rootRect.top +
+          rect.height * ratio -
+          scrollRoot.clientHeight / 2
+        );
+      };
+      const firstStageAnchor = document.querySelector(
+        ".anchor__item_1-0",
+      );
+      const firstStageStart = firstStageAnchor
+        ? getScrollPoint(firstStageAnchor, 0.5)
+        : getScrollPoint(blockElements[1]);
+      const stageMarkers = blockElements
+        .slice(1)
+        .map((block) => getScrollPoint(block, STAGE_CHANGE_POINT));
+      const stageStarts = [firstStageStart, ...stageMarkers];
+      const finalStageEnd =
+        stageStarts[stageStarts.length - 1] +
+        blockElements[blockElements.length - 1].offsetHeight;
 
-        return {
+      typingRanges = stageStarts.slice(0, textSteps.length).map(
+        (start, index) => ({
           start,
-          end: start + Math.max(block.offsetHeight, 1),
-        };
-      });
+          end: stageMarkers[index] ?? finalStageEnd,
+        }),
+      );
     };
     const updateTypingProgress = () => {
       typingFrameId = null;
@@ -484,7 +528,10 @@ export const setScrollingAnimations = function () {
         typingOriginScrollTop === null &&
         !typingIsLocked
       ) {
-        typingOriginScrollTop = typingDirection > 0 ? range.start : range.end;
+        typingOriginScrollTop = Math.max(
+          range.start,
+          scrollRoot.scrollTop,
+        );
       }
 
       const phaseProgress = typingDirection > 0
@@ -496,8 +543,12 @@ export const setScrollingAnimations = function () {
             (scrollRoot.scrollTop - range.start) /
               Math.max(range.end - range.start, 1),
           );
-      const typingProgress = clampProgress(
+      const linearTypingProgress = clampProgress(
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
+      );
+      const typingProgress = Math.pow(
+        linearTypingProgress,
+        TYPING_SLOW_START_POWER,
       );
       const visibleLetterCount = typingIsLocked
         ? typingDirection < 0
@@ -1547,12 +1598,12 @@ export const setScrollingAnimations = function () {
         const rect = contentContainer.getBoundingClientRect();
         const visibleSize = measure100vh.clientHeight - rect.height;
         const introStageScrollMultiplier = 0.75;
-        const stageScrollMultiplier = 1.35;
+        const stageScrollMultiplier = 2.2;
         const textContainerSize =
           visibleSize *
           (introStageScrollMultiplier +
             (NUMBER_OF_BLOCKS - 1) * stageScrollMultiplier +
-            1.4); //+1.4 as we have pseudo-elements;
+            3.1); //+3.1 as we have the intro and extended opacity tail;
         // addStyleWithPrefixes(
         //   arrowEl,
         //   "mask-size",

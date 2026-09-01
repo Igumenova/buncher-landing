@@ -89,7 +89,7 @@
     &:after {
       display: block;
       content: "";
-      height: 120vh;
+      height: 250vh;
     }
 
     &_small {
@@ -103,12 +103,12 @@
 
       &:after {
         height: auto;
-        flex: 0.8 0;
+        flex: 2.5 0;
       }
 
       .section-main__text-block {
         height: auto;
-        flex: 1.35 1;
+        flex: 2.2 1;
 
         &:first-of-type {
           flex-grow: 0.75;
@@ -119,7 +119,7 @@
 
   &__text-block {
     position: relative;
-    height: 135vh;
+    height: 220vh;
     display: flex;
     flex-direction: column;
 
