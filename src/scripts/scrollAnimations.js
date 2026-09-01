@@ -343,11 +343,33 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        const previousTextStep = expectedTextStep;
         expectedTextStep = nextTextStep;
-        phoneStageIsUnlocked = expectedTextStep < 0;
+        phoneStageIsUnlocked = false;
+
+        if (previousTextStep < 0 && nextTextStep === 0) {
+          phone.className = phone.className.replace(REGEX, "0-0");
+        }
       });
       document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
         if (event.detail.stepIndex !== expectedTextStep) {
+          return;
+        }
+
+        const visibleLetter = document.querySelector(
+          `.section-main__shuffle-phrase[data-step="${expectedTextStep}"] ` +
+            ".section-main__shuffle-letter_visible",
+        );
+        const shuffleText = document.querySelector(
+          ".section-main__shuffle-text",
+        );
+
+        if (
+          !visibleLetter ||
+          !shuffleText ||
+          getComputedStyle(visibleLetter).opacity === "0" ||
+          getComputedStyle(shuffleText).visibility === "hidden"
+        ) {
           return;
         }
 
@@ -498,12 +520,24 @@ export const setScrollingAnimations = function () {
         visibleLetterCount > 0 &&
         typingStartedStep !== activeStep
       ) {
-        typingStartedStep = activeStep;
-        document.dispatchEvent(
-          new CustomEvent(TEXT_TYPING_START_EVENT, {
-            detail: { stepIndex: activeStep },
-          }),
-        );
+        const startedStep = activeStep;
+        typingStartedStep = startedStep;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (
+              activeStep !== startedStep ||
+              typingStartedStep !== startedStep
+            ) {
+              return;
+            }
+
+            document.dispatchEvent(
+              new CustomEvent(TEXT_TYPING_START_EVENT, {
+                detail: { stepIndex: startedStep },
+              }),
+            );
+          });
+        });
       }
 
     };
@@ -1512,7 +1546,7 @@ export const setScrollingAnimations = function () {
         const halfGap = gap_between_numbers * 0.5;
         const rect = contentContainer.getBoundingClientRect();
         const visibleSize = measure100vh.clientHeight - rect.height;
-        const introStageScrollMultiplier = 0.9;
+        const introStageScrollMultiplier = 0.75;
         const stageScrollMultiplier = 1.35;
         const textContainerSize =
           visibleSize *

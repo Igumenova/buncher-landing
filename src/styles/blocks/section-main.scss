@@ -83,7 +83,7 @@
     &:before {
       display: block;
       content: "";
-      height: 30vh;
+      height: 20vh;
     }
 
     &:after {
@@ -111,7 +111,7 @@
         flex: 1.35 1;
 
         &:first-of-type {
-          flex-grow: 0.9;
+          flex-grow: 0.75;
         }
       }
     }
@@ -124,7 +124,7 @@
     flex-direction: column;
 
     &:first-of-type {
-      height: 100vh;
+      height: 85vh;
     }
 
     &:before {
