@@ -1603,7 +1603,7 @@ export const setScrollingAnimations = function () {
           visibleSize *
           (introStageScrollMultiplier +
             (NUMBER_OF_BLOCKS - 1) * stageScrollMultiplier +
-            3.1); //+3.1 as we have the intro and extended opacity tail;
+            3.6); //+3.6 includes intro, final hold, and opacity tail;
         // addStyleWithPrefixes(
         //   arrowEl,
         //   "mask-size",
