@@ -550,7 +550,6 @@ export const setScrollingAnimations = function () {
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
     const TYPING_COMPLETE_PHASE_PROGRESS = 0.82;
-    const TYPING_SLOW_START_POWER = 1.6;
     const LINE_NUMBER_ROW_HEIGHT = 58;
     const LINES_PER_TEXT_STEP = 5;
     const TEXT_STEP_VERTICAL_OFFSET =
@@ -643,10 +642,7 @@ export const setScrollingAnimations = function () {
       const linearTypingProgress = clampProgress(
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
-      const typingProgress = Math.pow(
-        linearTypingProgress,
-        TYPING_SLOW_START_POWER,
-      );
+      const typingProgress = linearTypingProgress;
       const visibleLetterCount = typingIsLocked
         ? typingDirection < 0
           ? activeLetters.length
@@ -1683,8 +1679,8 @@ export const setScrollingAnimations = function () {
         const halfGap = gap_between_numbers * 0.5;
         const rect = contentContainer.getBoundingClientRect();
         const visibleSize = measure100vh.clientHeight - rect.height;
-        const introStageScrollMultiplier = 0.75;
-        const stageScrollMultiplier = 2.2;
+        const introStageScrollMultiplier = 0.6;
+        const stageScrollMultiplier = 4.4;
         const textContainerSize =
           visibleSize *
           (introStageScrollMultiplier +

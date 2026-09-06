@@ -111,7 +111,7 @@
         flex: 2.2 1;
 
         &:first-of-type {
-          flex-grow: 0.75;
+          flex-grow: 0.6;
         }
       }
     }
@@ -119,12 +119,12 @@
 
   &__text-block {
     position: relative;
-    height: 220vh;
+    height: 440vh;
     display: flex;
     flex-direction: column;
 
     &:first-of-type {
-      height: 85vh;
+      height: 70vh;
     }
 
     &:before {
