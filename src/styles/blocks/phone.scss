@@ -28,17 +28,23 @@
 
     &_999-999,
     &_0-0 {
-      .phone__item_logo {
-        opacity: var(--boundary-opacity, 0);
-      }
-
       .phone__sec-search {
+        opacity: 0;
+      }
+    }
+
+    &_999-999 {
+      .phone__item_logo {
         opacity: 0;
       }
     }
 
     //buncher logo
     &_0-0 {
+      .phone__item_logo {
+        opacity: 1;
+      }
+
       .phone__sec-search {
         opacity: 0;
       }
@@ -429,7 +435,15 @@
       width: 57.06%;
       height: auto;
       transition: none;
-      will-change: opacity;
+      will-change: opacity, transform, filter;
+    }
+
+    &_logo-entering {
+      animation: phoneLogoLoadIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    &_logo-exiting {
+      animation: phoneLogoLoadOut 0.55s cubic-bezier(0.64, 0, 0.78, 0) both;
     }
 
     &_cont-bottom {
@@ -605,5 +619,41 @@
   @media screen and (max-width: 375px) {
     border-radius: min(14px, 5vmin);
     // border: 1px solid $dark-blue;
+  }
+}
+
+@keyframes phoneLogoLoadIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+    filter: blur(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes phoneLogoLoadOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+    filter: blur(7px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone__item_logo-entering,
+  .phone__item_logo-exiting {
+    animation-duration: 0.01ms;
+    animation-delay: 0s;
   }
 }

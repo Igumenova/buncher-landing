@@ -329,9 +329,89 @@ export const setScrollingAnimations = function () {
         "4-0": 3,
         "4-1": 4,
       };
+      const phoneLogo = phone.querySelector(".phone__item_logo");
+      const mainSection = document.getElementById("section-main");
+      const LOGO_PRE_EXIT_DISTANCE_IN_VIEWPORTS = 0.65;
+      let lastLogoScrollTop = scrollRoot.scrollTop;
+      let logoScrollFrame = null;
+
+      const playLogoAnimation = (direction, animateScaffold = true) => {
+        const shufflePanel = document.querySelector(
+          ".section-main__shuffle-panel",
+        );
+
+        phoneLogo.classList.remove(
+          "phone__item_logo-entering",
+          "phone__item_logo-exiting",
+        );
+        shufflePanel?.classList.remove(
+          "section-main__shuffle-panel_intro-pending",
+          "section-main__shuffle-panel_intro-entering",
+          "section-main__shuffle-panel_intro-exiting",
+        );
+        void phoneLogo.offsetWidth;
+        phoneLogo.classList.add(`phone__item_logo-${direction}`);
+        if (animateScaffold) {
+          shufflePanel?.classList.add(
+            `section-main__shuffle-panel_intro-${direction}`,
+          );
+        }
+      };
+
+      const clearIntroAnimations = () => {
+        phoneLogo.classList.remove(
+          "phone__item_logo-entering",
+          "phone__item_logo-exiting",
+        );
+        document
+          .querySelector(".section-main__shuffle-panel")
+          ?.classList.remove(
+            "section-main__shuffle-panel_intro-pending",
+            "section-main__shuffle-panel_intro-entering",
+            "section-main__shuffle-panel_intro-exiting",
+          );
+      };
 
       const isIntroPhoneState = (state) =>
         state === "999-999" || state === "0-0";
+      const getPhoneState = () => phone.className.match(REGEX)?.[0];
+      const updateLogoForScrollDirection = () => {
+        logoScrollFrame = null;
+        const nextScrollTop = scrollRoot.scrollTop;
+        const direction = Math.sign(nextScrollTop - lastLogoScrollTop);
+        const preExitPoint =
+          mainSection.offsetTop +
+          scrollRoot.clientHeight * LOGO_PRE_EXIT_DISTANCE_IN_VIEWPORTS;
+
+        if (getPhoneState() === "0-0") {
+          if (
+            direction < 0 &&
+            nextScrollTop <= preExitPoint &&
+            !phoneLogo.classList.contains("phone__item_logo-exiting")
+          ) {
+            playLogoAnimation("exiting");
+          } else if (
+            direction > 0 &&
+            phoneLogo.classList.contains("phone__item_logo-exiting")
+          ) {
+            playLogoAnimation("entering");
+          }
+        }
+
+        lastLogoScrollTop = nextScrollTop;
+      };
+
+      scrollRoot.addEventListener(
+        "scroll",
+        () => {
+          if (!logoScrollFrame) {
+            logoScrollFrame = requestAnimationFrame(
+              updateLogoForScrollDirection,
+            );
+          }
+        },
+        { passive: true },
+      );
       const getRequiredTextStep = (state) => {
         if (isIntroPhoneState(state)) {
           return -1;
@@ -340,7 +420,24 @@ export const setScrollingAnimations = function () {
         return PHONE_STATE_TEXT_STEPS[state] ?? Infinity;
       };
       const commitPhoneState = (state) => {
+        const previousState = phone.className.match(REGEX)?.[0];
+
         phone.className = phone.className.replace(REGEX, state);
+
+        if (state === "0-0" && previousState !== "0-0") {
+          playLogoAnimation(
+            "entering",
+            previousState === "999-999",
+          );
+        } else if (
+          state === "999-999" &&
+          previousState === "0-0" &&
+          !phoneLogo.classList.contains("phone__item_logo-exiting")
+        ) {
+          playLogoAnimation("exiting");
+        } else if (!isIntroPhoneState(state)) {
+          clearIntroAnimations();
+        }
       };
       const applyPhoneState = (state) => {
         pendingPhoneState = state;
@@ -368,7 +465,7 @@ export const setScrollingAnimations = function () {
         phoneStageIsUnlocked = false;
 
         if (previousTextStep < 0 && nextTextStep === 0) {
-          phone.className = phone.className.replace(REGEX, "0-0");
+          commitPhoneState("0-0");
         }
       });
       document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
@@ -599,7 +696,10 @@ export const setScrollingAnimations = function () {
     };
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
-    shufflePanel.classList.add("section-main__shuffle-panel");
+    shufflePanel.classList.add(
+      "section-main__shuffle-panel",
+      "section-main__shuffle-panel_intro-pending",
+    );
     lineNumbers.classList.add("section-main__shuffle-line-numbers");
     lineNumberTrack.classList.add("section-main__shuffle-line-number-track");
     divider.classList.add("section-main__shuffle-divider");
@@ -1427,7 +1527,6 @@ export const setScrollingAnimations = function () {
     const shuffleLayer = document.querySelector(
       ".section-main__shuffle-layer",
     );
-    const phoneLogo = document.querySelector(".phone__item_logo");
     const phoneContentBlock = document.getElementById(
       "section-main__content-block",
     );
@@ -1438,7 +1537,6 @@ export const setScrollingAnimations = function () {
     let maxPhoneOffset = 6;
     let lastOpacity = null;
     let lastPhoneOffset = null;
-    let lastEntryProgress = null;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const refreshMetrics = () => {
@@ -1474,19 +1572,7 @@ export const setScrollingAnimations = function () {
 
         counterBlock.style.setProperty("--boundary-opacity", opacityValue);
         shuffleLayer.style.setProperty("--boundary-opacity", opacityValue);
-        phoneLogo.style.setProperty("--boundary-opacity", opacityValue);
         lastOpacity = opacity;
-      }
-
-      if (
-        lastEntryProgress === null ||
-        Math.abs(entryProgress - lastEntryProgress) > 0.0001
-      ) {
-        shuffleLayer.style.setProperty(
-          "--intro-reveal-progress",
-          entryProgress.toFixed(4),
-        );
-        lastEntryProgress = entryProgress;
       }
 
       if (
