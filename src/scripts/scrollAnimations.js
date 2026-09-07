@@ -17,7 +17,6 @@ export const setScrollingAnimations = function () {
   const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
   const PHONE_REVERSE_STEP_EVENT = "buncher:phone-reverse-step";
   const PHONE_REVERSE_CANCEL_EVENT = "buncher:phone-reverse-cancel";
-  const SCROLL_DEBUG_UPDATE_EVENT = "buncher:scroll-debug-update";
   const STAGE_CHANGE_POINT = 0.72;
   const PHONE_STATE_TEXT_STEPS = {
     "1-0": 0,
@@ -1512,10 +1511,6 @@ export const setScrollingAnimations = function () {
     scrollRoot.dataset.reverseGestureCount = "0";
     scrollRoot.dataset.reverseMode = "—";
 
-    const requestDebugUpdate = () => {
-      document.dispatchEvent(new Event(SCROLL_DEBUG_UPDATE_EVENT));
-    };
-
     const getWheelDeltaInPixels = (event) => {
       if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
         return event.deltaY * 16;
@@ -1539,7 +1534,6 @@ export const setScrollingAnimations = function () {
         reverseGestureIsActive = false;
         reverseGestureAllowsNativeScroll = false;
         scrollRoot.dataset.reverseGesture = "idle";
-        requestDebugUpdate();
       }, releaseDelay);
     };
     const getPhoneTimeline = () => {
@@ -1729,7 +1723,6 @@ export const setScrollingAnimations = function () {
           scrollRoot.dataset.reverseFrom = "—";
           scrollRoot.dataset.reverseMode = "—";
           document.dispatchEvent(new Event(PHONE_REVERSE_CANCEL_EVENT));
-          requestDebugUpdate();
           return;
         }
 
@@ -1759,7 +1752,6 @@ export const setScrollingAnimations = function () {
           if (footerReturnIsComplete) {
             reverseGestureAllowsNativeScroll = false;
             scrollRoot.dataset.reverseMode = "фаза 5 показана";
-            requestDebugUpdate();
           }
 
           if (!reverseGestureAllowsNativeScroll) {
@@ -1801,7 +1793,6 @@ export const setScrollingAnimations = function () {
             reverseGestureCount,
           );
           scheduleReverseGestureEnd();
-          requestDebugUpdate();
           return;
         }
 
@@ -1815,84 +1806,6 @@ export const setScrollingAnimations = function () {
       },
       { passive: false },
     );
-  };
-  const createScrollDebugOverlay = function () {
-    const PHONE_STATE_ORDER = Object.keys(PHONE_STATE_TEXT_STEPS);
-    const debugOverlay = document.createElement("div");
-    const phone = document.getElementById("phone");
-    const numberCont = document.getElementById("changing-number");
-    let debugFrameId = null;
-
-    debugOverlay.dataset.scrollDebug = "true";
-    Object.assign(debugOverlay.style, {
-      position: "fixed",
-      top: "12px",
-      left: "12px",
-      zIndex: "10000",
-      minWidth: "210px",
-      padding: "10px 12px",
-      border: "1px solid rgba(255, 255, 255, 0.3)",
-      borderRadius: "8px",
-      background: "rgba(12, 16, 20, 0.88)",
-      color: "#ffffff",
-      font: "12px/1.45 monospace",
-      whiteSpace: "pre",
-      pointerEvents: "none",
-      boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
-    });
-
-    const renderDebugOverlay = () => {
-      debugFrameId = null;
-      const phoneState = phone.className.match(/\d+-\d+$/)?.[0] ?? "—";
-      const textStep = PHONE_STATE_TEXT_STEPS[phoneState];
-      const phaseStates = Number.isFinite(textStep)
-        ? PHONE_STATE_ORDER.filter(
-            (state) => PHONE_STATE_TEXT_STEPS[state] === textStep,
-          )
-        : [];
-      const internalStep = phaseStates.indexOf(phoneState);
-      const counterTransition =
-        numberCont.className.match(/_\d+-\d+$/)?.[0].slice(1) ?? "—";
-      const mainPhase = counterIsActive
-        ? currentDigit
-        : phoneState === "0-0"
-          ? 0
-          : "—";
-
-      debugOverlay.textContent = [
-        "SCROLL DEBUG",
-        `Основная фаза: ${mainPhase}`,
-        `Фаза телефона: ${Number.isFinite(textStep) ? textStep + 1 : phoneState === "0-0" ? 0 : "—"}`,
-        `Состояние: ${phoneState}`,
-        `Экран внутри: ${internalStep >= 0 ? `${internalStep + 1}/${phaseStates.length}` : "—"}`,
-        `Счётчик: ${counterTransition}`,
-        `Жест вверх: ${scrollRoot.dataset.reverseGesture ?? "idle"}`,
-        `Режим: ${scrollRoot.dataset.reverseMode ?? "—"}`,
-        `Номер жеста: ${scrollRoot.dataset.reverseGestureCount ?? "0"}`,
-        `Переход: ${scrollRoot.dataset.reverseFrom ?? "—"} → ${scrollRoot.dataset.reverseTarget ?? "—"}`,
-        `scrollTop: ${Math.round(scrollRoot.scrollTop)}`,
-      ].join("\n");
-    };
-    const requestDebugRender = () => {
-      if (!debugFrameId) {
-        debugFrameId = requestAnimationFrame(renderDebugOverlay);
-      }
-    };
-
-    document.body.appendChild(debugOverlay);
-    scrollRoot.addEventListener("scroll", requestDebugRender, {
-      passive: true,
-    });
-    document.addEventListener(SCROLL_DEBUG_UPDATE_EVENT, requestDebugRender);
-    new MutationObserver(requestDebugRender).observe(phone, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    new MutationObserver(requestDebugRender).observe(numberCont, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    requestDebugRender();
   };
   const createMainIntersectionObserver = function () {
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
@@ -2274,6 +2187,5 @@ export const setScrollingAnimations = function () {
   createCounterBoundaryFade();
   createMainIntersectionObserver();
   createReverseWheelAcceleration();
-  createScrollDebugOverlay();
   createEndIntersectionObserver();
 };
