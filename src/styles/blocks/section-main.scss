@@ -111,7 +111,7 @@
         flex: 2.2 1;
 
         &:first-of-type {
-          flex-grow: 0.6;
+          flex-grow: 0.4;
         }
       }
     }
@@ -124,7 +124,7 @@
     flex-direction: column;
 
     &:first-of-type {
-      height: 70vh;
+      height: 50vh;
     }
 
     &:before {

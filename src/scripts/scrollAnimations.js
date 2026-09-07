@@ -2065,7 +2065,7 @@ export const setScrollingAnimations = function () {
         const halfGap = gap_between_numbers * 0.5;
         const rect = contentContainer.getBoundingClientRect();
         const visibleSize = measure100vh.clientHeight - rect.height;
-        const introStageScrollMultiplier = 0.6;
+        const introStageScrollMultiplier = 0.4;
         const stageScrollMultiplier = 4.4;
         const textContainerSize =
           visibleSize *
