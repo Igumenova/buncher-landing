@@ -12,9 +12,26 @@ export const setScrollingAnimations = function () {
   const COUNTER_RATIO = 0.65;
   const PHASE_TRANSITION_DURATION = 650;
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
+  const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
   const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
+  const PHONE_REVERSE_STEP_EVENT = "buncher:phone-reverse-step";
+  const PHONE_REVERSE_CANCEL_EVENT = "buncher:phone-reverse-cancel";
+  const SCROLL_DEBUG_UPDATE_EVENT = "buncher:scroll-debug-update";
   const STAGE_CHANGE_POINT = 0.72;
+  const PHONE_STATE_TEXT_STEPS = {
+    "1-0": 0,
+    "1-1": 0,
+    "1-2": 1,
+    "2-0": 1,
+    "2-1": 2,
+    "3-0": 2,
+    "3-1": 2,
+    "3-2": 3,
+    "3-3": 3,
+    "4-0": 3,
+    "4-1": 4,
+  };
 
   const measure100vh = document.querySelector(".section-footer");
   const scrollRoot = document.getElementById("custom-scrollbar");
@@ -309,6 +326,7 @@ export const setScrollingAnimations = function () {
       let expectedTextStep = -1;
       let unlockedTextStep = -1;
       let phoneStageIsUnlocked = false;
+      let reversePhoneState = null;
       const PHONE_STAGE_FIRST_STATES = [
         "1-0",
         "1-2",
@@ -316,19 +334,6 @@ export const setScrollingAnimations = function () {
         "3-2",
         "4-1",
       ];
-      const PHONE_STATE_TEXT_STEPS = {
-        "1-0": 0,
-        "1-1": 0,
-        "1-2": 1,
-        "2-0": 1,
-        "2-1": 2,
-        "3-0": 2,
-        "3-1": 2,
-        "3-2": 3,
-        "3-3": 3,
-        "4-0": 3,
-        "4-1": 4,
-      };
       const phoneLogo = phone.querySelector(".phone__item_logo");
       const mainSection = document.getElementById("section-main");
       const LOGO_PRE_EXIT_DISTANCE_IN_VIEWPORTS = 0.65;
@@ -440,6 +445,10 @@ export const setScrollingAnimations = function () {
         }
       };
       const applyPhoneState = (state) => {
+        if (reversePhoneState && state !== reversePhoneState) {
+          return;
+        }
+
         pendingPhoneState = state;
 
         if (
@@ -452,6 +461,15 @@ export const setScrollingAnimations = function () {
 
         commitPhoneState(state);
       };
+
+      document.addEventListener(PHONE_REVERSE_STEP_EVENT, (event) => {
+        reversePhoneState = event.detail.state;
+        pendingPhoneState = event.detail.state;
+        commitPhoneState(event.detail.state);
+      });
+      document.addEventListener(PHONE_REVERSE_CANCEL_EVENT, () => {
+        reversePhoneState = null;
+      });
 
       document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
         const nextTextStep = event.detail.stepIndex;
@@ -492,6 +510,14 @@ export const setScrollingAnimations = function () {
 
         unlockedTextStep = expectedTextStep;
         phoneStageIsUnlocked = true;
+
+        if (reversePhoneState) {
+          if (getRequiredTextStep(reversePhoneState) === expectedTextStep) {
+            commitPhoneState(reversePhoneState);
+          }
+          return;
+        }
+
         commitPhoneState(
           PHONE_STAGE_FIRST_STATES[expectedTextStep] ?? pendingPhoneState,
         );
@@ -568,6 +594,7 @@ export const setScrollingAnimations = function () {
     let typingIsLocked = false;
     let typingDirection = 1;
     let typingOriginScrollTop = null;
+    let reverseVisibleLetterCount = null;
     let lastTextScrollTop = scrollRoot.scrollTop;
     let textScrollDirection = 1;
 
@@ -643,11 +670,12 @@ export const setScrollingAnimations = function () {
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
       const typingProgress = linearTypingProgress;
-      const visibleLetterCount = typingIsLocked
-        ? typingDirection < 0
-          ? activeLetters.length
-          : 0
-        : Math.floor(activeLetters.length * typingProgress);
+      const visibleLetterCount =
+        typingDirection < 0
+          ? (reverseVisibleLetterCount ?? activeLetters.length)
+          : typingIsLocked
+            ? 0
+            : Math.floor(activeLetters.length * typingProgress);
 
       if (visibleLetterCount !== lastVisibleLetterCount) {
         activeLetters.forEach((letter, index) => {
@@ -736,6 +764,16 @@ export const setScrollingAnimations = function () {
         if (nextScrollTop !== lastTextScrollTop) {
           textScrollDirection = Math.sign(nextScrollTop - lastTextScrollTop);
           lastTextScrollTop = nextScrollTop;
+          if (textScrollDirection < 0 && !typingIsLocked) {
+            if (typingDirection >= 0) {
+              reverseVisibleLetterCount = Math.max(
+                lastVisibleLetterCount,
+                0,
+              );
+            }
+            typingDirection = -1;
+            typingOriginScrollTop = null;
+          }
         }
         requestTypingProgressUpdate();
       },
@@ -1235,6 +1273,8 @@ export const setScrollingAnimations = function () {
           ".section-main__shuffle-line .section-main__shuffle-letter",
         ),
       );
+      reverseVisibleLetterCount =
+        typingDirection < 0 ? activeLetters.length : null;
       lastVisibleLetterCount = -1;
       typingStartedStep = -1;
       updateTypingProgress();
@@ -1314,6 +1354,10 @@ export const setScrollingAnimations = function () {
         typingDirection =
           stepDistance === 0 ? textScrollDirection : Math.sign(stepDistance);
         typingOriginScrollTop = null;
+        shufflePanel.style.setProperty(
+          "--shuffle-phase-duration",
+          `${TEXT_EXIT_DURATION}ms`,
+        );
 
         outgoingPhrase.classList.remove(
           "section-main__shuffle-phrase_exit-up",
@@ -1350,6 +1394,13 @@ export const setScrollingAnimations = function () {
         typingIsLocked = false;
         typingDirection = textScrollDirection || 1;
         typingOriginScrollTop = null;
+      }
+
+      if (!outgoingPhrase) {
+        shufflePanel.style.setProperty(
+          "--shuffle-phase-duration",
+          `${TEXT_EXIT_DURATION}ms`,
+        );
       }
 
       updatePanelRowCount(textSteps[nextStep]);
@@ -1389,6 +1440,10 @@ export const setScrollingAnimations = function () {
       typingOriginScrollTop = null;
       codeArea.classList.remove("section-main__shuffle-code_transitioning");
       clearTimeout(hideTimer);
+      shufflePanel.style.setProperty(
+        "--shuffle-phase-duration",
+        `${TEXT_EXIT_DURATION}ms`,
+      );
       shuffleText.classList.add("section-main__shuffle-text_phase-exit");
       shuffleText.classList.remove("section-main__shuffle-text_visible");
       hideTimer = setTimeout(() => {
@@ -1420,6 +1475,390 @@ export const setScrollingAnimations = function () {
     );
     document.addEventListener(LANGUAGE_CHANGE_EVENT, updateTextLanguage);
     updatePanelRowCount(textSteps[0]);
+  };
+  const createReverseWheelAcceleration = function () {
+    const PHONE_STATE_REGEX = /\d+-\d+$/;
+    const phone = document.getElementById("phone");
+    const counterBlock = document.getElementById("counter");
+    const REVERSE_GESTURE_END_DELAY = 900;
+    const REVERSE_GESTURE_MIN_DURATION = 1200;
+    const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
+    let reverseGestureIsActive = false;
+    let reverseGestureAllowsNativeScroll = false;
+    let reverseGestureEndTimer = null;
+    let reverseGestureStartedAt = 0;
+    let reverseGestureCount = 0;
+    let forwardIntentDistance = 0;
+    scrollRoot.dataset.reverseGesture = "idle";
+    scrollRoot.dataset.reverseTarget = "—";
+    scrollRoot.dataset.reverseFrom = "—";
+    scrollRoot.dataset.reverseGestureCount = "0";
+    scrollRoot.dataset.reverseMode = "—";
+
+    const requestDebugUpdate = () => {
+      document.dispatchEvent(new Event(SCROLL_DEBUG_UPDATE_EVENT));
+    };
+
+    const getWheelDeltaInPixels = (event) => {
+      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+        return event.deltaY * 16;
+      }
+
+      if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+        return event.deltaY * scrollRoot.clientHeight;
+      }
+
+      return event.deltaY;
+    };
+    const scheduleReverseGestureEnd = () => {
+      clearTimeout(reverseGestureEndTimer);
+      const gestureElapsed = performance.now() - reverseGestureStartedAt;
+      const releaseDelay = Math.max(
+        REVERSE_GESTURE_END_DELAY,
+        REVERSE_GESTURE_MIN_DURATION - gestureElapsed,
+      );
+
+      reverseGestureEndTimer = setTimeout(() => {
+        reverseGestureIsActive = false;
+        reverseGestureAllowsNativeScroll = false;
+        scrollRoot.dataset.reverseGesture = "idle";
+        requestDebugUpdate();
+      }, releaseDelay);
+    };
+    const getPhoneTimeline = () => {
+      const rootRect = scrollRoot.getBoundingClientRect();
+      return Array.from(
+        document.querySelectorAll(".anchor__item[data-id]"),
+      ).map((anchor) => {
+        const anchorRect = anchor.getBoundingClientRect();
+
+        return {
+          anchor,
+          state: anchor.dataset.id,
+          activationScrollTop:
+            scrollRoot.scrollTop +
+            anchorRect.top -
+            rootRect.top -
+            scrollRoot.clientHeight +
+            anchorRect.height / 2,
+        };
+      });
+    };
+    const getLogicalTimelineIndex = (timeline) => {
+      let logicalIndex = -1;
+
+      timeline.forEach((item, index) => {
+        if (item.activationScrollTop <= scrollRoot.scrollTop + 1) {
+          logicalIndex = index;
+        }
+      });
+
+      return logicalIndex;
+    };
+    const getPhaseBoundaryScrollTop = (textStep) => {
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const phaseBoundaryElement =
+        textStep === 0
+          ? document.querySelector(".anchor__item_1-0")
+          : blocks[textStep];
+
+      if (!phaseBoundaryElement) {
+        return null;
+      }
+
+      const phaseBoundaryRect = phaseBoundaryElement.getBoundingClientRect();
+      const phaseBoundaryRatio = textStep === 0 ? 0.5 : STAGE_CHANGE_POINT;
+
+      return (
+        scrollRoot.scrollTop +
+        phaseBoundaryRect.top -
+        rootRect.top +
+        phaseBoundaryRect.height * phaseBoundaryRatio -
+        scrollRoot.clientHeight / 2
+      );
+    };
+    const commitReverseNavigation = (fromState, targetState, targetScrollTop) => {
+      if (Number.isFinite(targetScrollTop)) {
+        scrollRoot.scrollTop = Math.max(targetScrollTop, 0);
+      }
+      scrollRoot.dataset.reverseFrom = fromState;
+      scrollRoot.dataset.reverseTarget = targetState;
+      document.dispatchEvent(
+        new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
+          detail: { state: targetState },
+        }),
+      );
+    };
+    const restoreLastStageFromFooter = () => {
+      const timeline = getPhoneTimeline();
+      const logicalIndex = getLogicalTimelineIndex(timeline);
+      const lastIndex = timeline.length - 1;
+
+      if (logicalIndex !== lastIndex || lastIndex < 0) {
+        return false;
+      }
+
+      const lastItem = timeline[lastIndex];
+      const phaseBoundary = getPhaseBoundaryScrollTop(
+        PHONE_STATE_TEXT_STEPS[lastItem.state],
+      );
+      const targetScrollTop = Math.max(
+        lastItem.activationScrollTop + 2,
+        (phaseBoundary ?? lastItem.activationScrollTop) + 2,
+      );
+
+      if (targetScrollTop >= scrollRoot.scrollTop - 1) {
+        return false;
+      }
+
+      commitReverseNavigation(
+        phone.className.match(PHONE_STATE_REGEX)?.[0] ?? "—",
+        lastItem.state,
+        null,
+      );
+      return true;
+    };
+    const moveToPreviousPhoneState = () => {
+      const timeline = getPhoneTimeline();
+      const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
+      const pinnedState = scrollRoot.dataset.reverseTarget;
+      const pinnedIndex = timeline.findIndex(
+        (item) => item.state === pinnedState,
+      );
+      const logicalIndex = getLogicalTimelineIndex(timeline);
+      const currentIndex = pinnedIndex >= 0 ? pinnedIndex : logicalIndex;
+
+      if (currentIndex < 0) {
+        return false;
+      }
+
+      const currentItem = timeline[currentIndex];
+      const previousItem = timeline[currentIndex - 1];
+      const currentState = currentItem.state;
+      const previousState = previousItem?.state ?? "999-999";
+      const currentTextStep = PHONE_STATE_TEXT_STEPS[currentState] ?? -1;
+      const previousTextStep = PHONE_STATE_TEXT_STEPS[previousState] ?? -1;
+      let previousStateScrollTop = currentItem.activationScrollTop - 2;
+
+      if (previousTextStep < currentTextStep) {
+        const phaseBoundaryScrollTop =
+          getPhaseBoundaryScrollTop(currentTextStep);
+
+        if (phaseBoundaryScrollTop !== null) {
+          previousStateScrollTop = Math.min(
+            previousStateScrollTop,
+            phaseBoundaryScrollTop - 2,
+          );
+        }
+      }
+
+      if (previousStateScrollTop >= scrollRoot.scrollTop - 1) {
+        previousStateScrollTop = previousItem
+          ? previousItem.activationScrollTop + scrollRoot.clientHeight / 2
+          : scrollRoot.scrollTop - scrollRoot.clientHeight;
+      }
+
+      commitReverseNavigation(
+        renderedState ?? currentState,
+        previousState,
+        previousStateScrollTop,
+      );
+      return true;
+    };
+
+    scrollRoot.addEventListener(
+      "wheel",
+      (event) => {
+        if (event.deltaY > 0) {
+          forwardIntentDistance += Math.max(
+            getWheelDeltaInPixels(event),
+            0,
+          );
+
+          if (
+            reverseGestureIsActive &&
+            forwardIntentDistance < FORWARD_DIRECTION_CONFIRM_DISTANCE
+          ) {
+            event.preventDefault();
+            if (reverseGestureAllowsNativeScroll) {
+              scheduleReverseGestureEnd();
+            }
+            return;
+          }
+
+          clearTimeout(reverseGestureEndTimer);
+          reverseGestureIsActive = false;
+          reverseGestureAllowsNativeScroll = false;
+          forwardIntentDistance = 0;
+          scrollRoot.dataset.reverseGesture = "idle";
+          scrollRoot.dataset.reverseTarget = "—";
+          scrollRoot.dataset.reverseFrom = "—";
+          scrollRoot.dataset.reverseMode = "—";
+          document.dispatchEvent(new Event(PHONE_REVERSE_CANCEL_EVENT));
+          requestDebugUpdate();
+          return;
+        }
+
+        if (event.deltaY === 0) {
+          return;
+        }
+
+        forwardIntentDistance = 0;
+
+        if (
+          event.ctrlKey ||
+          event.target.closest(".modal-window_shown")
+        ) {
+          return;
+        }
+
+        if (reverseGestureIsActive) {
+          const activeBoundaryOpacity = Number.parseFloat(
+            counterBlock.style.getPropertyValue("--boundary-opacity"),
+          );
+          const footerReturnIsComplete =
+            reverseGestureAllowsNativeScroll &&
+            counterIsActive &&
+            Number.isFinite(activeBoundaryOpacity) &&
+            activeBoundaryOpacity >= 0.999;
+
+          if (footerReturnIsComplete) {
+            reverseGestureAllowsNativeScroll = false;
+            scrollRoot.dataset.reverseMode = "фаза 5 показана";
+            requestDebugUpdate();
+          }
+
+          if (!reverseGestureAllowsNativeScroll) {
+            event.preventDefault();
+          }
+          if (reverseGestureAllowsNativeScroll) {
+            scheduleReverseGestureEnd();
+          }
+          return;
+        }
+
+        const boundaryOpacity = Number.parseFloat(
+          counterBlock.style.getPropertyValue("--boundary-opacity"),
+        );
+        const lastPhoneState = Object.keys(PHONE_STATE_TEXT_STEPS).at(-1);
+        const lastStageIsPinned =
+          scrollRoot.dataset.reverseTarget === lastPhoneState;
+        const isFooterReturn =
+          !counterIsActive ||
+          (lastStageIsPinned &&
+            (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
+        const navigationWasHandled = isFooterReturn
+          ? restoreLastStageFromFooter()
+          : moveToPreviousPhoneState();
+
+        if (navigationWasHandled) {
+          if (!isFooterReturn) {
+            event.preventDefault();
+          }
+          reverseGestureIsActive = true;
+          reverseGestureAllowsNativeScroll = isFooterReturn;
+          reverseGestureStartedAt = performance.now();
+          reverseGestureCount++;
+          scrollRoot.dataset.reverseGesture = "active";
+          scrollRoot.dataset.reverseMode = isFooterReturn
+            ? "плавный возврат"
+            : "один шаг";
+          scrollRoot.dataset.reverseGestureCount = String(
+            reverseGestureCount,
+          );
+          scheduleReverseGestureEnd();
+          requestDebugUpdate();
+          return;
+        }
+
+        if (!counterIsActive) {
+          return;
+        }
+
+        scrollRoot.scrollTop +=
+          getWheelDeltaInPixels(event) *
+          (REVERSE_WHEEL_SCROLL_MULTIPLIER - 1);
+      },
+      { passive: false },
+    );
+  };
+  const createScrollDebugOverlay = function () {
+    const PHONE_STATE_ORDER = Object.keys(PHONE_STATE_TEXT_STEPS);
+    const debugOverlay = document.createElement("div");
+    const phone = document.getElementById("phone");
+    const numberCont = document.getElementById("changing-number");
+    let debugFrameId = null;
+
+    debugOverlay.dataset.scrollDebug = "true";
+    Object.assign(debugOverlay.style, {
+      position: "fixed",
+      top: "12px",
+      left: "12px",
+      zIndex: "10000",
+      minWidth: "210px",
+      padding: "10px 12px",
+      border: "1px solid rgba(255, 255, 255, 0.3)",
+      borderRadius: "8px",
+      background: "rgba(12, 16, 20, 0.88)",
+      color: "#ffffff",
+      font: "12px/1.45 monospace",
+      whiteSpace: "pre",
+      pointerEvents: "none",
+      boxShadow: "0 6px 24px rgba(0, 0, 0, 0.25)",
+    });
+
+    const renderDebugOverlay = () => {
+      debugFrameId = null;
+      const phoneState = phone.className.match(/\d+-\d+$/)?.[0] ?? "—";
+      const textStep = PHONE_STATE_TEXT_STEPS[phoneState];
+      const phaseStates = Number.isFinite(textStep)
+        ? PHONE_STATE_ORDER.filter(
+            (state) => PHONE_STATE_TEXT_STEPS[state] === textStep,
+          )
+        : [];
+      const internalStep = phaseStates.indexOf(phoneState);
+      const counterTransition =
+        numberCont.className.match(/_\d+-\d+$/)?.[0].slice(1) ?? "—";
+      const mainPhase = counterIsActive
+        ? currentDigit
+        : phoneState === "0-0"
+          ? 0
+          : "—";
+
+      debugOverlay.textContent = [
+        "SCROLL DEBUG",
+        `Основная фаза: ${mainPhase}`,
+        `Фаза телефона: ${Number.isFinite(textStep) ? textStep + 1 : phoneState === "0-0" ? 0 : "—"}`,
+        `Состояние: ${phoneState}`,
+        `Экран внутри: ${internalStep >= 0 ? `${internalStep + 1}/${phaseStates.length}` : "—"}`,
+        `Счётчик: ${counterTransition}`,
+        `Жест вверх: ${scrollRoot.dataset.reverseGesture ?? "idle"}`,
+        `Режим: ${scrollRoot.dataset.reverseMode ?? "—"}`,
+        `Номер жеста: ${scrollRoot.dataset.reverseGestureCount ?? "0"}`,
+        `Переход: ${scrollRoot.dataset.reverseFrom ?? "—"} → ${scrollRoot.dataset.reverseTarget ?? "—"}`,
+        `scrollTop: ${Math.round(scrollRoot.scrollTop)}`,
+      ].join("\n");
+    };
+    const requestDebugRender = () => {
+      if (!debugFrameId) {
+        debugFrameId = requestAnimationFrame(renderDebugOverlay);
+      }
+    };
+
+    document.body.appendChild(debugOverlay);
+    scrollRoot.addEventListener("scroll", requestDebugRender, {
+      passive: true,
+    });
+    document.addEventListener(SCROLL_DEBUG_UPDATE_EVENT, requestDebugRender);
+    new MutationObserver(requestDebugRender).observe(phone, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    new MutationObserver(requestDebugRender).observe(numberCont, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    requestDebugRender();
   };
   const createMainIntersectionObserver = function () {
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
@@ -1800,5 +2239,7 @@ export const setScrollingAnimations = function () {
   // createMainCornerAnimation();
   createCounterBoundaryFade();
   createMainIntersectionObserver();
+  createReverseWheelAcceleration();
+  createScrollDebugOverlay();
   createEndIntersectionObserver();
 };
