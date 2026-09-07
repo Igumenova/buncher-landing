@@ -74,10 +74,10 @@ export const setScrollingAnimations = function () {
       );
     }, PHASE_TRANSITION_DURATION);
   };
-  const dispatchTextStepChange = (stepIndex) => {
+  const dispatchTextStepChange = (stepIndex, transitionOptions = {}) => {
     document.dispatchEvent(
       new CustomEvent(TEXT_STEP_CHANGE_EVENT, {
-        detail: { stepIndex },
+        detail: { stepIndex, ...transitionOptions },
       }),
     );
   };
@@ -221,8 +221,7 @@ export const setScrollingAnimations = function () {
     };
 
     numberCont.addEventListener("animationend", settleNumberTransition);
-    document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
-      const nextDigit = event.detail.stepIndex + 1;
+    const startDigitTransition = (nextDigit) => {
       const transition = numberCont.className.match(REGEX);
 
       if (!counterIsActive || nextDigit !== currentDigit || !transition) {
@@ -240,6 +239,20 @@ export const setScrollingAnimations = function () {
         REGEX,
         `_${activeTarget}-${nextDigit}`,
       );
+    };
+
+    document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
+      startDigitTransition(event.detail.stepIndex + 1);
+    });
+    document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
+      if (!event.detail.synchronizeDigit) {
+        return;
+      }
+
+      const nextDigit = event.detail.stepIndex + 1;
+      requestAnimationFrame(() => {
+        startDigitTransition(nextDigit);
+      });
     });
 
     const updateCurrentDigit = () => {
@@ -1459,7 +1472,11 @@ export const setScrollingAnimations = function () {
       }
     };
     const updateActiveStepFromNumber = (event) => {
-      const { stepIndex } = event.detail;
+      const { stepIndex, direction } = event.detail;
+
+      if (direction) {
+        textScrollDirection = direction;
+      }
 
       if (stepIndex < 0) {
         hideText();
@@ -1577,10 +1594,24 @@ export const setScrollingAnimations = function () {
         scrollRoot.clientHeight / 2
       );
     };
-    const commitReverseNavigation = (fromState, targetState, targetScrollTop) => {
+    const commitReverseNavigation = (
+      fromState,
+      targetState,
+      targetScrollTop,
+      synchronizedTextStep = null,
+    ) => {
       if (Number.isFinite(targetScrollTop)) {
         scrollRoot.scrollTop = Math.max(targetScrollTop, 0);
       }
+
+      if (Number.isFinite(synchronizedTextStep)) {
+        currentDigit = synchronizedTextStep + 1;
+        dispatchTextStepChange(synchronizedTextStep, {
+          direction: -1,
+          synchronizeDigit: true,
+        });
+      }
+
       scrollRoot.dataset.reverseFrom = fromState;
       scrollRoot.dataset.reverseTarget = targetState;
       document.dispatchEvent(
@@ -1662,6 +1693,9 @@ export const setScrollingAnimations = function () {
         renderedState ?? currentState,
         previousState,
         previousStateScrollTop,
+        previousTextStep < currentTextStep && previousTextStep >= 0
+          ? previousTextStep
+          : null,
       );
       return true;
     };
