@@ -79,28 +79,20 @@
       }
     }
 
-    @for $i from 1 through 4 {
-      &_#{$i}-#{$i + 1} {
-        .counter-block__number:nth-child(#{$i}) {
-          animation: lcdDigitOut $animation-speed
-            cubic-bezier(0.45, 0, 0.3, 1) forwards;
-        }
+    @for $from from 1 through 5 {
+      @for $to from 1 through 5 {
+        @if $from != $to {
+          &_#{$from}-#{$to} {
+            .counter-block__number:nth-child(#{$from}) {
+              animation: lcdDigitOut $animation-speed
+                cubic-bezier(0.45, 0, 0.3, 1) forwards;
+            }
 
-        .counter-block__number:nth-child(#{$i + 1}) {
-          animation: lcdDigitIn $animation-speed
-            cubic-bezier(0.35, 0, 0.2, 1) forwards;
-        }
-      }
-
-      &_#{$i + 1}-#{$i} {
-        .counter-block__number:nth-child(#{$i + 1}) {
-          animation: lcdDigitOut $animation-speed
-            cubic-bezier(0.45, 0, 0.3, 1) forwards;
-        }
-
-        .counter-block__number:nth-child(#{$i}) {
-          animation: lcdDigitIn $animation-speed
-            cubic-bezier(0.35, 0, 0.2, 1) forwards;
+            .counter-block__number:nth-child(#{$to}) {
+              animation: lcdDigitIn $animation-speed
+                cubic-bezier(0.35, 0, 0.2, 1) forwards;
+            }
+          }
         }
       }
     }

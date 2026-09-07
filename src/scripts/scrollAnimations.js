@@ -530,8 +530,13 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        const pendingStateMatchesStep =
+          getRequiredTextStep(pendingPhoneState) === expectedTextStep;
+
         commitPhoneState(
-          PHONE_STAGE_FIRST_STATES[expectedTextStep] ?? pendingPhoneState,
+          pendingStateMatchesStep
+            ? pendingPhoneState
+            : (PHONE_STAGE_FIRST_STATES[expectedTextStep] ?? pendingPhoneState),
         );
       });
 
@@ -660,13 +665,9 @@ export const setScrollingAnimations = function () {
 
       if (
         typingDirection > 0 &&
-        typingOriginScrollTop === null &&
-        !typingIsLocked
+        typingOriginScrollTop === null
       ) {
-        typingOriginScrollTop = Math.max(
-          range.start,
-          scrollRoot.scrollTop,
-        );
+        typingOriginScrollTop = range.start;
       }
 
       const phaseProgress = typingDirection > 0
@@ -685,9 +686,7 @@ export const setScrollingAnimations = function () {
       const visibleLetterCount =
         typingDirection < 0
           ? (reverseVisibleLetterCount ?? activeLetters.length)
-          : typingIsLocked
-            ? 0
-            : Math.floor(activeLetters.length * typingProgress);
+          : Math.floor(activeLetters.length * typingProgress);
 
       if (visibleLetterCount !== lastVisibleLetterCount) {
         activeLetters.forEach((letter, index) => {
@@ -1387,8 +1386,9 @@ export const setScrollingAnimations = function () {
         phraseCleanupTimer = setTimeout(() => {
           outgoingPhrase.remove();
           typingIsLocked = false;
-          typingOriginScrollTop =
-            typingDirection > 0 ? scrollRoot.scrollTop : null;
+          if (typingDirection < 0) {
+            typingOriginScrollTop = null;
+          }
           lastVisibleLetterCount = -1;
           updateTypingProgress();
         }, TEXT_EXIT_DURATION);
@@ -1398,7 +1398,10 @@ export const setScrollingAnimations = function () {
         typingOriginScrollTop = null;
         phraseCleanupTimer = setTimeout(() => {
           typingIsLocked = false;
-          typingOriginScrollTop = scrollRoot.scrollTop;
+          if (typingOriginScrollTop === null) {
+            typingOriginScrollTop =
+              typingRanges[activeStep]?.start ?? scrollRoot.scrollTop;
+          }
           lastVisibleLetterCount = -1;
           updateTypingProgress();
         }, TEXT_EXIT_DURATION);
@@ -1496,8 +1499,8 @@ export const setScrollingAnimations = function () {
     const PHONE_STATE_REGEX = /\d+-\d+$/;
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
-    const REVERSE_GESTURE_END_DELAY = 900;
-    const REVERSE_GESTURE_MIN_DURATION = 1200;
+    const REVERSE_GESTURE_END_DELAY = 650;
+    const REVERSE_GESTURE_MIN_DURATION = 900;
     const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
     let reverseGestureIsActive = false;
     let reverseGestureAllowsNativeScroll = false;
@@ -2071,7 +2074,7 @@ export const setScrollingAnimations = function () {
           visibleSize *
           (introStageScrollMultiplier +
             (NUMBER_OF_BLOCKS - 1) * stageScrollMultiplier +
-            3.6); //+3.6 includes intro, final hold, and opacity tail;
+            4.6); //+4.6 includes intro, final hold, and opacity tail;
         // addStyleWithPrefixes(
         //   arrowEl,
         //   "mask-size",

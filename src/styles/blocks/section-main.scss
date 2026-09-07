@@ -89,7 +89,7 @@
     &:after {
       display: block;
       content: "";
-      height: 300vh;
+      height: 400vh;
     }
 
     &_small {
@@ -103,7 +103,7 @@
 
       &:after {
         height: auto;
-        flex: 3 0;
+        flex: 4 0;
       }
 
       .section-main__text-block {
