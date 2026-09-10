@@ -91,12 +91,23 @@
   &__store-link {
     position: relative;
     display: block;
-    cursor: default;
+    cursor: pointer;
 
-    &:hover .section-cover__store-mark {
-      transform: scale(1.08);
+    // .section-cover__store-mark {
+    //   width: 110%;
+    //   height: 110%;
+
+    //   // визуально это прежние 100%
+    //   transform: scale(0.9091);
+    //   transform-origin: center;
+    // }
+
+    &:hover .section-cover__store-mark-wrap {
+      // конечное визуальное состояние = 1.08
+      transform: scale(0.915254);
+
+      animation: storeMarkScale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
-
     .section-cover__store-clock-ring {
       position: absolute;
       z-index: 3;
@@ -133,28 +144,44 @@
     width: clamp(44px, 4.6875vw, 90px);
     aspect-ratio: 1;
   }
-
-  &__store-mark {
+  &__store-mark-wrap {
     position: absolute;
-    transition: transform $small-transition-time ease-out;
+
+    // Реальный размер соответствует максимальному состоянию 1.18
+    top: calc(var(--mark-top) - var(--mark-height) * 0.09);
+    left: calc(var(--mark-left) - var(--mark-width) * 0.09);
+
+    width: calc(var(--mark-width) * 1.18);
+    height: calc(var(--mark-height) * 1.18);
+
+    // Визуально исходное состояние = 1
+    transform: scale(0.847458);
     transform-origin: center;
 
+    // Плавный возврат после снятия hover
+    transition: transform 0.14s ease-out;
+
     &_google-play {
-      top: 17.7778%;
-      left: 21.1111%;
-      width: 64.4444%;
-      height: 71.1111%;
+      --mark-top: 17.7778%;
+      --mark-left: 21.1111%;
+      --mark-width: 64.4444%;
+      --mark-height: 71.1111%;
     }
 
     &_buncher,
     &_app-store {
-      top: 6.6667%;
-      left: 6.6667%;
-      width: 86.6667%;
-      height: 86.6667%;
+      --mark-top: 17.6667%;
+      --mark-left: 10%;
+      --mark-width: 66.6667%;
+      --mark-height: 66.6667%;
     }
   }
 
+  &__store-mark {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
   &__store-clock {
     position: absolute;
     z-index: 2;
@@ -344,5 +371,18 @@
 @media (prefers-reduced-motion: reduce) {
   .section-cover__store-link:hover .section-cover__store-clock-orbit {
     animation: none;
+  }
+}
+@keyframes storeMarkScale {
+  0% {
+    transform: scale(0.847458);
+  }
+
+  45% {
+    transform: scale(0.99);
+  }
+
+  100% {
+    transform: scale(0.915254);
   }
 }
