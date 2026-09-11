@@ -96,6 +96,19 @@
         }
       }
     }
+
+    // The first phase enters and leaves calmly: no LCD stretch or blur on 01.
+    &_0-1 {
+      .counter-block__number:first-child {
+        animation: firstDigitFadeIn $animation-speed ease-in-out forwards;
+      }
+    }
+
+    &_1-0 {
+      .counter-block__number:first-child {
+        animation: firstDigitFadeOut $animation-speed ease-in-out forwards;
+      }
+    }
   }
 
   &__number {
@@ -185,6 +198,34 @@
       filter: blur(0)
         drop-shadow(0 0 0 rgba(238, 244, 249, 0))
         drop-shadow(0 0 0 rgba(238, 244, 249, 0));
+    }
+  }
+
+  @keyframes firstDigitFadeIn {
+    from {
+      opacity: 0;
+      transform: scaleX(1) translateZ(0);
+      filter: blur(0);
+    }
+
+    to {
+      opacity: 1;
+      transform: scaleX(1) translateZ(0);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes firstDigitFadeOut {
+    from {
+      opacity: 1;
+      transform: scaleX(1) translateZ(0);
+      filter: blur(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: scaleX(1) translateZ(0);
+      filter: blur(0);
     }
   }
 
@@ -297,72 +338,30 @@
 }
 
 @keyframes zeroDigitIn {
-  0% {
+  from {
     opacity: 0;
-    transform: scaleX(0.965) translateZ(0);
-    filter: blur(clamp(0.7px, 0.12vmin, 1.5px))
-      drop-shadow(clamp(-3px, -0.22vmin, -1px) 0 0 rgba(238, 244, 249, 0.12))
-      drop-shadow(clamp(2px, 0.3vmin, 4px) 0 0 rgba(238, 244, 249, 0.14));
+    transform: scaleX(1) translateZ(0);
+    filter: blur(0);
   }
-  30% {
-    opacity: 0.16;
-    transform: scaleX(1.045) translateZ(0);
-  }
-  52% {
-    opacity: 0.6;
-    transform: scaleX(1.025) translateZ(0);
-    filter: blur(clamp(0.5px, 0.09vmin, 1.1px))
-      drop-shadow(clamp(-2px, -0.16vmin, -1px) 0 0 rgba(238, 244, 249, 0.08))
-      drop-shadow(clamp(1px, 0.16vmin, 3px) 0 0 rgba(238, 244, 249, 0.08));
-  }
-  80% {
-    opacity: 0.96;
-    transform: scaleX(0.997) translateZ(0);
-    filter: blur(clamp(0.1px, 0.025vmin, 0.3px))
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0))
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0));
-  }
-  100% {
+
+  to {
     opacity: 1;
     transform: scaleX(1) translateZ(0);
-    filter: blur(0)
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0))
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0));
+    filter: blur(0);
   }
 }
 
 @keyframes zeroDigitOut {
-  0% {
+  from {
     opacity: 1;
     transform: scaleX(1) translateZ(0);
-    filter: blur(0)
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0))
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0));
+    filter: blur(0);
   }
-  22% {
-    opacity: 0.94;
-    transform: scaleX(1.012) translateZ(0);
-  }
-  48% {
-    opacity: 0.54;
-    transform: scaleX(1.055) translateZ(0);
-    filter: blur(clamp(0.7px, 0.12vmin, 1.5px))
-      drop-shadow(clamp(2px, 0.35vmin, 5px) 0 0 rgba(238, 244, 249, 0.18))
-      drop-shadow(clamp(-3px, -0.22vmin, -1px) 0 0 rgba(238, 244, 249, 0.12));
-  }
-  72% {
-    opacity: 0.14;
-    transform: scaleX(1.025) translateZ(0);
-    filter: blur(clamp(0.4px, 0.07vmin, 0.9px))
-      drop-shadow(clamp(1px, 0.18vmin, 3px) 0 0 rgba(238, 244, 249, 0.08))
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0));
-  }
-  100% {
+
+  to {
     opacity: 0;
     transform: scaleX(1) translateZ(0);
-    filter: blur(0)
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0))
-      drop-shadow(0 0 0 rgba(238, 244, 249, 0));
+    filter: blur(0);
   }
 }
 
