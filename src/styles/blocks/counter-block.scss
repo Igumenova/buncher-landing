@@ -1,7 +1,7 @@
 .counter-block {
   $mobile-digit-height: 68%;
   $desktop-offset: 50px;
-  $animation-speed: $phase-transition-duration;
+  $animation-speed: $digit-transition-duration;
 
   position: relative;
   width: 100%;
@@ -74,7 +74,7 @@
       &_#{$i}-0 {
         .counter-block__number:nth-child(#{$i}) {
           animation: lcdDigitOut $animation-speed
-            cubic-bezier(0.45, 0, 0.3, 1) forwards;
+            cubic-bezier(0.35, 0, 0.2, 1) forwards;
         }
       }
     }
@@ -85,7 +85,7 @@
           &_#{$from}-#{$to} {
             .counter-block__number:nth-child(#{$from}) {
               animation: lcdDigitOut $animation-speed
-                cubic-bezier(0.45, 0, 0.3, 1) forwards;
+                cubic-bezier(0.35, 0, 0.2, 1) forwards;
             }
 
             .counter-block__number:nth-child(#{$to}) {
@@ -306,7 +306,7 @@
 
 .section-main__counter-block_zero-entering
   .counter-block__number-zero-stack {
-  animation: zeroDigitIn $phase-transition-duration
+  animation: zeroDigitIn $digit-transition-duration
     cubic-bezier(0.35, 0, 0.2, 1) forwards;
   transform-origin: center center;
   will-change: transform, opacity, filter;
@@ -314,8 +314,8 @@
 
 .section-main__counter-block_zero-exiting
   .counter-block__number-zero-stack {
-  animation: zeroDigitOut $phase-transition-duration
-    cubic-bezier(0.45, 0, 0.3, 1) forwards;
+  animation: zeroDigitOut $digit-transition-duration
+    cubic-bezier(0.35, 0, 0.2, 1) forwards;
   transform-origin: center center;
   will-change: transform, opacity, filter;
 }

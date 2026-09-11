@@ -34,7 +34,8 @@ $std-transition: all $std-transition-time ease-in-out;
 $small-transition: all $small-transition-time ease-in-out;
 $main-entry-duration: 1s;
 $main-entry-easing: ease-in-out;
-$phase-transition-duration: 0.65s;
+$phase-transition-duration: 0.5s;
+$digit-transition-duration: $phase-transition-duration;
 
 @mixin noTextSelection {
   -webkit-touch-callout: none;

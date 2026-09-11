@@ -10,7 +10,8 @@ export let refreshSizes = function () {
 export const setScrollingAnimations = function () {
   const NUMBER_OF_BLOCKS = 5;
   const COUNTER_RATIO = 0.65;
-  const PHASE_TRANSITION_DURATION = 650;
+  const PHASE_TRANSITION_DURATION = 500;
+  const DIGIT_TRANSITION_DURATION = PHASE_TRANSITION_DURATION;
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const INTRO_SEARCH_TRANSITION_DURATION = 500;
   const INTRO_SEARCH_SCROLL_GAP = 500;
@@ -78,7 +79,7 @@ export const setScrollingAnimations = function () {
           ? "section-main__counter-block_zero-visible"
           : "section-main__counter-block_zero-hidden",
       );
-    }, PHASE_TRANSITION_DURATION);
+    }, DIGIT_TRANSITION_DURATION);
   };
   const dispatchTextStepChange = (stepIndex, transitionOptions = {}) => {
     document.dispatchEvent(
@@ -241,30 +242,14 @@ export const setScrollingAnimations = function () {
         return;
       }
 
-      if (activeTarget === 0 && nextDigit === 1) {
-        // The right-hand first digit must be visible in the same frame as
-        // the first typed letter; its fade otherwise reads as a late start.
-        numberCont.className = numberCont.className.replace(REGEX, "_1-1");
-        return;
-      }
-
       numberCont.className = numberCont.className.replace(
         REGEX,
         `_${activeTarget}-${nextDigit}`,
       );
     };
 
-    document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
-      if (event.detail.stepIndex === 0) {
-        animateZeroVisibility(true);
-        numberCont.className = numberCont.className.replace(REGEX, "_1-1");
-        return;
-      }
-
-      startDigitTransition(event.detail.stepIndex + 1);
-    });
     document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
-      if (!event.detail.synchronizeDigit) {
+      if (event.detail.stepIndex < 0) {
         return;
       }
 
