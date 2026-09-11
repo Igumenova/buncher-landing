@@ -40,6 +40,7 @@ export const setScrollingAnimations = function () {
   const blocks = document.querySelectorAll(".trackable");
   let counterIsActive = false;
   let currentDigit = 1;
+  let footerReturnTextPending = false;
   let zeroTransitionTimer = null;
   let zeroIsVisible = false;
   const animateZeroVisibility = (isVisible) => {
@@ -433,7 +434,11 @@ export const setScrollingAnimations = function () {
         expectedTextStep = nextTextStep;
         phoneStageIsUnlocked = false;
 
-        if (previousTextStep >= 0 && nextTextStep < 0) {
+        if (
+          previousTextStep >= 0 &&
+          nextTextStep < 0 &&
+          event.detail.boundary !== "footer"
+        ) {
           commitPhoneState("0-0");
         }
       });
@@ -1462,6 +1467,7 @@ export const setScrollingAnimations = function () {
     const PHONE_STATE_REGEX = /\d+-\d+$/;
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
+    const numberCont = document.getElementById("changing-number");
     const REVERSE_GESTURE_END_DELAY = 650;
     const REVERSE_GESTURE_MIN_DURATION = 900;
     const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
@@ -1602,6 +1608,25 @@ export const setScrollingAnimations = function () {
         return false;
       }
 
+      const finalDigit = PHONE_STATE_TEXT_STEPS[lastItem.state] + 1;
+      currentDigit = finalDigit;
+      zeroIsVisible = true;
+      clearTimeout(zeroTransitionTimer);
+      counterBlock.classList.remove(
+        "section-main__counter-block_zero-entering",
+        "section-main__counter-block_zero-exiting",
+        "section-main__counter-block_zero-scroll-controlled",
+        "section-main__counter-block_zero-visible",
+        "section-main__counter-block_zero-hidden",
+      );
+      counterBlock.classList.add(
+        "section-main__counter-block_zero-visible",
+      );
+      numberCont.className = numberCont.className.replace(
+        /_\d+-\d+$/,
+        `_${finalDigit}-${finalDigit}`,
+      );
+
       commitReverseNavigation(
         phone.className.match(PHONE_STATE_REGEX)?.[0] ?? "—",
         lastItem.state,
@@ -1664,6 +1689,7 @@ export const setScrollingAnimations = function () {
       "wheel",
       (event) => {
         if (event.deltaY > 0) {
+          footerReturnTextPending = false;
           forwardIntentDistance += Math.max(
             getWheelDeltaInPixels(event),
             0,
@@ -1705,21 +1731,31 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        const restoredBoundaryOpacity = Number.parseFloat(
+          counterBlock.style.getPropertyValue("--boundary-opacity"),
+        );
+        const footerReturnIsReady =
+          footerReturnTextPending &&
+          counterIsActive &&
+          Number.isFinite(restoredBoundaryOpacity) &&
+          restoredBoundaryOpacity >= 0.999;
+
+        if (footerReturnIsReady) {
+          event.preventDefault();
+          footerReturnTextPending = false;
+          reverseGestureIsActive = true;
+          reverseGestureAllowsNativeScroll = false;
+          reverseGestureStartedAt = performance.now();
+          scrollRoot.dataset.reverseMode = "фаза 5 показана";
+          scrollRoot.dataset.reverseGesture = "active";
+          dispatchTextStepChange(currentDigit - 1, {
+            direction: -1,
+          });
+          scheduleReverseGestureEnd();
+          return;
+        }
+
         if (reverseGestureIsActive) {
-          const activeBoundaryOpacity = Number.parseFloat(
-            counterBlock.style.getPropertyValue("--boundary-opacity"),
-          );
-          const footerReturnIsComplete =
-            reverseGestureAllowsNativeScroll &&
-            counterIsActive &&
-            Number.isFinite(activeBoundaryOpacity) &&
-            activeBoundaryOpacity >= 0.999;
-
-          if (footerReturnIsComplete) {
-            reverseGestureAllowsNativeScroll = false;
-            scrollRoot.dataset.reverseMode = "фаза 5 показана";
-          }
-
           if (!reverseGestureAllowsNativeScroll) {
             event.preventDefault();
           }
@@ -1749,6 +1785,7 @@ export const setScrollingAnimations = function () {
           }
           reverseGestureIsActive = true;
           reverseGestureAllowsNativeScroll = isFooterReturn;
+          footerReturnTextPending = isFooterReturn;
           reverseGestureStartedAt = performance.now();
           reverseGestureCount++;
           scrollRoot.dataset.reverseGesture = "active";
@@ -1826,7 +1863,9 @@ export const setScrollingAnimations = function () {
           shuffleText.classList.remove(
             "section-main__shuffle-text_first-entry",
           );
-          dispatchTextStepChange(currentDigit - 1);
+          if (!footerReturnTextPending) {
+            dispatchTextStepChange(currentDigit - 1);
+          }
           contentBlock.classList.add("section-main__content-block_shown");
           if (footerSection.getBoundingClientRect().top < window.innerHeight) {
             return;
@@ -1861,7 +1900,9 @@ export const setScrollingAnimations = function () {
             }, PHASE_TRANSITION_DURATION);
           }
           contentBlock.classList.remove("section-main__content-block_shown");
-          dispatchTextStepChange(-1);
+          dispatchTextStepChange(-1, {
+            boundary: isReturningToIntro ? "intro" : "footer",
+          });
           // setMainCornerShown(false);
           // setMainRightPlusShown(false);
         }
@@ -1879,6 +1920,9 @@ export const setScrollingAnimations = function () {
     const counterBlock = document.getElementById("counter");
     const shuffleLayer = document.querySelector(
       ".section-main__shuffle-layer",
+    );
+    const shuffleText = document.querySelector(
+      ".section-main__shuffle-text",
     );
     const phoneContentBlock = document.getElementById(
       "section-main__content-block",
@@ -1926,12 +1970,13 @@ export const setScrollingAnimations = function () {
     const updateOpacity = () => {
       frameId = null;
       const localScroll = scrollRoot.scrollTop - sectionTop;
-      const entryOpacity = localScroll / fadeDistance;
       const exitOpacity =
         (stickyDistance - localScroll) / fadeDistance;
-      const entryProgress = clamp(entryOpacity, 0, 1);
       const exitProgress = clamp(exitOpacity, 0, 1);
-      const opacity = Math.min(entryProgress, exitProgress);
+      const outroProgress = 1 - exitProgress;
+      const textOpacity = 1 - clamp(outroProgress / 0.22, 0, 1);
+      const scaffoldOpacity =
+        1 - clamp((outroProgress - 0.58) / 0.24, 0, 1);
       const phoneIsEmpty = phone.classList.contains(
         "phone__content_999-999",
       );
@@ -1965,13 +2010,25 @@ export const setScrollingAnimations = function () {
         );
       }
 
-      if (lastOpacity === null || Math.abs(opacity - lastOpacity) > 0.0001) {
-        const opacityValue = opacity.toFixed(4);
+      if (
+        lastOpacity === null ||
+        Math.abs(scaffoldOpacity - lastOpacity) > 0.0001
+      ) {
+        const opacityValue = scaffoldOpacity.toFixed(4);
 
         counterBlock.style.setProperty("--boundary-opacity", opacityValue);
         shuffleLayer.style.setProperty("--boundary-opacity", opacityValue);
-        lastOpacity = opacity;
+        lastOpacity = scaffoldOpacity;
       }
+
+      shuffleText.style.setProperty(
+        "--outro-text-opacity",
+        textOpacity.toFixed(4),
+      );
+      phone.style.setProperty(
+        "--outro-phone-content-opacity",
+        scaffoldOpacity.toFixed(4),
+      );
 
       if (
         lastPhoneOffset === null ||

@@ -189,7 +189,7 @@
 
     &_visible {
       transform: translate(0, -50%);
-      opacity: 1;
+      opacity: var(--outro-text-opacity, 1);
       visibility: visible;
       transition:
         transform 0.8s ease-in-out,
@@ -1141,7 +1141,7 @@
 
   @media screen and (min-width: 601px) and (orientation: landscape) {
     &__shuffle-layer {
-      opacity: 1;
+      opacity: var(--boundary-opacity, 1);
     }
 
     &__shuffle-panel {
@@ -1240,8 +1240,7 @@
       width: 500px;
       height: var(--shuffle-max-panel-height, 352px);
       overflow: hidden;
-      opacity: var(--boundary-opacity, 1);
-      will-change: opacity;
+      opacity: 1;
 
       &::before,
       &::after {
