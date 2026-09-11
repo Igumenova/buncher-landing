@@ -603,7 +603,8 @@ export const setScrollingAnimations = function () {
         if (
           previousTextStep >= 0 &&
           nextTextStep < 0 &&
-          event.detail.boundary !== "footer"
+          event.detail.boundary !== "footer" &&
+          event.detail.boundary !== "search"
         ) {
           startIntroReverseSequence();
         }
@@ -1715,6 +1716,9 @@ export const setScrollingAnimations = function () {
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
     const numberCont = document.getElementById("changing-number");
+    const shuffleText = document.querySelector(
+      ".section-main__shuffle-text",
+    );
     const REVERSE_GESTURE_END_DELAY = 650;
     const REVERSE_GESTURE_MIN_DURATION = 900;
     const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
@@ -1884,6 +1888,34 @@ export const setScrollingAnimations = function () {
     const moveToPreviousPhoneState = () => {
       const timeline = getPhoneTimeline();
       const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
+      const firstPhaseTextIsVisible =
+        renderedState?.startsWith("1-") &&
+        shuffleText?.classList.contains("section-main__shuffle-text_visible");
+
+      if (firstPhaseTextIsVisible) {
+        const searchBoundaryScrollTop = getPhaseBoundaryScrollTop(0);
+        const searchHoldScrollTop =
+          searchBoundaryScrollTop === null
+            ? null
+            : searchBoundaryScrollTop + INTRO_SEARCH_SCROLL_GAP - 2;
+
+        animateZeroVisibility(false);
+        numberCont.className = numberCont.className.replace(
+          /_\d+-\d+$/,
+          `_${currentDigit}-0`,
+        );
+        dispatchTextStepChange(-1, {
+          boundary: "search",
+          direction: -1,
+        });
+        commitReverseNavigation(
+          renderedState,
+          "1-0",
+          searchHoldScrollTop,
+        );
+        return true;
+      }
+
       const pinnedState = scrollRoot.dataset.reverseTarget;
       const pinnedIndex = timeline.findIndex(
         (item) => item.state === pinnedState,
@@ -1901,6 +1933,8 @@ export const setScrollingAnimations = function () {
       const previousState = previousItem?.state ?? "999-999";
       const currentTextStep = PHONE_STATE_TEXT_STEPS[currentState] ?? -1;
       const previousTextStep = PHONE_STATE_TEXT_STEPS[previousState] ?? -1;
+      const isReturningToSearch =
+        previousState === "1-0" && currentState !== "1-0";
       let previousStateScrollTop = currentItem.activationScrollTop - 2;
 
       if (previousTextStep < currentTextStep) {
@@ -1927,6 +1961,18 @@ export const setScrollingAnimations = function () {
         previousStateScrollTop = previousItem
           ? previousItem.activationScrollTop + scrollRoot.clientHeight / 2
           : scrollRoot.scrollTop - scrollRoot.clientHeight;
+      }
+
+      if (isReturningToSearch) {
+        animateZeroVisibility(false);
+        numberCont.className = numberCont.className.replace(
+          /_\d+-\d+$/,
+          `_${currentDigit}-0`,
+        );
+        dispatchTextStepChange(-1, {
+          boundary: "search",
+          direction: -1,
+        });
       }
 
       commitReverseNavigation(
