@@ -1889,7 +1889,7 @@ export const setScrollingAnimations = function () {
       const timeline = getPhoneTimeline();
       const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
       const firstPhaseTextIsVisible =
-        renderedState?.startsWith("1-") &&
+        PHONE_STATE_TEXT_STEPS[renderedState] === 0 &&
         shuffleText?.classList.contains("section-main__shuffle-text_visible");
 
       if (firstPhaseTextIsVisible) {
