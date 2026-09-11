@@ -17,6 +17,9 @@ export const setScrollingAnimations = function () {
   const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
   const PHONE_REVERSE_STEP_EVENT = "buncher:phone-reverse-step";
   const PHONE_REVERSE_CANCEL_EVENT = "buncher:phone-reverse-cancel";
+  const INTRO_LOGO_VISIBILITY_EVENT = "buncher:intro-logo-visibility";
+  const INTRO_SCAFFOLD_VISIBILITY_EVENT =
+    "buncher:intro-scaffold-visibility";
   const STAGE_CHANGE_POINT = 0.72;
   const PHONE_STATE_TEXT_STEPS = {
     "1-0": 0,
@@ -347,88 +350,27 @@ export const setScrollingAnimations = function () {
         "4-1",
       ];
       const phoneLogo = phone.querySelector(".phone__item_logo");
-      const mainSection = document.getElementById("section-main");
-      const LOGO_PRE_EXIT_DISTANCE_IN_VIEWPORTS = 0.65;
-      let lastLogoScrollTop = scrollRoot.scrollTop;
-      let logoScrollFrame = null;
-
-      const playLogoAnimation = (direction, animateScaffold = true) => {
-        const shufflePanel = document.querySelector(
-          ".section-main__shuffle-panel",
-        );
-
+      const clearLogoAnimations = () => {
         phoneLogo.classList.remove(
           "phone__item_logo-entering",
           "phone__item_logo-exiting",
         );
+      };
+      const clearIntroAnimations = () => {
+        clearLogoAnimations();
+        const shufflePanel = document.querySelector(
+          ".section-main__shuffle-panel",
+        );
+
         shufflePanel?.classList.remove(
           "section-main__shuffle-panel_intro-pending",
           "section-main__shuffle-panel_intro-entering",
           "section-main__shuffle-panel_intro-exiting",
         );
-        void phoneLogo.offsetWidth;
-        phoneLogo.classList.add(`phone__item_logo-${direction}`);
-        if (animateScaffold) {
-          shufflePanel?.classList.add(
-            `section-main__shuffle-panel_intro-${direction}`,
-          );
-        }
-      };
-
-      const clearIntroAnimations = () => {
-        phoneLogo.classList.remove(
-          "phone__item_logo-entering",
-          "phone__item_logo-exiting",
-        );
-        document
-          .querySelector(".section-main__shuffle-panel")
-          ?.classList.remove(
-            "section-main__shuffle-panel_intro-pending",
-            "section-main__shuffle-panel_intro-entering",
-            "section-main__shuffle-panel_intro-exiting",
-          );
       };
 
       const isIntroPhoneState = (state) =>
         state === "999-999" || state === "0-0";
-      const getPhoneState = () => phone.className.match(REGEX)?.[0];
-      const updateLogoForScrollDirection = () => {
-        logoScrollFrame = null;
-        const nextScrollTop = scrollRoot.scrollTop;
-        const direction = Math.sign(nextScrollTop - lastLogoScrollTop);
-        const preExitPoint =
-          mainSection.offsetTop +
-          scrollRoot.clientHeight * LOGO_PRE_EXIT_DISTANCE_IN_VIEWPORTS;
-
-        if (getPhoneState() === "0-0") {
-          if (
-            direction < 0 &&
-            nextScrollTop <= preExitPoint &&
-            !phoneLogo.classList.contains("phone__item_logo-exiting")
-          ) {
-            playLogoAnimation("exiting");
-          } else if (
-            direction > 0 &&
-            phoneLogo.classList.contains("phone__item_logo-exiting")
-          ) {
-            playLogoAnimation("entering");
-          }
-        }
-
-        lastLogoScrollTop = nextScrollTop;
-      };
-
-      scrollRoot.addEventListener(
-        "scroll",
-        () => {
-          if (!logoScrollFrame) {
-            logoScrollFrame = requestAnimationFrame(
-              updateLogoForScrollDirection,
-            );
-          }
-        },
-        { passive: true },
-      );
       const getRequiredTextStep = (state) => {
         if (isIntroPhoneState(state)) {
           return -1;
@@ -437,21 +379,10 @@ export const setScrollingAnimations = function () {
         return PHONE_STATE_TEXT_STEPS[state] ?? Infinity;
       };
       const commitPhoneState = (state) => {
-        const previousState = phone.className.match(REGEX)?.[0];
-
         phone.className = phone.className.replace(REGEX, state);
 
-        if (state === "0-0" && previousState !== "0-0") {
-          playLogoAnimation(
-            "entering",
-            previousState === "999-999",
-          );
-        } else if (
-          state === "999-999" &&
-          previousState === "0-0" &&
-          !phoneLogo.classList.contains("phone__item_logo-exiting")
-        ) {
-          playLogoAnimation("exiting");
+        if (isIntroPhoneState(state)) {
+          clearLogoAnimations();
         } else if (!isIntroPhoneState(state)) {
           clearIntroAnimations();
         }
@@ -462,6 +393,11 @@ export const setScrollingAnimations = function () {
         }
 
         pendingPhoneState = state;
+
+        // The intro controller owns both empty and logo states during stage 0.
+        if (isIntroPhoneState(state) && expectedTextStep < 0) {
+          return;
+        }
 
         if (
           !isIntroPhoneState(state) &&
@@ -482,6 +418,9 @@ export const setScrollingAnimations = function () {
       document.addEventListener(PHONE_REVERSE_CANCEL_EVENT, () => {
         reversePhoneState = null;
       });
+      document.addEventListener(INTRO_LOGO_VISIBILITY_EVENT, (event) => {
+        commitPhoneState(event.detail.visible ? "0-0" : "999-999");
+      });
 
       document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
         const nextTextStep = event.detail.stepIndex;
@@ -494,7 +433,7 @@ export const setScrollingAnimations = function () {
         expectedTextStep = nextTextStep;
         phoneStageIsUnlocked = false;
 
-        if (previousTextStep < 0 && nextTextStep === 0) {
+        if (previousTextStep >= 0 && nextTextStep < 0) {
           commitPhoneState("0-0");
         }
       });
@@ -734,6 +673,30 @@ export const setScrollingAnimations = function () {
     shufflePanel.classList.add(
       "section-main__shuffle-panel",
       "section-main__shuffle-panel_intro-pending",
+    );
+    let introScaffoldIsVisible = false;
+    document.addEventListener(
+      INTRO_SCAFFOLD_VISIBILITY_EVENT,
+      (event) => {
+        const isVisible = event.detail.visible;
+
+        if (introScaffoldIsVisible === isVisible) {
+          return;
+        }
+
+        introScaffoldIsVisible = isVisible;
+        shufflePanel.classList.remove(
+          "section-main__shuffle-panel_intro-pending",
+          "section-main__shuffle-panel_intro-entering",
+          "section-main__shuffle-panel_intro-exiting",
+        );
+        void shufflePanel.offsetWidth;
+        shufflePanel.classList.add(
+          `section-main__shuffle-panel_intro-${
+            isVisible ? "entering" : "exiting"
+          }`,
+        );
+      },
     );
     lineNumbers.classList.add("section-main__shuffle-line-numbers");
     lineNumberTrack.classList.add("section-main__shuffle-line-number-track");
@@ -1841,7 +1804,12 @@ export const setScrollingAnimations = function () {
       const mainRect = mainSection.getBoundingClientRect();
       const anchorRect = nextPhoneStateAnchor.getBoundingClientRect();
 
-      counterActiveZone.style.top = `${anchorRect.top - mainRect.top + anchorRect.height / 2}px`;
+      counterActiveZone.style.top = `${
+        anchorRect.top -
+        mainRect.top +
+        anchorRect.height / 2 +
+        scrollRoot.clientHeight / 2
+      }px`;
     };
 
     const callback = (entries) => {
@@ -1915,13 +1883,17 @@ export const setScrollingAnimations = function () {
     const phoneContentBlock = document.getElementById(
       "section-main__content-block",
     );
+    const phone = document.getElementById("phone");
     let frameId = null;
     let sectionTop = 0;
     let stickyDistance = 0;
     let fadeDistance = 1;
     let maxPhoneOffset = 6;
+    let introEndScroll = 1;
     let lastOpacity = null;
     let lastPhoneOffset = null;
+    let logoIsVisible = false;
+    let scaffoldIsVisible = false;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const refreshMetrics = () => {
@@ -1938,6 +1910,18 @@ export const setScrollingAnimations = function () {
         1,
       );
       maxPhoneOffset = clamp(scrollRoot.clientHeight * 0.012, 6, 12);
+      const firstStageAnchor = document.querySelector(".anchor__item_1-0");
+
+      if (firstStageAnchor) {
+        const anchorRect = firstStageAnchor.getBoundingClientRect();
+        introEndScroll = Math.max(
+          anchorRect.top -
+            sectionRect.top +
+            anchorRect.height / 2 -
+            scrollRoot.clientHeight / 2,
+          scrollRoot.clientHeight * 0.5,
+        );
+      }
     };
     const updateOpacity = () => {
       frameId = null;
@@ -1948,9 +1932,38 @@ export const setScrollingAnimations = function () {
       const entryProgress = clamp(entryOpacity, 0, 1);
       const exitProgress = clamp(exitOpacity, 0, 1);
       const opacity = Math.min(entryProgress, exitProgress);
-      const phoneBoundaryOffset =
-        (1 - entryProgress) * maxPhoneOffset -
-        (1 - exitProgress) * maxPhoneOffset;
+      const phoneIsEmpty = phone.classList.contains(
+        "phone__content_999-999",
+      );
+      const introProgress = clamp(localScroll / introEndScroll, 0, 1);
+      const introMovementProgress = clamp(introProgress / 0.4, 0, 1);
+      const nextLogoIsVisible = introProgress >= 0.5;
+      const nextScaffoldIsVisible = introProgress >= 0.72;
+      const introIsActive = localScroll <= introEndScroll;
+      const phoneBoundaryOffset = phoneIsEmpty
+        ? (1 - introMovementProgress) * maxPhoneOffset
+        : 0;
+
+      if (introIsActive && logoIsVisible !== nextLogoIsVisible) {
+        logoIsVisible = nextLogoIsVisible;
+        document.dispatchEvent(
+          new CustomEvent(INTRO_LOGO_VISIBILITY_EVENT, {
+            detail: { visible: logoIsVisible },
+          }),
+        );
+      }
+
+      if (
+        introIsActive &&
+        scaffoldIsVisible !== nextScaffoldIsVisible
+      ) {
+        scaffoldIsVisible = nextScaffoldIsVisible;
+        document.dispatchEvent(
+          new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
+            detail: { visible: scaffoldIsVisible },
+          }),
+        );
+      }
 
       if (lastOpacity === null || Math.abs(opacity - lastOpacity) > 0.0001) {
         const opacityValue = opacity.toFixed(4);
@@ -1979,6 +1992,11 @@ export const setScrollingAnimations = function () {
 
     scrollRoot.addEventListener("scroll", requestOpacityUpdate, {
       passive: true,
+    });
+    const phoneStateObserver = new MutationObserver(requestOpacityUpdate);
+    phoneStateObserver.observe(phone, {
+      attributes: true,
+      attributeFilter: ["class"],
     });
     window.addEventListener("resize", () => {
       refreshMetrics();
