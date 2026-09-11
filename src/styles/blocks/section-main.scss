@@ -184,6 +184,7 @@
     visibility: hidden;
     transition:
       transform 0.8s ease-in-out,
+      opacity 0.5s ease-in-out,
       visibility 0s linear 0.8s;
     will-change: transform, opacity;
 
@@ -193,6 +194,7 @@
       visibility: visible;
       transition:
         transform 0.8s ease-in-out,
+        opacity 0.5s ease-in-out,
         visibility 0s linear 0s;
     }
 
@@ -1334,6 +1336,32 @@
     }
   }
 
+}
+
+.section-main_footer-sequence-controlled {
+  .section-main__shuffle-layer,
+  .phone__content,
+  .counter-block__number-window {
+    opacity: 1 !important;
+    transition: opacity 0.5s ease-in-out !important;
+  }
+
+  .section-main__shuffle-text_visible {
+    opacity: 1 !important;
+  }
+}
+
+.section-main_footer-assets-hidden {
+  .section-main__shuffle-layer,
+  .phone__content {
+    opacity: 0 !important;
+  }
+}
+
+.section-main_footer-digit-hidden {
+  .counter-block__number-window {
+    opacity: 0 !important;
+  }
 }
 
 @keyframes introScaffoldIn {

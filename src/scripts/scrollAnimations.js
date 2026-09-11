@@ -17,6 +17,7 @@ export const setScrollingAnimations = function () {
   const INTRO_SEARCH_SCROLL_GAP = 500;
   const INTRO_REVERSE_SCAFFOLD_SCROLL_DISTANCE = 500;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
+  const TEXT_PHASE_HOLD_SCROLL_DISTANCE = 200;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
   const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
   const PHONE_REVERSE_STEP_EVENT = "buncher:phone-reverse-step";
@@ -59,7 +60,9 @@ export const setScrollingAnimations = function () {
 
       const blockRect = block.getBoundingClientRect();
       const stageMarker =
-        blockRect.top + blockRect.height * STAGE_CHANGE_POINT;
+        blockRect.top +
+        blockRect.height * STAGE_CHANGE_POINT +
+        TEXT_PHASE_HOLD_SCROLL_DISTANCE;
 
       if (stageMarker <= viewportCenter) {
         nextDigit = index + 1;
@@ -1763,12 +1766,29 @@ export const setScrollingAnimations = function () {
     const REVERSE_GESTURE_END_DELAY = 650;
     const REVERSE_GESTURE_MIN_DURATION = 900;
     const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
+    const FOOTER_REVERSE_PHONE_STAGE_DURATION = 350;
+    const FOOTER_REVERSE_ASSETS_STAGE_DURATION = 500;
+    const FOOTER_REVERSE_DIGIT_STAGE_DURATION = 500;
+    const FOOTER_REVERSE_TEXT_STAGE_DURATION = 1000;
+    const FOOTER_FORWARD_GESTURE_END_DELAY = 180;
+    const mainSection = document.getElementById("section-main");
     let reverseGestureIsActive = false;
     let reverseGestureAllowsNativeScroll = false;
     let reverseGestureEndTimer = null;
     let reverseGestureStartedAt = 0;
     let reverseGestureCount = 0;
     let forwardIntentDistance = 0;
+    let footerReverseApproachIsActive = false;
+    let footerReverseApproachFrameId = null;
+    let footerReverseSequenceIsActive = false;
+    let footerReverseSequenceTimers = [];
+    let footerForwardStage = "idle";
+    let footerForwardStageIsArmed = false;
+    let footerForwardGestureEndTimer = null;
+    let footerReverseTextStageIsArmed = false;
+    let footerReverseTextGestureEndTimer = null;
+    let reverseTextHoldStep = null;
+    let reverseTextHoldRemaining = 0;
     scrollRoot.dataset.reverseGesture = "idle";
     scrollRoot.dataset.reverseTarget = "—";
     scrollRoot.dataset.reverseFrom = "—";
@@ -1800,6 +1820,137 @@ export const setScrollingAnimations = function () {
         scrollRoot.dataset.reverseGesture = "idle";
       }, releaseDelay);
     };
+    const clearFooterReverseSequence = () => {
+      footerReverseSequenceTimers.forEach(clearTimeout);
+      footerReverseSequenceTimers = [];
+      footerReverseApproachIsActive = false;
+      if (footerReverseApproachFrameId) {
+        cancelAnimationFrame(footerReverseApproachFrameId);
+        footerReverseApproachFrameId = null;
+      }
+      footerReverseSequenceIsActive = false;
+      footerReturnTextPending = false;
+      footerForwardStage = "idle";
+      footerForwardStageIsArmed = false;
+      clearTimeout(footerForwardGestureEndTimer);
+      footerReverseTextStageIsArmed = false;
+      clearTimeout(footerReverseTextGestureEndTimer);
+      mainSection.classList.remove(
+        "section-main_footer-sequence-controlled",
+        "section-main_footer-assets-hidden",
+        "section-main_footer-digit-hidden",
+      );
+    };
+    const scheduleFooterForwardStageArm = () => {
+      footerForwardStageIsArmed = false;
+      clearTimeout(footerForwardGestureEndTimer);
+      footerForwardGestureEndTimer = setTimeout(() => {
+        footerForwardStageIsArmed = true;
+      }, FOOTER_FORWARD_GESTURE_END_DELAY);
+    };
+    const scheduleFooterReverseTextStageArm = () => {
+      footerReverseTextStageIsArmed = false;
+      clearTimeout(footerReverseTextGestureEndTimer);
+      footerReverseTextGestureEndTimer = setTimeout(() => {
+        footerReverseTextStageIsArmed = true;
+      }, FOOTER_FORWARD_GESTURE_END_DELAY);
+    };
+    const getFooterSequenceTriggerScrollTop = () => {
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const mainRect = mainSection.getBoundingClientRect();
+      const sectionTop =
+        scrollRoot.scrollTop + mainRect.top - rootRect.top;
+      const stickyDistance = Math.max(
+        mainSection.offsetHeight - scrollRoot.clientHeight,
+        0,
+      );
+      const fadeDistance = Math.max(scrollRoot.clientHeight * 0.9, 1);
+
+      return (
+        sectionTop +
+        stickyDistance -
+        fadeDistance +
+        TEXT_PHASE_HOLD_SCROLL_DISTANCE
+      );
+    };
+    const finalPhoneStageIsRendered = () => {
+      const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
+      const lastPhoneState = Object.keys(PHONE_STATE_TEXT_STEPS).at(-1);
+
+      return currentDigit === 5 && renderedState === lastPhoneState;
+    };
+    const startFooterForwardExitSequence = () => {
+      footerForwardStage = "exiting";
+      footerForwardStageIsArmed = false;
+      clearTimeout(footerForwardGestureEndTimer);
+      mainSection.classList.add("section-main_footer-digit-hidden");
+      scrollRoot.dataset.reverseMode = "исчезновение цифры";
+
+      footerReverseSequenceTimers.push(
+        setTimeout(() => {
+          mainSection.classList.add("section-main_footer-assets-hidden");
+          scrollRoot.dataset.reverseMode = "исчезновение скелета и экрана";
+        }, FOOTER_REVERSE_DIGIT_STAGE_DURATION),
+      );
+      footerReverseSequenceTimers.push(
+        setTimeout(() => {
+          footerForwardStage = "complete";
+          footerReverseSequenceTimers = [];
+          scrollRoot.dataset.reverseMode = "переход к финальному экрану";
+        },
+        FOOTER_REVERSE_DIGIT_STAGE_DURATION +
+          FOOTER_REVERSE_ASSETS_STAGE_DURATION),
+      );
+    };
+    const handleFooterForwardWheel = (event) => {
+      if (footerForwardStage === "exiting") {
+        event.preventDefault();
+        return true;
+      }
+
+      if (footerForwardStage === "text-hidden") {
+        event.preventDefault();
+
+        if (!footerForwardStageIsArmed) {
+          scheduleFooterForwardStageArm();
+          return true;
+        }
+
+        startFooterForwardExitSequence();
+        return true;
+      }
+
+      if (footerForwardStage === "complete") {
+        return false;
+      }
+
+      if (!finalPhoneStageIsRendered()) {
+        return false;
+      }
+
+      const wheelDelta = Math.max(getWheelDeltaInPixels(event), 0);
+      const triggerScrollTop = getFooterSequenceTriggerScrollTop();
+
+      if (scrollRoot.scrollTop + wheelDelta < triggerScrollTop) {
+        return false;
+      }
+
+      event.preventDefault();
+      scrollRoot.scrollTop = triggerScrollTop;
+      mainSection.classList.add("section-main_footer-sequence-controlled");
+      mainSection.classList.remove(
+        "section-main_footer-assets-hidden",
+        "section-main_footer-digit-hidden",
+      );
+      dispatchTextStepChange(-1, {
+        boundary: "footer",
+        direction: 1,
+      });
+      footerForwardStage = "text-hidden";
+      scheduleFooterForwardStageArm();
+      scrollRoot.dataset.reverseMode = "исчезновение текста";
+      return true;
+    };
     const getPhoneTimeline = () => {
       const rootRect = scrollRoot.getBoundingClientRect();
       return Array.from(
@@ -1829,6 +1980,35 @@ export const setScrollingAnimations = function () {
       });
 
       return logicalIndex;
+    };
+    const getReverseTextTransitionStep = () => {
+      const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
+      const renderedTextStep = PHONE_STATE_TEXT_STEPS[renderedState];
+      const firstPhaseTextIsVisible =
+        renderedTextStep === 0 &&
+        shuffleText?.classList.contains("section-main__shuffle-text_visible");
+
+      if (firstPhaseTextIsVisible) {
+        return 0;
+      }
+
+      const timeline = getPhoneTimeline();
+      const pinnedIndex = timeline.findIndex(
+        (item) => item.state === scrollRoot.dataset.reverseTarget,
+      );
+      const logicalIndex = getLogicalTimelineIndex(timeline);
+      const currentIndex = pinnedIndex >= 0 ? pinnedIndex : logicalIndex;
+
+      if (currentIndex < 0) {
+        return null;
+      }
+
+      const currentTextStep =
+        PHONE_STATE_TEXT_STEPS[timeline[currentIndex].state] ?? -1;
+      const previousTextStep =
+        PHONE_STATE_TEXT_STEPS[timeline[currentIndex - 1]?.state] ?? -1;
+
+      return previousTextStep < currentTextStep ? currentTextStep : null;
     };
     const getPhaseBoundaryScrollTop = (textStep) => {
       const rootRect = scrollRoot.getBoundingClientRect();
@@ -1918,11 +2098,128 @@ export const setScrollingAnimations = function () {
         /_\d+-\d+$/,
         `_${finalDigit}-${finalDigit}`,
       );
-
       commitReverseNavigation(
         phone.className.match(PHONE_STATE_REGEX)?.[0] ?? "—",
         lastItem.state,
         null,
+      );
+      return true;
+    };
+    const startFooterReverseAssetsSequence = () => {
+      if (
+        footerReverseSequenceIsActive ||
+        !footerReverseApproachIsActive
+      ) {
+        return true;
+      }
+
+      footerReverseApproachIsActive = false;
+      footerReverseSequenceIsActive = true;
+      counterBlock.classList.add("section-main__counter-block_shown");
+      scrollRoot.dataset.reverseGesture = "active";
+      scrollRoot.dataset.reverseMode = "телефон достиг фазы 5";
+
+      footerReverseSequenceTimers.push(
+        setTimeout(() => {
+          mainSection.classList.remove("section-main_footer-assets-hidden");
+          scrollRoot.dataset.reverseMode = "возврат скелета и экрана";
+        }, FOOTER_REVERSE_PHONE_STAGE_DURATION),
+      );
+
+      footerReverseSequenceTimers.push(
+        setTimeout(() => {
+          mainSection.classList.remove("section-main_footer-digit-hidden");
+          scrollRoot.dataset.reverseMode = "возврат цифры";
+        },
+        FOOTER_REVERSE_PHONE_STAGE_DURATION +
+          FOOTER_REVERSE_ASSETS_STAGE_DURATION),
+      );
+
+      footerReverseSequenceTimers.push(
+        setTimeout(() => {
+          footerReturnTextPending = false;
+          dispatchTextStepChange(currentDigit - 1, {
+            direction: -1,
+          });
+          scrollRoot.dataset.reverseMode = "текст фазы 5";
+        },
+        FOOTER_REVERSE_PHONE_STAGE_DURATION +
+          FOOTER_REVERSE_ASSETS_STAGE_DURATION +
+          FOOTER_REVERSE_DIGIT_STAGE_DURATION),
+      );
+
+      footerReverseSequenceTimers.push(
+        setTimeout(() => {
+          footerReverseSequenceIsActive = false;
+          footerReverseSequenceTimers = [];
+          footerForwardStage = "reverse-ready";
+          scheduleFooterReverseTextStageArm();
+          scrollRoot.dataset.reverseGesture = "idle";
+          scrollRoot.dataset.reverseMode = "текст фазы 5 — ожидание нового жеста";
+        },
+        FOOTER_REVERSE_PHONE_STAGE_DURATION +
+          FOOTER_REVERSE_ASSETS_STAGE_DURATION +
+          FOOTER_REVERSE_DIGIT_STAGE_DURATION +
+          FOOTER_REVERSE_TEXT_STAGE_DURATION),
+      );
+
+      return true;
+    };
+    const watchFooterReverseApproach = () => {
+      footerReverseApproachFrameId = null;
+
+      if (!footerReverseApproachIsActive) {
+        return;
+      }
+
+      const boundaryOpacity = Number.parseFloat(
+        counterBlock.style.getPropertyValue("--boundary-opacity"),
+      );
+
+      if (
+        counterIsActive &&
+        Number.isFinite(boundaryOpacity) &&
+        boundaryOpacity >= 0.999
+      ) {
+        startFooterReverseAssetsSequence();
+        return;
+      }
+
+      footerReverseApproachFrameId = requestAnimationFrame(
+        watchFooterReverseApproach,
+      );
+    };
+    const startFooterReverseApproach = () => {
+      if (
+        footerReverseApproachIsActive ||
+        footerReverseSequenceIsActive
+      ) {
+        return true;
+      }
+
+      footerReturnTextPending = true;
+      footerForwardStage = "reverse";
+      mainSection.classList.add(
+        "section-main_footer-sequence-controlled",
+        "section-main_footer-assets-hidden",
+        "section-main_footer-digit-hidden",
+      );
+      dispatchTextStepChange(-1, {
+        boundary: "footer",
+        direction: -1,
+      });
+
+      if (!restoreLastStageFromFooter()) {
+        clearFooterReverseSequence();
+        return false;
+      }
+
+      footerReverseApproachIsActive = true;
+      counterBlock.classList.add("section-main__counter-block_shown");
+      scrollRoot.dataset.reverseGesture = "active";
+      scrollRoot.dataset.reverseMode = "доскролл до телефона";
+      footerReverseApproachFrameId = requestAnimationFrame(
+        watchFooterReverseApproach,
       );
       return true;
     };
@@ -2031,7 +2328,19 @@ export const setScrollingAnimations = function () {
       "wheel",
       (event) => {
         if (event.deltaY > 0) {
-          footerReturnTextPending = false;
+          reverseTextHoldStep = null;
+          reverseTextHoldRemaining = 0;
+          if (
+            footerReverseApproachIsActive ||
+            footerReverseSequenceIsActive
+          ) {
+            clearFooterReverseSequence();
+          }
+
+          if (handleFooterForwardWheel(event)) {
+            return;
+          }
+
           forwardIntentDistance += Math.max(
             getWheelDeltaInPixels(event),
             0,
@@ -2073,27 +2382,43 @@ export const setScrollingAnimations = function () {
           return;
         }
 
-        const restoredBoundaryOpacity = Number.parseFloat(
-          counterBlock.style.getPropertyValue("--boundary-opacity"),
-        );
-        const footerReturnIsReady =
-          footerReturnTextPending &&
-          counterIsActive &&
-          Number.isFinite(restoredBoundaryOpacity) &&
-          restoredBoundaryOpacity >= 0.999;
+        if (footerReverseApproachIsActive) {
+          return;
+        }
 
-        if (footerReturnIsReady) {
+        if (footerReverseSequenceIsActive) {
           event.preventDefault();
-          footerReturnTextPending = false;
-          reverseGestureIsActive = true;
-          reverseGestureAllowsNativeScroll = false;
-          reverseGestureStartedAt = performance.now();
-          scrollRoot.dataset.reverseMode = "фаза 5 показана";
-          scrollRoot.dataset.reverseGesture = "active";
+          return;
+        }
+
+        if (footerForwardStage === "exiting") {
+          event.preventDefault();
+          return;
+        }
+
+        if (footerForwardStage === "text-hidden") {
+          event.preventDefault();
+          clearTimeout(footerForwardGestureEndTimer);
+          footerForwardStage = "idle";
+          footerForwardStageIsArmed = false;
+          mainSection.classList.remove(
+            "section-main_footer-sequence-controlled",
+          );
           dispatchTextStepChange(currentDigit - 1, {
+            boundary: "footer",
             direction: -1,
           });
-          scheduleReverseGestureEnd();
+          scrollRoot.dataset.reverseMode = "текст фазы 5";
+          return;
+        }
+
+        if (
+          footerForwardStage === "reverse-ready" &&
+          !footerReverseTextStageIsArmed
+        ) {
+          event.preventDefault();
+          scheduleFooterReverseTextStageArm();
+          scrollRoot.dataset.reverseMode = "текст фазы 5 зафиксирован";
           return;
         }
 
@@ -2106,6 +2431,54 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        const boundaryOpacity = Number.parseFloat(
+          counterBlock.style.getPropertyValue("--boundary-opacity"),
+        );
+        const lastPhoneState = Object.keys(PHONE_STATE_TEXT_STEPS).at(-1);
+        const renderedPhoneState =
+          phone.className.match(PHONE_STATE_REGEX)?.[0];
+        const lastStageIsRendered = renderedPhoneState === lastPhoneState;
+        const isFooterReturn =
+          footerForwardStage === "complete" ||
+          !counterIsActive ||
+          (lastStageIsRendered &&
+            (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
+        const reverseTransitionStep = counterIsActive && !isFooterReturn
+          ? getReverseTextTransitionStep()
+          : null;
+
+        if (reverseTransitionStep !== null) {
+          if (reverseTextHoldStep !== reverseTransitionStep) {
+            reverseTextHoldStep = reverseTransitionStep;
+            reverseTextHoldRemaining = TEXT_PHASE_HOLD_SCROLL_DISTANCE;
+          }
+
+          event.preventDefault();
+          reverseTextHoldRemaining = Math.max(
+            reverseTextHoldRemaining -
+              Math.abs(getWheelDeltaInPixels(event)),
+            0,
+          );
+          scrollRoot.dataset.reverseMode = "удержание текста 200px";
+
+          if (reverseTextHoldRemaining > 0) {
+            return;
+          }
+
+          reverseTextHoldStep = null;
+          if (footerForwardStage === "reverse-ready") {
+            footerForwardStage = "idle";
+            footerReverseTextStageIsArmed = false;
+            clearTimeout(footerReverseTextGestureEndTimer);
+            mainSection.classList.remove(
+              "section-main_footer-sequence-controlled",
+            );
+          }
+        } else {
+          reverseTextHoldStep = null;
+          reverseTextHoldRemaining = 0;
+        }
+
         if (reverseGestureIsActive) {
           if (!reverseGestureAllowsNativeScroll) {
             event.preventDefault();
@@ -2116,24 +2489,20 @@ export const setScrollingAnimations = function () {
           return;
         }
 
-        const boundaryOpacity = Number.parseFloat(
-          counterBlock.style.getPropertyValue("--boundary-opacity"),
-        );
-        const lastPhoneState = Object.keys(PHONE_STATE_TEXT_STEPS).at(-1);
-        const lastStageIsPinned =
-          scrollRoot.dataset.reverseTarget === lastPhoneState;
-        const isFooterReturn =
-          !counterIsActive ||
-          (lastStageIsPinned &&
-            (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
         const navigationWasHandled = isFooterReturn
-          ? restoreLastStageFromFooter()
+          ? startFooterReverseApproach()
           : moveToPreviousPhoneState();
 
         if (navigationWasHandled) {
-          if (!isFooterReturn) {
-            event.preventDefault();
+          if (isFooterReturn) {
+            reverseGestureCount++;
+            scrollRoot.dataset.reverseGestureCount = String(
+              reverseGestureCount,
+            );
+            return;
           }
+
+          event.preventDefault();
 
           if (scrollRoot.dataset.introReverseSequence === "active") {
             clearTimeout(reverseGestureEndTimer);
@@ -2146,8 +2515,8 @@ export const setScrollingAnimations = function () {
           }
 
           reverseGestureIsActive = true;
-          reverseGestureAllowsNativeScroll = isFooterReturn;
-          footerReturnTextPending = isFooterReturn;
+          reverseGestureAllowsNativeScroll = false;
+          footerReturnTextPending = false;
           reverseGestureStartedAt = performance.now();
           reverseGestureCount++;
           scrollRoot.dataset.reverseGesture = "active";
@@ -2182,11 +2551,9 @@ export const setScrollingAnimations = function () {
     const footerSection = document.getElementById("section-footer");
     const longDecorationLine = document.getElementById("decoration-line-long");
     const counterBlock = document.getElementById("counter");
-    const phone = document.getElementById("phone");
     const numberCont = document.getElementById("changing-number");
     const shuffleText = document.querySelector(".section-main__shuffle-text");
     const contentBlock = document.getElementById("section-main__content-block");
-    let counterHideTimer = null;
     const options = {
       root: scrollRoot,
       threshold: 0,
@@ -2218,7 +2585,6 @@ export const setScrollingAnimations = function () {
           counterIsActive = true;
           currentDigit = getDigitForCurrentScroll();
 
-          clearTimeout(counterHideTimer);
           // coverSection.classList.add("section-cover_scrolled");
           // longDecorationLine.classList.add(
           //   "section-main__decoration_long_hidden",
@@ -2243,27 +2609,24 @@ export const setScrollingAnimations = function () {
             "section-main__counter-block_digits-waiting",
           );
 
-          const isLogoStage = phone.classList.contains("phone__content_0-0");
           const rootRect = scrollRoot.getBoundingClientRect();
           const activeZoneRect = entry.target.getBoundingClientRect();
           const isReturningToIntro = activeZoneRect.top >= rootRect.bottom;
-          const shouldKeepIntroZero = isLogoStage || isReturningToIntro;
 
-          animateZeroVisibility(false);
-          numberCont.className = numberCont.className.replace(
-            NUMBER_CLASS_REGEX,
-            wasCounterActive ? `_${currentDigit}-0` : "_0-0",
-          );
+          if (isReturningToIntro) {
+            animateZeroVisibility(false);
+            numberCont.className = numberCont.className.replace(
+              NUMBER_CLASS_REGEX,
+              wasCounterActive ? `_${currentDigit}-0` : "_0-0",
+            );
+          }
           // coverSection.classList.remove("section-cover_scrolled");
           // longDecorationLine.classList.remove(
           //   "section-main__decoration_long_hidden",
           // );
-          clearTimeout(counterHideTimer);
-          if (!shouldKeepIntroZero) {
-            counterHideTimer = setTimeout(() => {
-              counterBlock.classList.remove("section-main__counter-block_shown");
-            }, PHASE_TRANSITION_DURATION);
-          }
+          // Keep the counter layer mounted at the footer boundary. Its digits,
+          // the phone screenshot and the scaffold now use the same
+          // scroll-controlled opacity in both directions.
           contentBlock.classList.remove("section-main__content-block_shown");
           dispatchTextStepChange(-1, {
             boundary: isReturningToIntro ? "intro" : "footer",
@@ -2339,7 +2702,18 @@ export const setScrollingAnimations = function () {
         (stickyDistance - localScroll) / fadeDistance;
       const exitProgress = clamp(exitOpacity, 0, 1);
       const outroProgress = 1 - exitProgress;
-      const textOpacity = 1 - clamp(outroProgress / 0.22, 0, 1);
+      const textHoldProgress = clamp(
+        TEXT_PHASE_HOLD_SCROLL_DISTANCE / fadeDistance,
+        0,
+        1,
+      );
+      const textOpacity =
+        1 -
+        clamp(
+          (outroProgress - textHoldProgress) / 0.22,
+          0,
+          1,
+        );
       const scaffoldOpacity =
         1 - clamp((outroProgress - 0.58) / 0.24, 0, 1);
       const phoneIsEmpty = phone.classList.contains(
