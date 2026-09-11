@@ -47,6 +47,27 @@ export const setScrollingAnimations = function () {
   let footerReturnTextPending = false;
   let zeroTransitionTimer = null;
   let zeroIsVisible = false;
+  const getDigitForCurrentScroll = () => {
+    const rootRect = scrollRoot.getBoundingClientRect();
+    const viewportCenter = rootRect.top + scrollRoot.clientHeight / 2;
+    let nextDigit = 1;
+
+    blocks.forEach((block, index) => {
+      if (index === 0) {
+        return;
+      }
+
+      const blockRect = block.getBoundingClientRect();
+      const stageMarker =
+        blockRect.top + blockRect.height * STAGE_CHANGE_POINT;
+
+      if (stageMarker <= viewportCenter) {
+        nextDigit = index + 1;
+      }
+    });
+
+    return nextDigit;
+  };
   const animateZeroVisibility = (isVisible) => {
     const counterBlock = document.getElementById("counter");
 
@@ -261,23 +282,7 @@ export const setScrollingAnimations = function () {
 
     const updateCurrentDigit = () => {
       stageFrameId = null;
-      const rootRect = scrollRoot.getBoundingClientRect();
-      const viewportCenter = rootRect.top + scrollRoot.clientHeight / 2;
-      let nextDigit = 1;
-
-      blocks.forEach((block, index) => {
-        if (index === 0) {
-          return;
-        }
-
-        const blockRect = block.getBoundingClientRect();
-        const stageMarker =
-          blockRect.top + blockRect.height * STAGE_CHANGE_POINT;
-
-        if (stageMarker <= viewportCenter) {
-          nextDigit = index + 1;
-        }
-      });
+      const nextDigit = getDigitForCurrentScroll();
 
       if (nextDigit === currentDigit) {
         return;
@@ -718,6 +723,28 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        const currentState = phone.className.match(REGEX)?.[0];
+        const searchAnchor = anchors.find(
+          (anchor) => anchor.dataset.id === "1-0",
+        );
+        const searchBoundary = searchAnchor
+          ? getAnchorActivationScrollTop(searchAnchor)
+          : null;
+
+        // A large first wheel/touchpad delta can cross the whole sticky scene in
+        // one browser frame. Stop that first jump at the search screen so the
+        // intro cannot briefly render a later, right-column phone state.
+        if (
+          isIntroPhoneState(currentState) &&
+          searchBoundary !== null &&
+          nextScrollTop > searchBoundary + 1
+        ) {
+          scrollRoot.scrollTop = searchBoundary;
+          lastForwardScrollTop = searchBoundary;
+          applyPhoneState("1-0");
+          return;
+        }
+
         let nextState = null;
         anchors.forEach((anchor) => {
           if (
@@ -731,7 +758,6 @@ export const setScrollingAnimations = function () {
           return;
         }
 
-        const currentState = phone.className.match(REGEX)?.[0];
         if (
           isIntroPhoneState(currentState) &&
           !isIntroPhoneState(nextState) &&
@@ -2190,6 +2216,7 @@ export const setScrollingAnimations = function () {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           counterIsActive = true;
+          currentDigit = getDigitForCurrentScroll();
 
           clearTimeout(counterHideTimer);
           // coverSection.classList.add("section-cover_scrolled");
@@ -2210,6 +2237,7 @@ export const setScrollingAnimations = function () {
           // setMainCornerShown(true);
           // setMainRightPlusShown(true);
         } else {
+          const wasCounterActive = counterIsActive;
           counterIsActive = false;
           counterBlock.classList.remove(
             "section-main__counter-block_digits-waiting",
@@ -2224,7 +2252,7 @@ export const setScrollingAnimations = function () {
           animateZeroVisibility(false);
           numberCont.className = numberCont.className.replace(
             NUMBER_CLASS_REGEX,
-            `_${currentDigit}-0`,
+            wasCounterActive ? `_${currentDigit}-0` : "_0-0",
           );
           // coverSection.classList.remove("section-cover_scrolled");
           // longDecorationLine.classList.remove(
@@ -2586,11 +2614,14 @@ export const setScrollingAnimations = function () {
         setBiggerScreenStyles();
         changeBiggerSocialsPosition();
       }
+
+      centerPhone();
     };
     window.addEventListener("resize", () => {
       setTimeout(changeMode, 250);
     });
-    requestAnimationFrame(changeMode);
+    changeMode();
+    window.addEventListener("load", centerPhone, { once: true });
     return changeMode;
   };
 
