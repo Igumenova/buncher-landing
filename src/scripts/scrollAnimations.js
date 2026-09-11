@@ -851,6 +851,10 @@ export const setScrollingAnimations = function () {
         return;
       }
 
+      if (typingIsLocked && typingDirection > 0) {
+        return;
+      }
+
       const range = typingRanges[activeStep];
       if (!range) {
         return;
@@ -860,7 +864,10 @@ export const setScrollingAnimations = function () {
         typingDirection > 0 &&
         typingOriginScrollTop === null
       ) {
-        typingOriginScrollTop = range.start;
+        typingOriginScrollTop = Math.max(
+          range.start,
+          scrollRoot.scrollTop,
+        );
       }
 
       const phaseProgress = typingDirection > 0
@@ -876,10 +883,18 @@ export const setScrollingAnimations = function () {
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
       const typingProgress = linearTypingProgress;
-      const visibleLetterCount =
+      let visibleLetterCount =
         typingDirection < 0
           ? (reverseVisibleLetterCount ?? activeLetters.length)
           : Math.floor(activeLetters.length * typingProgress);
+
+      if (
+        typingDirection > 0 &&
+        typingStartedStep !== activeStep &&
+        visibleLetterCount > 0
+      ) {
+        visibleLetterCount = 1;
+      }
 
       if (visibleLetterCount !== lastVisibleLetterCount) {
         activeLetters.forEach((letter, index) => {
@@ -1592,16 +1607,20 @@ export const setScrollingAnimations = function () {
           `${-stepDistance * TEXT_STEP_VERTICAL_OFFSET}px`,
         );
         outgoingTransitionClass =
-          nextStep >= previousStep
+          stepDistance >= 0
             ? "section-main__shuffle-phrase_exit-up"
             : "section-main__shuffle-phrase_exit-down";
         codeArea.classList.add("section-main__shuffle-code_transitioning");
         phraseCleanupTimer = setTimeout(() => {
           outgoingPhrase.remove();
+          typingOriginScrollTop =
+            typingDirection > 0
+              ? Math.max(
+                  typingRanges[activeStep]?.start ?? scrollRoot.scrollTop,
+                  scrollRoot.scrollTop,
+                )
+              : null;
           typingIsLocked = false;
-          if (typingDirection < 0) {
-            typingOriginScrollTop = null;
-          }
           lastVisibleLetterCount = -1;
           updateTypingProgress();
         }, TEXT_EXIT_DURATION);
@@ -1610,13 +1629,18 @@ export const setScrollingAnimations = function () {
         typingDirection = textScrollDirection || 1;
         typingOriginScrollTop =
           nextStep === 0
-            ? typingRanges[nextStep]?.start ?? scrollRoot.scrollTop
+            ? Math.max(
+                typingRanges[nextStep]?.start ?? scrollRoot.scrollTop,
+                scrollRoot.scrollTop,
+              )
             : null;
         phraseCleanupTimer = setTimeout(() => {
           typingIsLocked = false;
           if (typingOriginScrollTop === null) {
-            typingOriginScrollTop =
-              typingRanges[activeStep]?.start ?? scrollRoot.scrollTop;
+            typingOriginScrollTop = Math.max(
+              typingRanges[activeStep]?.start ?? scrollRoot.scrollTop,
+              scrollRoot.scrollTop,
+            );
           }
           lastVisibleLetterCount = -1;
           updateTypingProgress();
@@ -1624,7 +1648,13 @@ export const setScrollingAnimations = function () {
       } else {
         typingIsLocked = false;
         typingDirection = textScrollDirection || 1;
-        typingOriginScrollTop = null;
+        typingOriginScrollTop =
+          typingDirection > 0
+            ? Math.max(
+                typingRanges[nextStep]?.start ?? scrollRoot.scrollTop,
+                scrollRoot.scrollTop,
+              )
+            : null;
       }
 
       if (!outgoingPhrase) {
