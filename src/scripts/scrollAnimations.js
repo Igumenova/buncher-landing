@@ -23,8 +23,7 @@ export const setScrollingAnimations = function () {
   const PHONE_REVERSE_STEP_EVENT = "buncher:phone-reverse-step";
   const PHONE_REVERSE_CANCEL_EVENT = "buncher:phone-reverse-cancel";
   const INTRO_LOGO_VISIBILITY_EVENT = "buncher:intro-logo-visibility";
-  const INTRO_SCAFFOLD_VISIBILITY_EVENT =
-    "buncher:intro-scaffold-visibility";
+  const INTRO_SCAFFOLD_VISIBILITY_EVENT = "buncher:intro-scaffold-visibility";
   const STAGE_CHANGE_POINT = 0.72;
   const PHONE_STATE_TEXT_STEPS = {
     "1-0": 0,
@@ -48,6 +47,19 @@ export const setScrollingAnimations = function () {
   let footerReturnTextPending = false;
   let zeroTransitionTimer = null;
   let zeroIsVisible = false;
+
+  const getWheelDeltaInPixels = (event) => {
+    if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+      return event.deltaY * 16;
+    }
+
+    if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+      return event.deltaY * scrollRoot.clientHeight;
+    }
+
+    return event.deltaY;
+  };
+
   const getDigitForCurrentScroll = () => {
     const rootRect = scrollRoot.getBoundingClientRect();
     const viewportCenter = rootRect.top + scrollRoot.clientHeight / 2;
@@ -88,9 +100,7 @@ export const setScrollingAnimations = function () {
       "section-main__counter-block_zero-hidden",
     );
     counterBlock.classList.add(
-      `section-main__counter-block_zero-${
-        isVisible ? "entering" : "exiting"
-      }`,
+      `section-main__counter-block_zero-${isVisible ? "entering" : "exiting"}`,
     );
 
     zeroTransitionTimer = setTimeout(() => {
@@ -355,13 +365,7 @@ export const setScrollingAnimations = function () {
       let reversePhoneState = null;
       let introReverseSequenceIsActive = false;
       let introReverseStartScrollTop = null;
-      const PHONE_STAGE_FIRST_STATES = [
-        "1-0",
-        "1-2",
-        "2-1",
-        "3-2",
-        "4-1",
-      ];
+      const PHONE_STAGE_FIRST_STATES = ["1-0", "1-2", "2-1", "3-2", "4-1"];
       const phoneLogo = phone.querySelector(".phone__item_logo");
       const clearLogoAnimations = () => {
         phoneLogo.classList.remove(
@@ -413,7 +417,6 @@ export const setScrollingAnimations = function () {
         } else if (!isIntroPhoneState(state)) {
           clearIntroAnimations();
         }
-
       };
       const cancelIntroReverseSequence = () => {
         const sequenceWasActive = introReverseSequenceIsActive;
@@ -666,9 +669,7 @@ export const setScrollingAnimations = function () {
           if (entry.isIntersecting) {
             applyPhoneState(anchors[prevNum].dataset.id);
           } else {
-            applyPhoneState(
-              anchors[prevNum - 1]?.dataset.id ?? "999-999",
-            );
+            applyPhoneState(anchors[prevNum - 1]?.dataset.id ?? "999-999");
           }
         });
         first = false;
@@ -682,6 +683,40 @@ export const setScrollingAnimations = function () {
 
       let lastForwardScrollTop = scrollRoot.scrollTop;
       let forwardSyncFrameId = null;
+      const holdFirstForwardGestureAtSearch = (event) => {
+        if (
+          event.deltaY <= 0 ||
+          event.ctrlKey ||
+          event.target.closest(".modal-window_shown")
+        ) {
+          return;
+        }
+
+        const currentState = phone.className.match(REGEX)?.[0];
+        if (!isIntroPhoneState(currentState)) {
+          return;
+        }
+
+        const searchAnchor = anchors.find(
+          (anchor) => anchor.dataset.id === "1-0",
+        );
+        const searchBoundary = searchAnchor
+          ? getAnchorActivationScrollTop(searchAnchor)
+          : null;
+        const wheelDelta = Math.max(getWheelDeltaInPixels(event), 0);
+
+        if (
+          searchBoundary === null ||
+          scrollRoot.scrollTop >= searchBoundary ||
+          scrollRoot.scrollTop + wheelDelta <= searchBoundary
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        scrollRoot.scrollTop = searchBoundary;
+        applyPhoneState("1-0");
+      };
       const synchronizeForwardPhoneState = () => {
         forwardSyncFrameId = null;
         const nextScrollTop = scrollRoot.scrollTop;
@@ -719,10 +754,7 @@ export const setScrollingAnimations = function () {
           return;
         }
 
-        if (
-          reversePhoneState ||
-          introReverseSequenceIsActive
-        ) {
+        if (reversePhoneState || introReverseSequenceIsActive) {
           return;
         }
 
@@ -750,9 +782,7 @@ export const setScrollingAnimations = function () {
 
         let nextState = null;
         anchors.forEach((anchor) => {
-          if (
-            getAnchorActivationScrollTop(anchor) <= nextScrollTop + 1
-          ) {
+          if (getAnchorActivationScrollTop(anchor) <= nextScrollTop + 1) {
             nextState = anchor.dataset.id;
           }
         });
@@ -771,6 +801,9 @@ export const setScrollingAnimations = function () {
 
         applyPhoneState(nextState);
       };
+      scrollRoot.addEventListener("wheel", holdFirstForwardGestureAtSearch, {
+        passive: false,
+      });
       scrollRoot.addEventListener(
         "scroll",
         () => {
@@ -837,9 +870,7 @@ export const setScrollingAnimations = function () {
           scrollRoot.clientHeight / 2
         );
       };
-      const firstStageAnchor = document.querySelector(
-        ".anchor__item_1-0",
-      );
+      const firstStageAnchor = document.querySelector(".anchor__item_1-0");
       const firstStageStart = firstStageAnchor
         ? getScrollPoint(firstStageAnchor, 0.5) + INTRO_SEARCH_SCROLL_GAP
         : getScrollPoint(blockElements[1]);
@@ -851,12 +882,12 @@ export const setScrollingAnimations = function () {
         stageStarts[stageStarts.length - 1] +
         blockElements[blockElements.length - 1].offsetHeight;
 
-      typingRanges = stageStarts.slice(0, textSteps.length).map(
-        (start, index) => ({
+      typingRanges = stageStarts
+        .slice(0, textSteps.length)
+        .map((start, index) => ({
           start,
           end: stageMarkers[index] ?? finalStageEnd,
-        }),
-      );
+        }));
     };
     const updateTypingProgress = () => {
       typingFrameId = null;
@@ -874,25 +905,20 @@ export const setScrollingAnimations = function () {
         return;
       }
 
-      if (
-        typingDirection > 0 &&
-        typingOriginScrollTop === null
-      ) {
-        typingOriginScrollTop = Math.max(
-          range.start,
-          scrollRoot.scrollTop,
-        );
+      if (typingDirection > 0 && typingOriginScrollTop === null) {
+        typingOriginScrollTop = Math.max(range.start, scrollRoot.scrollTop);
       }
 
-      const phaseProgress = typingDirection > 0
-        ? clampProgress(
-            (scrollRoot.scrollTop - typingOriginScrollTop) /
-              Math.max(range.end - typingOriginScrollTop, 1),
-          )
-        : clampProgress(
-            (scrollRoot.scrollTop - range.start) /
-              Math.max(range.end - range.start, 1),
-          );
+      const phaseProgress =
+        typingDirection > 0
+          ? clampProgress(
+              (scrollRoot.scrollTop - typingOriginScrollTop) /
+                Math.max(range.end - typingOriginScrollTop, 1),
+            )
+          : clampProgress(
+              (scrollRoot.scrollTop - range.start) /
+                Math.max(range.end - range.start, 1),
+            );
       const linearTypingProgress = clampProgress(
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
@@ -933,7 +959,6 @@ export const setScrollingAnimations = function () {
           }),
         );
       }
-
     };
     const requestTypingProgressUpdate = () => {
       if (!typingFrameId) {
@@ -947,36 +972,33 @@ export const setScrollingAnimations = function () {
       "section-main__shuffle-panel_intro-pending",
     );
     let introScaffoldIsVisible = false;
-    document.addEventListener(
-      INTRO_SCAFFOLD_VISIBILITY_EVENT,
-      (event) => {
-        if (scrollRoot.dataset.introReverseSequence === "active") {
-          introScaffoldIsVisible = event.detail.visible;
-          return;
-        }
+    document.addEventListener(INTRO_SCAFFOLD_VISIBILITY_EVENT, (event) => {
+      if (scrollRoot.dataset.introReverseSequence === "active") {
+        introScaffoldIsVisible = event.detail.visible;
+        return;
+      }
 
-        const isVisible = event.detail.visible;
+      const isVisible = event.detail.visible;
 
-        if (introScaffoldIsVisible === isVisible) {
-          return;
-        }
+      if (introScaffoldIsVisible === isVisible) {
+        return;
+      }
 
-        introScaffoldIsVisible = isVisible;
-        shufflePanel.classList.remove(
-          "section-main__shuffle-panel_intro-pending",
-          "section-main__shuffle-panel_intro-entering",
-          "section-main__shuffle-panel_intro-exiting",
-        );
-        shufflePanel.style.removeProperty("clip-path");
-        shufflePanel.style.removeProperty("opacity");
-        void shufflePanel.offsetWidth;
-        shufflePanel.classList.add(
-          `section-main__shuffle-panel_intro-${
-            isVisible ? "entering" : "exiting"
-          }`,
-        );
-      },
-    );
+      introScaffoldIsVisible = isVisible;
+      shufflePanel.classList.remove(
+        "section-main__shuffle-panel_intro-pending",
+        "section-main__shuffle-panel_intro-entering",
+        "section-main__shuffle-panel_intro-exiting",
+      );
+      shufflePanel.style.removeProperty("clip-path");
+      shufflePanel.style.removeProperty("opacity");
+      void shufflePanel.offsetWidth;
+      shufflePanel.classList.add(
+        `section-main__shuffle-panel_intro-${
+          isVisible ? "entering" : "exiting"
+        }`,
+      );
+    });
     lineNumbers.classList.add("section-main__shuffle-line-numbers");
     lineNumberTrack.classList.add("section-main__shuffle-line-number-track");
     divider.classList.add("section-main__shuffle-divider");
@@ -1006,7 +1028,10 @@ export const setScrollingAnimations = function () {
       const layoutLeft = 50 * layoutScale;
 
       shufflePanel.style.setProperty("--shuffle-layout-scale", layoutScale);
-      shufflePanel.style.setProperty("--shuffle-layout-left", `${layoutLeft}px`);
+      shufflePanel.style.setProperty(
+        "--shuffle-layout-left",
+        `${layoutLeft}px`,
+      );
     };
 
     window.addEventListener("resize", updatePanelScale);
@@ -1019,10 +1044,7 @@ export const setScrollingAnimations = function () {
           lastTextScrollTop = nextScrollTop;
           if (textScrollDirection < 0 && !typingIsLocked) {
             if (typingDirection >= 0) {
-              reverseVisibleLetterCount = Math.max(
-                lastVisibleLetterCount,
-                0,
-              );
+              reverseVisibleLetterCount = Math.max(lastVisibleLetterCount, 0);
             }
             typingDirection = -1;
             typingOriginScrollTop = null;
@@ -1044,9 +1066,7 @@ export const setScrollingAnimations = function () {
     });
 
     const updateScaffoldVisibility = () => {
-      const isBeforeLogo = phone.classList.contains(
-        "phone__content_999-999",
-      );
+      const isBeforeLogo = phone.classList.contains("phone__content_999-999");
       const isLogoStage = phone.classList.contains("phone__content_0-0");
       const isIntroVisualStage = isBeforeLogo || isLogoStage;
       shufflePanel.classList.add("section-main__shuffle-panel_visible");
@@ -1211,7 +1231,11 @@ export const setScrollingAnimations = function () {
         }
 
         const lastEndIndex = words.length - linesLeft + 1;
-        for (let endIndex = startIndex + 1; endIndex <= lastEndIndex; endIndex++) {
+        for (
+          let endIndex = startIndex + 1;
+          endIndex <= lastEndIndex;
+          endIndex++
+        ) {
           const nextLine = words.slice(startIndex, endIndex).join(" ");
           visitLayouts(
             endIndex,
@@ -1515,9 +1539,7 @@ export const setScrollingAnimations = function () {
           "--shuffle-phrase-entry-shift",
           `${entryShift}px`,
         );
-        phraseElement.classList.add(
-          "section-main__shuffle-phrase_entering",
-        );
+        phraseElement.classList.add("section-main__shuffle-phrase_entering");
       }
       shuffleText.appendChild(phraseElement);
       activePhrase = phraseElement;
@@ -1648,17 +1670,20 @@ export const setScrollingAnimations = function () {
                 scrollRoot.scrollTop,
               )
             : null;
-        phraseCleanupTimer = setTimeout(() => {
-          typingIsLocked = false;
-          if (typingOriginScrollTop === null) {
-            typingOriginScrollTop = Math.max(
-              typingRanges[activeStep]?.start ?? scrollRoot.scrollTop,
-              scrollRoot.scrollTop,
-            );
-          }
-          lastVisibleLetterCount = -1;
-          updateTypingProgress();
-        }, nextStep === 0 ? 0 : TEXT_EXIT_DURATION);
+        phraseCleanupTimer = setTimeout(
+          () => {
+            typingIsLocked = false;
+            if (typingOriginScrollTop === null) {
+              typingOriginScrollTop = Math.max(
+                typingRanges[activeStep]?.start ?? scrollRoot.scrollTop,
+                scrollRoot.scrollTop,
+              );
+            }
+            lastVisibleLetterCount = -1;
+            updateTypingProgress();
+          },
+          nextStep === 0 ? 0 : TEXT_EXIT_DURATION,
+        );
       } else {
         typingIsLocked = false;
         typingDirection = textScrollDirection || 1;
@@ -1682,9 +1707,7 @@ export const setScrollingAnimations = function () {
       const incomingPhrase = typePhrase(
         textSteps[nextStep],
         nextStep,
-        outgoingPhrase
-          ? stepDistance * TEXT_STEP_VERTICAL_OFFSET
-          : 0,
+        outgoingPhrase ? stepDistance * TEXT_STEP_VERTICAL_OFFSET : 0,
       );
       requestAnimationFrame(() => {
         if (activeStep === nextStep) {
@@ -1694,9 +1717,7 @@ export const setScrollingAnimations = function () {
           incomingPhrase.classList.remove(
             "section-main__shuffle-phrase_entering",
           );
-          incomingPhrase.classList.add(
-            "section-main__shuffle-phrase_active",
-          );
+          incomingPhrase.classList.add("section-main__shuffle-phrase_active");
           moveLineNumbers(nextStep);
         }
       });
@@ -1760,9 +1781,7 @@ export const setScrollingAnimations = function () {
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
     const numberCont = document.getElementById("changing-number");
-    const shuffleText = document.querySelector(
-      ".section-main__shuffle-text",
-    );
+    const shuffleText = document.querySelector(".section-main__shuffle-text");
     const REVERSE_GESTURE_END_DELAY = 650;
     const REVERSE_GESTURE_MIN_DURATION = 900;
     const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
@@ -1795,17 +1814,6 @@ export const setScrollingAnimations = function () {
     scrollRoot.dataset.reverseGestureCount = "0";
     scrollRoot.dataset.reverseMode = "—";
 
-    const getWheelDeltaInPixels = (event) => {
-      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
-        return event.deltaY * 16;
-      }
-
-      if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
-        return event.deltaY * scrollRoot.clientHeight;
-      }
-
-      return event.deltaY;
-    };
     const scheduleReverseGestureEnd = () => {
       clearTimeout(reverseGestureEndTimer);
       const gestureElapsed = performance.now() - reverseGestureStartedAt;
@@ -1858,8 +1866,7 @@ export const setScrollingAnimations = function () {
     const getFooterSequenceTriggerScrollTop = () => {
       const rootRect = scrollRoot.getBoundingClientRect();
       const mainRect = mainSection.getBoundingClientRect();
-      const sectionTop =
-        scrollRoot.scrollTop + mainRect.top - rootRect.top;
+      const sectionTop = scrollRoot.scrollTop + mainRect.top - rootRect.top;
       const stickyDistance = Math.max(
         mainSection.offsetHeight - scrollRoot.clientHeight,
         0,
@@ -1897,9 +1904,7 @@ export const setScrollingAnimations = function () {
           footerForwardStage = "complete";
           footerReverseSequenceTimers = [];
           scrollRoot.dataset.reverseMode = "переход к финальному экрану";
-        },
-        FOOTER_REVERSE_DIGIT_STAGE_DURATION +
-          FOOTER_REVERSE_ASSETS_STAGE_DURATION),
+        }, FOOTER_REVERSE_DIGIT_STAGE_DURATION + FOOTER_REVERSE_ASSETS_STAGE_DURATION),
       );
     };
     const handleFooterForwardWheel = (event) => {
@@ -2091,9 +2096,7 @@ export const setScrollingAnimations = function () {
         "section-main__counter-block_zero-visible",
         "section-main__counter-block_zero-hidden",
       );
-      counterBlock.classList.add(
-        "section-main__counter-block_zero-visible",
-      );
+      counterBlock.classList.add("section-main__counter-block_zero-visible");
       numberCont.className = numberCont.className.replace(
         /_\d+-\d+$/,
         `_${finalDigit}-${finalDigit}`,
@@ -2106,10 +2109,7 @@ export const setScrollingAnimations = function () {
       return true;
     };
     const startFooterReverseAssetsSequence = () => {
-      if (
-        footerReverseSequenceIsActive ||
-        !footerReverseApproachIsActive
-      ) {
+      if (footerReverseSequenceIsActive || !footerReverseApproachIsActive) {
         return true;
       }
 
@@ -2130,37 +2130,40 @@ export const setScrollingAnimations = function () {
         setTimeout(() => {
           mainSection.classList.remove("section-main_footer-digit-hidden");
           scrollRoot.dataset.reverseMode = "возврат цифры";
-        },
-        FOOTER_REVERSE_PHONE_STAGE_DURATION +
-          FOOTER_REVERSE_ASSETS_STAGE_DURATION),
+        }, FOOTER_REVERSE_PHONE_STAGE_DURATION + FOOTER_REVERSE_ASSETS_STAGE_DURATION),
       );
 
       footerReverseSequenceTimers.push(
-        setTimeout(() => {
-          footerReturnTextPending = false;
-          dispatchTextStepChange(currentDigit - 1, {
-            direction: -1,
-          });
-          scrollRoot.dataset.reverseMode = "текст фазы 5";
-        },
-        FOOTER_REVERSE_PHONE_STAGE_DURATION +
-          FOOTER_REVERSE_ASSETS_STAGE_DURATION +
-          FOOTER_REVERSE_DIGIT_STAGE_DURATION),
+        setTimeout(
+          () => {
+            footerReturnTextPending = false;
+            dispatchTextStepChange(currentDigit - 1, {
+              direction: -1,
+            });
+            scrollRoot.dataset.reverseMode = "текст фазы 5";
+          },
+          FOOTER_REVERSE_PHONE_STAGE_DURATION +
+            FOOTER_REVERSE_ASSETS_STAGE_DURATION +
+            FOOTER_REVERSE_DIGIT_STAGE_DURATION,
+        ),
       );
 
       footerReverseSequenceTimers.push(
-        setTimeout(() => {
-          footerReverseSequenceIsActive = false;
-          footerReverseSequenceTimers = [];
-          footerForwardStage = "reverse-ready";
-          scheduleFooterReverseTextStageArm();
-          scrollRoot.dataset.reverseGesture = "idle";
-          scrollRoot.dataset.reverseMode = "текст фазы 5 — ожидание нового жеста";
-        },
-        FOOTER_REVERSE_PHONE_STAGE_DURATION +
-          FOOTER_REVERSE_ASSETS_STAGE_DURATION +
-          FOOTER_REVERSE_DIGIT_STAGE_DURATION +
-          FOOTER_REVERSE_TEXT_STAGE_DURATION),
+        setTimeout(
+          () => {
+            footerReverseSequenceIsActive = false;
+            footerReverseSequenceTimers = [];
+            footerForwardStage = "reverse-ready";
+            scheduleFooterReverseTextStageArm();
+            scrollRoot.dataset.reverseGesture = "idle";
+            scrollRoot.dataset.reverseMode =
+              "текст фазы 5 — ожидание нового жеста";
+          },
+          FOOTER_REVERSE_PHONE_STAGE_DURATION +
+            FOOTER_REVERSE_ASSETS_STAGE_DURATION +
+            FOOTER_REVERSE_DIGIT_STAGE_DURATION +
+            FOOTER_REVERSE_TEXT_STAGE_DURATION,
+        ),
       );
 
       return true;
@@ -2190,10 +2193,7 @@ export const setScrollingAnimations = function () {
       );
     };
     const startFooterReverseApproach = () => {
-      if (
-        footerReverseApproachIsActive ||
-        footerReverseSequenceIsActive
-      ) {
+      if (footerReverseApproachIsActive || footerReverseSequenceIsActive) {
         return true;
       }
 
@@ -2246,11 +2246,7 @@ export const setScrollingAnimations = function () {
           boundary: "search",
           direction: -1,
         });
-        commitReverseNavigation(
-          renderedState,
-          "1-0",
-          searchHoldScrollTop,
-        );
+        commitReverseNavigation(renderedState, "1-0", searchHoldScrollTop);
         return true;
       }
 
@@ -2327,13 +2323,14 @@ export const setScrollingAnimations = function () {
     scrollRoot.addEventListener(
       "wheel",
       (event) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+
         if (event.deltaY > 0) {
           reverseTextHoldStep = null;
           reverseTextHoldRemaining = 0;
-          if (
-            footerReverseApproachIsActive ||
-            footerReverseSequenceIsActive
-          ) {
+          if (footerReverseApproachIsActive || footerReverseSequenceIsActive) {
             clearFooterReverseSequence();
           }
 
@@ -2341,10 +2338,7 @@ export const setScrollingAnimations = function () {
             return;
           }
 
-          forwardIntentDistance += Math.max(
-            getWheelDeltaInPixels(event),
-            0,
-          );
+          forwardIntentDistance += Math.max(getWheelDeltaInPixels(event), 0);
 
           if (
             reverseGestureIsActive &&
@@ -2375,10 +2369,7 @@ export const setScrollingAnimations = function () {
 
         forwardIntentDistance = 0;
 
-        if (
-          event.ctrlKey ||
-          event.target.closest(".modal-window_shown")
-        ) {
+        if (event.ctrlKey || event.target.closest(".modal-window_shown")) {
           return;
         }
 
@@ -2443,9 +2434,10 @@ export const setScrollingAnimations = function () {
           !counterIsActive ||
           (lastStageIsRendered &&
             (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
-        const reverseTransitionStep = counterIsActive && !isFooterReturn
-          ? getReverseTextTransitionStep()
-          : null;
+        const reverseTransitionStep =
+          counterIsActive && !isFooterReturn
+            ? getReverseTextTransitionStep()
+            : null;
 
         if (reverseTransitionStep !== null) {
           if (reverseTextHoldStep !== reverseTransitionStep) {
@@ -2455,8 +2447,7 @@ export const setScrollingAnimations = function () {
 
           event.preventDefault();
           reverseTextHoldRemaining = Math.max(
-            reverseTextHoldRemaining -
-              Math.abs(getWheelDeltaInPixels(event)),
+            reverseTextHoldRemaining - Math.abs(getWheelDeltaInPixels(event)),
             0,
           );
           scrollRoot.dataset.reverseMode = "удержание текста 200px";
@@ -2496,9 +2487,8 @@ export const setScrollingAnimations = function () {
         if (navigationWasHandled) {
           if (isFooterReturn) {
             reverseGestureCount++;
-            scrollRoot.dataset.reverseGestureCount = String(
-              reverseGestureCount,
-            );
+            scrollRoot.dataset.reverseGestureCount =
+              String(reverseGestureCount);
             return;
           }
 
@@ -2523,9 +2513,7 @@ export const setScrollingAnimations = function () {
           scrollRoot.dataset.reverseMode = isFooterReturn
             ? "плавный возврат"
             : "один шаг";
-          scrollRoot.dataset.reverseGestureCount = String(
-            reverseGestureCount,
-          );
+          scrollRoot.dataset.reverseGestureCount = String(reverseGestureCount);
           scheduleReverseGestureEnd();
           return;
         }
@@ -2535,8 +2523,7 @@ export const setScrollingAnimations = function () {
         }
 
         scrollRoot.scrollTop +=
-          getWheelDeltaInPixels(event) *
-          (REVERSE_WHEEL_SCROLL_MULTIPLIER - 1);
+          getWheelDeltaInPixels(event) * (REVERSE_WHEEL_SCROLL_MULTIPLIER - 1);
       },
       { passive: false },
     );
@@ -2559,9 +2546,7 @@ export const setScrollingAnimations = function () {
       threshold: 0,
     };
     const updateCounterActivationPoint = () => {
-      const nextPhoneStateAnchor = document.querySelector(
-        ".anchor__item_1-0",
-      );
+      const nextPhoneStateAnchor = document.querySelector(".anchor__item_1-0");
 
       if (!nextPhoneStateAnchor) {
         return;
@@ -2646,12 +2631,8 @@ export const setScrollingAnimations = function () {
     const BOUNDARY_FADE_DISTANCE_IN_VIEWPORTS = 0.9;
     const mainSection = document.getElementById("section-main");
     const counterBlock = document.getElementById("counter");
-    const shuffleLayer = document.querySelector(
-      ".section-main__shuffle-layer",
-    );
-    const shuffleText = document.querySelector(
-      ".section-main__shuffle-text",
-    );
+    const shuffleLayer = document.querySelector(".section-main__shuffle-layer");
+    const shuffleText = document.querySelector(".section-main__shuffle-text");
     const phoneContentBlock = document.getElementById(
       "section-main__content-block",
     );
@@ -2698,8 +2679,7 @@ export const setScrollingAnimations = function () {
     const updateOpacity = () => {
       frameId = null;
       const localScroll = scrollRoot.scrollTop - sectionTop;
-      const exitOpacity =
-        (stickyDistance - localScroll) / fadeDistance;
+      const exitOpacity = (stickyDistance - localScroll) / fadeDistance;
       const exitProgress = clamp(exitOpacity, 0, 1);
       const outroProgress = 1 - exitProgress;
       const textHoldProgress = clamp(
@@ -2708,17 +2688,9 @@ export const setScrollingAnimations = function () {
         1,
       );
       const textOpacity =
-        1 -
-        clamp(
-          (outroProgress - textHoldProgress) / 0.22,
-          0,
-          1,
-        );
-      const scaffoldOpacity =
-        1 - clamp((outroProgress - 0.58) / 0.24, 0, 1);
-      const phoneIsEmpty = phone.classList.contains(
-        "phone__content_999-999",
-      );
+        1 - clamp((outroProgress - textHoldProgress) / 0.22, 0, 1);
+      const scaffoldOpacity = 1 - clamp((outroProgress - 0.58) / 0.24, 0, 1);
+      const phoneIsEmpty = phone.classList.contains("phone__content_999-999");
       const introProgress = clamp(localScroll / introEndScroll, 0, 1);
       const introMovementProgress = clamp(introProgress / 0.4, 0, 1);
       const nextLogoIsVisible = introProgress >= 0.5;
@@ -2737,10 +2709,7 @@ export const setScrollingAnimations = function () {
         );
       }
 
-      if (
-        introIsActive &&
-        scaffoldIsVisible !== nextScaffoldIsVisible
-      ) {
+      if (introIsActive && scaffoldIsVisible !== nextScaffoldIsVisible) {
         scaffoldIsVisible = nextScaffoldIsVisible;
         document.dispatchEvent(
           new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
