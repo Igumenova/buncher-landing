@@ -291,7 +291,7 @@
     padding-bottom: $phone-upper-margin;
     transform: translate3d(
       var(--phone-x-offset, 0),
-      var(--phone-boundary-y, 0),
+      0,
       0
     );
     transition: none;
@@ -300,7 +300,7 @@
     &_shown {
       transform: translate3d(
         var(--phone-x-offset, 0),
-        var(--phone-boundary-y, 0),
+        0,
         0
       );
     }

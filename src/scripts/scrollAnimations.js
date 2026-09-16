@@ -15,7 +15,6 @@ export const setScrollingAnimations = function () {
   const TEXT_EXIT_DURATION = PHASE_TRANSITION_DURATION;
   const INTRO_SEARCH_TRANSITION_DURATION = 500;
   const INTRO_SEARCH_SCROLL_GAP = 500;
-  const INTRO_REVERSE_SCAFFOLD_SCROLL_DISTANCE = 500;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
   const TEXT_PHASE_HOLD_SCROLL_DISTANCE = 200;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
@@ -365,6 +364,7 @@ export const setScrollingAnimations = function () {
       let reversePhoneState = null;
       let introReverseSequenceIsActive = false;
       let introReverseStartScrollTop = null;
+      let introReverseScrollDistance = 1;
       const PHONE_STAGE_FIRST_STATES = ["1-0", "1-2", "2-1", "3-2", "4-1"];
       const phoneLogo = phone.querySelector(".phone__item_logo");
       const clearLogoAnimations = () => {
@@ -409,6 +409,14 @@ export const setScrollingAnimations = function () {
           scrollRoot.clientHeight / 2
         );
       };
+      const getMainStickyStartScrollTop = () => {
+        const rootRect = scrollRoot.getBoundingClientRect();
+        const mainRect = document
+          .getElementById("section-main")
+          .getBoundingClientRect();
+
+        return scrollRoot.scrollTop + mainRect.top - rootRect.top;
+      };
       const commitPhoneState = (state) => {
         phone.className = phone.className.replace(REGEX, state);
 
@@ -441,7 +449,7 @@ export const setScrollingAnimations = function () {
           0,
         );
         const scaffoldProgress = Math.min(
-          reverseDistance / INTRO_REVERSE_SCAFFOLD_SCROLL_DISTANCE,
+          reverseDistance / introReverseScrollDistance,
           1,
         );
         const shufflePanel = document.querySelector(
@@ -457,6 +465,11 @@ export const setScrollingAnimations = function () {
           (1 - scaffoldProgress).toFixed(4),
         );
         if (scaffoldProgress >= 1) {
+          document.dispatchEvent(
+            new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
+              detail: { visible: false },
+            }),
+          );
           introReverseSequenceIsActive = false;
           introReverseStartScrollTop = null;
           scrollRoot.dataset.introReverseSequence = "idle";
@@ -470,6 +483,10 @@ export const setScrollingAnimations = function () {
 
         introReverseSequenceIsActive = true;
         introReverseStartScrollTop = scrollRoot.scrollTop;
+        introReverseScrollDistance = Math.max(
+          introReverseStartScrollTop - getMainStickyStartScrollTop(),
+          1,
+        );
         scrollRoot.dataset.introReverseSequence = "active";
         const shufflePanel = document.querySelector(
           ".section-main__shuffle-panel",
@@ -2633,18 +2650,12 @@ export const setScrollingAnimations = function () {
     const counterBlock = document.getElementById("counter");
     const shuffleLayer = document.querySelector(".section-main__shuffle-layer");
     const shuffleText = document.querySelector(".section-main__shuffle-text");
-    const phoneContentBlock = document.getElementById(
-      "section-main__content-block",
-    );
     const phone = document.getElementById("phone");
     let frameId = null;
     let sectionTop = 0;
     let stickyDistance = 0;
     let fadeDistance = 1;
-    let maxPhoneOffset = 6;
-    let introEndScroll = 1;
     let lastOpacity = null;
-    let lastPhoneOffset = null;
     let logoIsVisible = false;
     let scaffoldIsVisible = false;
 
@@ -2662,19 +2673,6 @@ export const setScrollingAnimations = function () {
         scrollRoot.clientHeight * BOUNDARY_FADE_DISTANCE_IN_VIEWPORTS,
         1,
       );
-      maxPhoneOffset = clamp(scrollRoot.clientHeight * 0.012, 6, 12);
-      const firstStageAnchor = document.querySelector(".anchor__item_1-0");
-
-      if (firstStageAnchor) {
-        const anchorRect = firstStageAnchor.getBoundingClientRect();
-        introEndScroll = Math.max(
-          anchorRect.top -
-            sectionRect.top +
-            anchorRect.height / 2 -
-            scrollRoot.clientHeight / 2,
-          scrollRoot.clientHeight * 0.5,
-        );
-      }
     };
     const updateOpacity = () => {
       frameId = null;
@@ -2690,18 +2688,11 @@ export const setScrollingAnimations = function () {
       const textOpacity =
         1 - clamp((outroProgress - textHoldProgress) / 0.22, 0, 1);
       const scaffoldOpacity = 1 - clamp((outroProgress - 0.58) / 0.24, 0, 1);
-      const phoneIsEmpty = phone.classList.contains("phone__content_999-999");
-      const introProgress = clamp(localScroll / introEndScroll, 0, 1);
-      const introMovementProgress = clamp(introProgress / 0.4, 0, 1);
-      const nextLogoIsVisible = introProgress >= 0.5;
-      const nextScaffoldIsVisible = introProgress >= 0.72;
-      const introIsActive = localScroll <= introEndScroll;
-      const phoneBoundaryOffset = phoneIsEmpty
-        ? (1 - introMovementProgress) * maxPhoneOffset
-        : 0;
+      const introIsVisible = localScroll >= 0;
+      const introIsActive = localScroll <= scrollRoot.clientHeight;
 
-      if (introIsActive && logoIsVisible !== nextLogoIsVisible) {
-        logoIsVisible = nextLogoIsVisible;
+      if (introIsActive && logoIsVisible !== introIsVisible) {
+        logoIsVisible = introIsVisible;
         document.dispatchEvent(
           new CustomEvent(INTRO_LOGO_VISIBILITY_EVENT, {
             detail: { visible: logoIsVisible },
@@ -2709,8 +2700,8 @@ export const setScrollingAnimations = function () {
         );
       }
 
-      if (introIsActive && scaffoldIsVisible !== nextScaffoldIsVisible) {
-        scaffoldIsVisible = nextScaffoldIsVisible;
+      if (introIsActive && scaffoldIsVisible !== introIsVisible) {
+        scaffoldIsVisible = introIsVisible;
         document.dispatchEvent(
           new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
             detail: { visible: scaffoldIsVisible },
@@ -2737,17 +2728,6 @@ export const setScrollingAnimations = function () {
         "--outro-phone-content-opacity",
         scaffoldOpacity.toFixed(4),
       );
-
-      if (
-        lastPhoneOffset === null ||
-        Math.abs(phoneBoundaryOffset - lastPhoneOffset) > 0.01
-      ) {
-        phoneContentBlock.style.setProperty(
-          "--phone-boundary-y",
-          `${phoneBoundaryOffset.toFixed(3)}px`,
-        );
-        lastPhoneOffset = phoneBoundaryOffset;
-      }
     };
     const requestOpacityUpdate = () => {
       if (!frameId) {
