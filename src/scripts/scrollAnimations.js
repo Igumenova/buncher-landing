@@ -428,13 +428,22 @@ export const setScrollingAnimations = function () {
       return 0;
     }
 
-    const rootRect = scrollRoot.getBoundingClientRect();
-    const blockRect = block.getBoundingClientRect();
+    const getDocumentOffsetTop = (element) => {
+      let offsetTop = 0;
+      let currentElement = element;
+
+      while (currentElement) {
+        offsetTop += currentElement.offsetTop;
+        currentElement = currentElement.offsetParent;
+      }
+
+      return offsetTop;
+    };
+    const blockOffsetTop =
+      getDocumentOffsetTop(block) - getDocumentOffsetTop(scrollRoot);
     return (
-      scrollRoot.scrollTop +
-      blockRect.top -
-      rootRect.top +
-      blockRect.height * STAGE_CHANGE_POINT +
+      blockOffsetTop +
+      block.offsetHeight * STAGE_CHANGE_POINT +
       TEXT_PHASE_HOLD_SCROLL_DISTANCE -
       scrollRoot.clientHeight / 2
     );
@@ -2370,6 +2379,18 @@ export const setScrollingAnimations = function () {
             }
             typingDirection = -1;
             typingOriginScrollTop = null;
+          } else if (
+            textScrollDirection > 0 &&
+            !typingIsLocked &&
+            typingDirection < 0
+          ) {
+            // A user may reverse only part of a phase and immediately move
+            // forward again. Re-arm forward typing so midpoint/completion
+            // events fire again and unlock that phase's mockup states.
+            typingDirection = 1;
+            typingOriginScrollTop =
+              typingRanges[activeStep]?.start ?? scrollRoot.scrollTop;
+            reverseVisibleLetterCount = null;
           }
         }
         requestTypingProgressUpdate();
@@ -2928,6 +2949,16 @@ export const setScrollingAnimations = function () {
       const outgoingPhrase = activePhrase;
       let outgoingTransitionClass = null;
       let stepDistance = nextStep - previousStep;
+
+      // Returning to an earlier phase must re-arm that phase's midpoint and
+      // completion events. Otherwise a second forward pass renders the text
+      // but never unlocks the mockup states again.
+      if (previousStep >= 0 && nextStep < previousStep) {
+        completedTextStep = Math.min(completedTextStep, nextStep - 1);
+        midpointTextStep = Math.min(midpointTextStep, nextStep - 1);
+        textTypingCompletionGestureId = null;
+      }
+
       activeStep = nextStep;
       clearTimeout(hideTimer);
       clearTimeout(phraseCleanupTimer);
@@ -2973,10 +3004,7 @@ export const setScrollingAnimations = function () {
           outgoingPhrase.remove();
           typingOriginScrollTop =
             typingDirection > 0
-              ? Math.max(
-                  typingRanges[activeStep]?.start ?? scrollRoot.scrollTop,
-                  scrollRoot.scrollTop,
-                )
+              ? (typingRanges[activeStep]?.start ?? scrollRoot.scrollTop)
               : null;
           typingIsLocked = false;
           lastVisibleLetterCount = -1;
@@ -2987,19 +3015,14 @@ export const setScrollingAnimations = function () {
         typingDirection = textScrollDirection || 1;
         typingOriginScrollTop =
           nextStep === 0
-            ? Math.max(
-                typingRanges[nextStep]?.start ?? scrollRoot.scrollTop,
-                scrollRoot.scrollTop,
-              )
+            ? (typingRanges[nextStep]?.start ?? scrollRoot.scrollTop)
             : null;
         phraseCleanupTimer = setTimeout(
           () => {
             typingIsLocked = false;
             if (typingOriginScrollTop === null) {
-              typingOriginScrollTop = Math.max(
-                typingRanges[activeStep]?.start ?? scrollRoot.scrollTop,
-                scrollRoot.scrollTop,
-              );
+              typingOriginScrollTop =
+                typingRanges[activeStep]?.start ?? scrollRoot.scrollTop;
             }
             lastVisibleLetterCount = -1;
             updateTypingProgress();
@@ -3011,10 +3034,7 @@ export const setScrollingAnimations = function () {
         typingDirection = textScrollDirection || 1;
         typingOriginScrollTop =
           typingDirection > 0
-            ? Math.max(
-                typingRanges[nextStep]?.start ?? scrollRoot.scrollTop,
-                scrollRoot.scrollTop,
-              )
+            ? (typingRanges[nextStep]?.start ?? scrollRoot.scrollTop)
             : null;
       }
 
