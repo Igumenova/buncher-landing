@@ -11,4 +11,12 @@ window.addEventListener('load', function () {
     setScrollingAnimations();
     setModalBehaviour();
     setSubscribeFormBehavior();
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document
+                .getElementById('custom-scrollbar')
+                ?.classList.remove('custom-scrollbar_loading-locked');
+        });
+    });
 });

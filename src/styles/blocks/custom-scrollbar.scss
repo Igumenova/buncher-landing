@@ -8,6 +8,10 @@
     overflow-y: hidden;
   }
 
+  &_loading-locked {
+    overflow-y: hidden;
+  }
+
   @supports (-moz-appearance:none) {
     scrollbar-width: thin;
   }
