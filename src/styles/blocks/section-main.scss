@@ -1358,6 +1358,18 @@
   }
 }
 
+.section-main_footer-scaffold-hidden {
+  .section-main__shuffle-layer {
+    opacity: 0 !important;
+  }
+}
+
+.section-main_footer-screen-hidden {
+  .phone__content {
+    opacity: 0 !important;
+  }
+}
+
 .section-main_footer-digit-hidden {
   .counter-block__number-window {
     opacity: 0 !important;
