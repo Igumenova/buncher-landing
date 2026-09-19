@@ -72,6 +72,9 @@ export const setScrollingAnimations = function () {
   let wheelGestureDirection = 0;
   let previousWheelDelta = 0;
   let previousWheelDeltaY = 0;
+  let oppositeWheelDirection = 0;
+  let oppositeWheelDistance = 0;
+  let oppositeWheelEventCount = 0;
   let wheelInputLock = null;
   let wheelInputLockTimer = null;
   let scrollDebugSequence = 0;
@@ -228,6 +231,27 @@ export const setScrollingAnimations = function () {
       wheelGestureIsActive &&
       wheelGestureDirection !== 0 &&
       eventDirection !== wheelGestureDirection;
+    if (opposesActiveGesture) {
+      if (oppositeWheelDirection !== eventDirection) {
+        oppositeWheelDirection = eventDirection;
+        oppositeWheelDistance = 0;
+        oppositeWheelEventCount = 0;
+      }
+      oppositeWheelDistance += delta;
+      oppositeWheelEventCount += 1;
+    } else {
+      oppositeWheelDirection = 0;
+      oppositeWheelDistance = 0;
+      oppositeWheelEventCount = 0;
+    }
+
+    const confirmsDirectionChange =
+      opposesActiveGesture &&
+      oppositeWheelEventCount >= 2 &&
+      (oppositeWheelDistance >= WHEEL_GESTURE_RESTART_DELTA * 3 ||
+        (now - wheelGestureStartedAt >= WHEEL_GESTURE_RESTART_MIN_AGE &&
+          delta >= WHEEL_GESTURE_RESTART_DELTA &&
+          delta >= previousWheelDelta * WHEEL_GESTURE_RESTART_RATIO));
 
     // Some mouse drivers emit an opposite-sign momentum tail during one fast
     // wheel movement. It is not a new user gesture: routing it as one used to
@@ -235,7 +259,7 @@ export const setScrollingAnimations = function () {
     // which could jump several phases and then snap back to phase one.
     // Keep the first direction latched until the gesture has actually gone
     // quiet, and suppress both routing and native scrolling for these tails.
-    if (opposesActiveGesture) {
+    if (opposesActiveGesture && !confirmsDirectionChange) {
       wheelGestureIds.set(event, currentWheelGestureId);
       wheelGestureStarts.set(event, false);
       logScrollDebug("wheel-direction-tail-suppressed", {
@@ -253,6 +277,9 @@ export const setScrollingAnimations = function () {
         wheelGestureDirection = 0;
         previousWheelDelta = 0;
         previousWheelDeltaY = 0;
+        oppositeWheelDirection = 0;
+        oppositeWheelDistance = 0;
+        oppositeWheelEventCount = 0;
         logScrollDebug("gesture-end", { gestureId: endingGestureId });
         releaseWheelInputIfReady();
       }, WHEEL_GESTURE_END_DELAY);
@@ -267,18 +294,23 @@ export const setScrollingAnimations = function () {
       delta >= previousWheelDelta * WHEEL_GESTURE_RESTART_RATIO;
     const startsNewGesture =
       event.deltaY !== 0 &&
-      (!wheelGestureIsActive || restartsFromInertia);
+      (!wheelGestureIsActive || restartsFromInertia || confirmsDirectionChange);
     const newGestureReason = !startsNewGesture
       ? null
-      : restartsFromInertia
-        ? "inertia-restart"
-        : "idle";
+      : confirmsDirectionChange
+        ? "direction-change"
+        : restartsFromInertia
+          ? "inertia-restart"
+          : "idle";
 
     if (startsNewGesture) {
       currentWheelGestureId += 1;
       wheelGestureIsActive = true;
       wheelGestureStartedAt = now;
       wheelGestureDirection = eventDirection;
+      oppositeWheelDirection = 0;
+      oppositeWheelDistance = 0;
+      oppositeWheelEventCount = 0;
       // A touchpad can begin the next swipe while momentum events from the
       // previous swipe are still arriving. Once the owned animation has
       // completed, the first event of that new swipe must release its lock and
@@ -313,6 +345,9 @@ export const setScrollingAnimations = function () {
         wheelGestureDirection = 0;
         previousWheelDelta = 0;
         previousWheelDeltaY = 0;
+        oppositeWheelDirection = 0;
+        oppositeWheelDistance = 0;
+        oppositeWheelEventCount = 0;
         logScrollDebug("gesture-end", { gestureId: endingGestureId });
         releaseWheelInputIfReady();
       }, WHEEL_GESTURE_END_DELAY);
