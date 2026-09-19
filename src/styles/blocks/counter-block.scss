@@ -100,13 +100,15 @@
     // The first phase enters and leaves calmly: no LCD stretch or blur on 01.
     &_0-1 {
       .counter-block__number:first-child {
-        animation: firstDigitFadeIn $animation-speed ease-in-out forwards;
+        animation: none;
+        opacity: 1;
       }
     }
 
     &_1-0 {
       .counter-block__number:first-child {
-        animation: firstDigitFadeOut $animation-speed ease-in-out forwards;
+        animation: none;
+        opacity: 1;
       }
     }
   }
@@ -304,20 +306,30 @@
   filter: blur(0) !important;
 }
 
-.section-main__counter-block_zero-entering
+.section-main__counter-block_zero-entering {
+  .counter-block__number-window {
+    animation: firstDigitFadeIn $digit-transition-duration ease-in-out forwards;
+  }
+
   .counter-block__number-zero-stack {
-  animation: zeroDigitIn $digit-transition-duration
-    cubic-bezier(0.35, 0, 0.2, 1) forwards;
-  transform-origin: center center;
-  will-change: transform, opacity, filter;
+    animation: none;
+    opacity: 1;
+    transform: scaleX(1) translateZ(0);
+    filter: blur(0);
+  }
 }
 
-.section-main__counter-block_zero-exiting
+.section-main__counter-block_zero-exiting {
+  .counter-block__number-window {
+    animation: firstDigitFadeOut $digit-transition-duration ease-in-out forwards;
+  }
+
   .counter-block__number-zero-stack {
-  animation: zeroDigitOut $digit-transition-duration
-    cubic-bezier(0.35, 0, 0.2, 1) forwards;
-  transform-origin: center center;
-  will-change: transform, opacity, filter;
+    animation: none;
+    opacity: 1;
+    transform: scaleX(1) translateZ(0);
+    filter: blur(0);
+  }
 }
 
 .section-main__counter-block_zero-scroll-controlled

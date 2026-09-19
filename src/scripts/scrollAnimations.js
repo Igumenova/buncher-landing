@@ -628,7 +628,7 @@ export const setScrollingAnimations = function () {
         scheduleFirstStageSequenceState(
           "forward-scaffold",
           "forward-wait-digit",
-          1000,
+          PHASE_TRANSITION_DURATION + 100,
           "first-stage-scaffold-in",
         );
         return;
@@ -728,7 +728,7 @@ export const setScrollingAnimations = function () {
         scheduleFirstStageSequenceState(
           "forward-scaffold",
           "forward-wait-digit",
-          1000,
+          PHASE_TRANSITION_DURATION + 100,
           "first-stage-scaffold-in",
         );
         return;
@@ -1016,7 +1016,7 @@ export const setScrollingAnimations = function () {
       scheduleFirstStageSequenceState(
         "reverse-scaffold",
         "reverse-complete",
-        650,
+        PHASE_TRANSITION_DURATION + 100,
         "first-stage-scaffold-out",
       );
     }
@@ -1126,6 +1126,7 @@ export const setScrollingAnimations = function () {
   const createNumberIntersectionObserver = function (blocks) {
     const REGEX = /_\d+-\d+$/;
     const numberCont = document.getElementById("changing-number");
+    const numberWindow = numberCont.closest(".counter-block__number-window");
     let stageFrameId = null;
 
     const settleNumberTransition = (event) => {
@@ -1147,10 +1148,15 @@ export const setScrollingAnimations = function () {
 
       const [from, to] = transition[0].slice(1).split("-").map(Number);
       const animatedDigit = numberCont.children[(isEntering ? to : from) - 1];
+      const animationTarget =
+        (isFirstDigitEntering || isFirstDigitExiting) &&
+        event.target === numberWindow
+          ? numberWindow
+          : animatedDigit;
 
       if (
         from === to ||
-        event.target !== animatedDigit ||
+        event.target !== animationTarget ||
         (isEntering && to === 0) ||
         (isExiting && to !== 0)
       ) {
@@ -1188,6 +1194,7 @@ export const setScrollingAnimations = function () {
     };
 
     numberCont.addEventListener("animationend", settleNumberTransition);
+    numberWindow.addEventListener("animationend", settleNumberTransition);
     const startDigitTransition = (nextDigit, { force = false } = {}) => {
       const transition = numberCont.className.match(REGEX);
 
@@ -4148,7 +4155,7 @@ export const setScrollingAnimations = function () {
             scheduleFirstStageSequenceState(
               "forward-scaffold",
               "forward-wait-digit",
-              1000,
+              PHASE_TRANSITION_DURATION + 100,
               "first-stage-scaffold-in",
             );
           }
