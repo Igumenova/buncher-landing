@@ -3491,12 +3491,22 @@ export const setScrollingAnimations = function () {
 
       return logicalIndex;
     };
+    const firstPhaseTextIsActuallyVisible = () => {
+      const activePhrase = shuffleText?.querySelector(
+        ".section-main__shuffle-phrase_active",
+      );
+
+      return (
+        currentDigit === 1 &&
+        activePhrase?.dataset.step === "0" &&
+        shuffleText.classList.contains("section-main__shuffle-text_visible")
+      );
+    };
     const getReverseTextTransitionStep = () => {
       const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
       const renderedTextStep = PHONE_STATE_TEXT_STEPS[renderedState];
       const firstPhaseTextIsVisible =
-        renderedTextStep === 0 &&
-        shuffleText?.classList.contains("section-main__shuffle-text_visible");
+        renderedTextStep === 0 && firstPhaseTextIsActuallyVisible();
 
       if (firstPhaseTextIsVisible) {
         return 0;
@@ -3778,7 +3788,7 @@ export const setScrollingAnimations = function () {
       const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
       const firstPhaseTextIsVisible =
         PHONE_STATE_TEXT_STEPS[renderedState] === 0 &&
-        shuffleText?.classList.contains("section-main__shuffle-text_visible");
+        firstPhaseTextIsActuallyVisible();
 
       if (firstPhaseTextIsVisible) {
         const searchBoundaryScrollTop = getPhaseBoundaryScrollTop(0);
