@@ -53,18 +53,6 @@
     opacity: var(--outro-phone-content-opacity, 1);
     will-change: opacity;
 
-    // Temporary preview mask: keep every phone stage running behind a white
-    // screen. The logo is layered above this mask separately.
-    &::after {
-      content: "";
-      position: absolute;
-      z-index: 100;
-      inset: 0;
-      background-color: $white;
-      opacity: 0.5;
-      pointer-events: none;
-    }
-
     &_999-999,
     &_0-0 {
       .phone__sec-search {

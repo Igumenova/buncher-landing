@@ -17,10 +17,9 @@ export const setScrollingAnimations = function () {
   const INTRO_SEARCH_SCROLL_GAP = 500;
   const WHEEL_GESTURE_END_DELAY = 120;
   const WHEEL_GESTURE_RESTART_MIN_AGE = 250;
-  const WHEEL_GESTURE_TAIL_DELTA = 8;
   const WHEEL_GESTURE_RESTART_DELTA = 16;
   const WHEEL_GESTURE_RESTART_RATIO = 2.5;
-  const INTRO_REVERSE_EXIT_DELAY = 70;
+  const WHEEL_INPUT_LOCK_MAX_DURATION = 3000;
   const FIRST_STAGE_GESTURE_END_DELAY = 180;
   const FIRST_SCREEN_LOGO_EXIT_DURATION = 180;
   const FIRST_SCREEN_WHITE_PAUSE_DURATION = 60;
@@ -59,11 +58,19 @@ export const setScrollingAnimations = function () {
   const wheelEventTarget = window;
   const wheelGestureIds = new WeakMap();
   const wheelGestureStarts = new WeakMap();
+  let introForwardWheelHandler = null;
+  let introReverseWheelHandler = null;
+  let reverseWheelHandler = null;
+  let introReverseNativeScrollGestureId = null;
+  let introReverseNativeScrollIsActive = false;
   let currentWheelGestureId = 0;
   let wheelGestureIsActive = false;
   let wheelGestureEndTimer = null;
   let wheelGestureStartedAt = 0;
   let previousWheelDelta = 0;
+  let previousWheelDeltaY = 0;
+  let wheelInputLock = null;
+  let wheelInputLockTimer = null;
   let scrollDebugSequence = 0;
   const scrollDebugBuffer = [];
   const logScrollDebug = (type, detail = {}) => {
@@ -95,63 +102,167 @@ export const setScrollingAnimations = function () {
   const getWheelGestureId = (event) =>
     wheelGestureIds.get(event) ?? currentWheelGestureId;
   const isWheelGestureStart = (event) => wheelGestureStarts.get(event) === true;
+  const startIntroReverseNativeScroll = (gestureId) => {
+    introReverseNativeScrollIsActive = true;
+    introReverseNativeScrollGestureId = gestureId;
+  };
+  const stopIntroReverseNativeScroll = () => {
+    introReverseNativeScrollIsActive = false;
+    introReverseNativeScrollGestureId = null;
+  };
 
-  wheelEventTarget.addEventListener(
-    "wheel",
-    (event) => {
-      const now = performance.now();
-      const delta = Math.abs(event.deltaY);
-      const restartsFromInertia =
-        event.deltaY !== 0 &&
-        wheelGestureIsActive &&
-        now - wheelGestureStartedAt >= WHEEL_GESTURE_RESTART_MIN_AGE &&
-        previousWheelDelta <= WHEEL_GESTURE_TAIL_DELTA &&
-        delta >= WHEEL_GESTURE_RESTART_DELTA &&
-        delta >= previousWheelDelta * WHEEL_GESTURE_RESTART_RATIO;
-      const startsNewGesture =
-        event.deltaY !== 0 && (!wheelGestureIsActive || restartsFromInertia);
-      const newGestureReason = !startsNewGesture
-        ? null
-        : restartsFromInertia
-          ? "inertia-restart"
-          : "idle";
+  const releaseWheelInputIfReady = (nextGestureId = null) => {
+    const nextGestureHasStarted =
+      nextGestureId !== null && wheelInputLock?.gestureId !== nextGestureId;
+    if (
+      !wheelInputLock ||
+      !wheelInputLock.animationComplete ||
+      (wheelGestureIsActive && !nextGestureHasStarted)
+    ) {
+      return;
+    }
 
-      if (startsNewGesture) {
-        currentWheelGestureId += 1;
-        wheelGestureIsActive = true;
-        wheelGestureStartedAt = now;
-      }
-
-      wheelGestureIds.set(event, currentWheelGestureId);
-      wheelGestureStarts.set(event, startsNewGesture);
-      logScrollDebug("wheel", {
+    logScrollDebug("wheel-input-unlocked", {
+      owner: wheelInputLock.owner,
+      gestureId: wheelInputLock.gestureId,
+    });
+    clearTimeout(wheelInputLockTimer);
+    wheelInputLockTimer = null;
+    wheelInputLock = null;
+  };
+  const lockWheelInput = (owner) => {
+    if (wheelInputLock) {
+      logScrollDebug("wheel-input-lock-skipped", {
+        requestedOwner: owner,
+        activeOwner: wheelInputLock.owner,
         gestureId: currentWheelGestureId,
-        startsNewGesture,
-        newGestureReason,
-        deltaY: event.deltaY,
-        deltaMode: event.deltaMode,
-        wheelDeltaY: event.wheelDeltaY ?? null,
-        eventTimeStamp: Math.round(event.timeStamp),
-        targetTag: event.target?.tagName ?? null,
-        targetId: event.target?.id || null,
-        targetClass:
-          typeof event.target?.className === "string"
-            ? event.target.className
-            : null,
       });
-      if (event.deltaY !== 0) {
-        previousWheelDelta = delta;
-        clearTimeout(wheelGestureEndTimer);
-        const endingGestureId = currentWheelGestureId;
-        wheelGestureEndTimer = setTimeout(() => {
-          wheelGestureIsActive = false;
-          previousWheelDelta = 0;
-          logScrollDebug("gesture-end", { gestureId: endingGestureId });
-        }, WHEEL_GESTURE_END_DELAY);
+      return false;
+    }
+
+    wheelInputLock = {
+      owner,
+      gestureId: currentWheelGestureId,
+      animationComplete: false,
+    };
+    logScrollDebug("wheel-input-locked", {
+      owner,
+      gestureId: currentWheelGestureId,
+    });
+    clearTimeout(wheelInputLockTimer);
+    wheelInputLockTimer = setTimeout(() => {
+      if (!wheelInputLock || wheelInputLock.owner !== owner) {
+        return;
       }
-    },
-    { capture: true, passive: true },
-  );
+
+      logScrollDebug("wheel-input-watchdog", {
+        owner,
+        gestureId: wheelInputLock.gestureId,
+      });
+      completeWheelInputTransition(owner);
+    }, WHEEL_INPUT_LOCK_MAX_DURATION);
+    return true;
+  };
+  const completeWheelInputTransition = (owner) => {
+    if (!wheelInputLock || wheelInputLock.owner !== owner) {
+      return;
+    }
+
+    wheelInputLock.animationComplete = true;
+    clearTimeout(wheelInputLockTimer);
+    wheelInputLockTimer = null;
+    logScrollDebug("wheel-input-animation-complete", {
+      owner,
+      gestureId: wheelInputLock.gestureId,
+    });
+    releaseWheelInputIfReady();
+  };
+  const completeFirstStageWheelInputTransition = () => {
+    if (!wheelInputLock?.owner.startsWith("first-stage-")) {
+      return;
+    }
+
+    completeWheelInputTransition(wheelInputLock.owner);
+  };
+  const resetWheelInputLock = () => {
+    if (wheelInputLock) {
+      logScrollDebug("wheel-input-reset", {
+        owner: wheelInputLock.owner,
+        gestureId: wheelInputLock.gestureId,
+      });
+    }
+    clearTimeout(wheelInputLockTimer);
+    wheelInputLockTimer = null;
+    wheelInputLock = null;
+  };
+
+  const trackWheelGesture = (event) => {
+    const now = performance.now();
+    const delta = Math.abs(event.deltaY);
+    const changesDirection =
+      event.deltaY !== 0 &&
+      previousWheelDeltaY !== 0 &&
+      Math.sign(event.deltaY) !== Math.sign(previousWheelDeltaY) &&
+      delta >= 2;
+    const restartsFromInertia =
+      event.deltaY !== 0 &&
+      wheelGestureIsActive &&
+      now - wheelGestureStartedAt >= WHEEL_GESTURE_RESTART_MIN_AGE &&
+      delta >= WHEEL_GESTURE_RESTART_DELTA &&
+      delta >= previousWheelDelta * WHEEL_GESTURE_RESTART_RATIO;
+    const startsNewGesture =
+      event.deltaY !== 0 &&
+      (!wheelGestureIsActive || changesDirection || restartsFromInertia);
+    const newGestureReason = !startsNewGesture
+      ? null
+      : changesDirection
+        ? "direction-change"
+        : restartsFromInertia
+        ? "inertia-restart"
+        : "idle";
+
+    if (startsNewGesture) {
+      currentWheelGestureId += 1;
+      wheelGestureIsActive = true;
+      wheelGestureStartedAt = now;
+      // A touchpad can begin the next swipe while momentum events from the
+      // previous swipe are still arriving. Once the owned animation has
+      // completed, the first event of that new swipe must release its lock and
+      // be routed as the next action instead of being discarded.
+      releaseWheelInputIfReady(currentWheelGestureId);
+    }
+
+    wheelGestureIds.set(event, currentWheelGestureId);
+    wheelGestureStarts.set(event, startsNewGesture);
+    logScrollDebug("wheel", {
+      gestureId: currentWheelGestureId,
+      startsNewGesture,
+      newGestureReason,
+      deltaY: event.deltaY,
+      deltaMode: event.deltaMode,
+      wheelDeltaY: event.wheelDeltaY ?? null,
+      eventTimeStamp: Math.round(event.timeStamp),
+      targetTag: event.target?.tagName ?? null,
+      targetId: event.target?.id || null,
+      targetClass:
+        typeof event.target?.className === "string"
+          ? event.target.className
+          : null,
+    });
+    if (event.deltaY !== 0) {
+      previousWheelDelta = delta;
+      previousWheelDeltaY = event.deltaY;
+      clearTimeout(wheelGestureEndTimer);
+      const endingGestureId = currentWheelGestureId;
+      wheelGestureEndTimer = setTimeout(() => {
+        wheelGestureIsActive = false;
+        previousWheelDelta = 0;
+        previousWheelDeltaY = 0;
+        logScrollDebug("gesture-end", { gestureId: endingGestureId });
+        releaseWheelInputIfReady();
+      }, WHEEL_GESTURE_END_DELAY);
+    }
+  };
   const blocks = document.querySelectorAll(".trackable");
   let counterIsActive = false;
   let currentDigit = 1;
@@ -161,10 +272,28 @@ export const setScrollingAnimations = function () {
   let firstStageSequenceState = "idle";
   let firstStageReverseTextTimer = null;
   let firstStageSequenceTimer = null;
-  let firstStageScreenTimer = null;
+  let firstStageForwardScreenTimer = null;
+  let firstStageReverseScreenTimer = null;
   let firstStageScaffoldGestureTimer = null;
   let firstStageScaffoldGestureReady = false;
   let firstStageLastActionGestureId = null;
+  let firstStagePinnedScrollTop = null;
+  let phaseTransitionInputTimer = null;
+  let reverseNavigationInputTimer = null;
+  const firstStageOwnsPinnedScrollPosition = () =>
+    [
+      "forward-screen",
+      "forward-wait-scaffold",
+      "forward-scaffold",
+      "forward-wait-digit",
+      "forward-digit",
+      "forward-wait-text",
+      "reverse-text",
+      "reverse-wait-digit",
+      "reverse-digit",
+      "reverse-wait-scaffold",
+      "reverse-scaffold",
+    ].includes(firstStageSequenceState);
 
   const waitForNextFirstStageGesture = () => {
     firstStageScaffoldGestureReady = false;
@@ -174,11 +303,19 @@ export const setScrollingAnimations = function () {
     }, FIRST_STAGE_GESTURE_END_DELAY);
   };
 
-  const scheduleFirstStageSequenceState = (expectedState, nextState, delay) => {
+  const scheduleFirstStageSequenceState = (
+    expectedState,
+    nextState,
+    delay,
+    inputLockOwner = null,
+  ) => {
     clearTimeout(firstStageSequenceTimer);
     firstStageSequenceTimer = setTimeout(() => {
       if (firstStageSequenceState === expectedState) {
         firstStageSequenceState = nextState;
+        if (inputLockOwner) {
+          completeWheelInputTransition(inputLockOwner);
+        }
         logScrollDebug("first-stage-step-ready", {
           firstStageSequenceState,
           firstStageLastActionGestureId,
@@ -277,6 +414,22 @@ export const setScrollingAnimations = function () {
       `_${visibleDigit}-0`,
     );
   };
+  const settleFirstStageDigitHidden = () => {
+    const counterBlock = document.getElementById("counter");
+    const numberCont = document.getElementById("changing-number");
+
+    clearTimeout(zeroTransitionTimer);
+    zeroTransitionTimer = null;
+    zeroIsVisible = false;
+    counterBlock.classList.remove(
+      "section-main__counter-block_zero-entering",
+      "section-main__counter-block_zero-exiting",
+      "section-main__counter-block_zero-scroll-controlled",
+      "section-main__counter-block_zero-visible",
+    );
+    counterBlock.classList.add("section-main__counter-block_zero-hidden");
+    numberCont.className = numberCont.className.replace(/_\d+-\d+$/, "_0-0");
+  };
   const dispatchTextStepChange = (stepIndex, transitionOptions = {}) => {
     document.dispatchEvent(
       new CustomEvent(TEXT_STEP_CHANGE_EVENT, {
@@ -342,6 +495,7 @@ export const setScrollingAnimations = function () {
         }
         firstStageLastActionGestureId = gestureId;
         firstStageSequenceState = "forward-scaffold";
+        lockWheelInput("first-stage-scaffold-in");
         logScrollDebug("first-stage-scaffold-start", { gestureId });
         document.dispatchEvent(
           new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
@@ -352,6 +506,7 @@ export const setScrollingAnimations = function () {
           "forward-scaffold",
           "forward-wait-digit",
           1000,
+          "first-stage-scaffold-in",
         );
         return;
       }
@@ -360,16 +515,21 @@ export const setScrollingAnimations = function () {
         firstStageSequenceState === "reverse-text" ||
         firstStageSequenceState === "reverse-wait-digit"
       ) {
-        event.preventDefault();
         if (!currentGestureIsStart || currentGestureAlreadyUsed) {
+          event.preventDefault();
           return;
         }
         firstStageLastActionGestureId = gestureId;
         clearTimeout(firstStageReverseTextTimer);
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "active";
-        dispatchTextStepChange(0, { direction: 1, force: true });
-        return;
+        dispatchTextStepChange(0, {
+          direction: 1,
+          force: true,
+          synchronizeDigit: true,
+          activatePreparedTyping: true,
+        });
+        return true;
       }
 
       if (
@@ -383,11 +543,13 @@ export const setScrollingAnimations = function () {
         firstStageLastActionGestureId = gestureId;
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "forward-digit";
+        lockWheelInput("first-stage-digit-in");
         document.dispatchEvent(new Event(FIRST_STAGE_DIGIT_SHOW_EVENT));
         scheduleFirstStageSequenceState(
           "forward-digit",
           "forward-wait-text",
           DIGIT_TRANSITION_DURATION + 100,
+          "first-stage-digit-in",
         );
         return;
       }
@@ -407,6 +569,7 @@ export const setScrollingAnimations = function () {
         firstStageLastActionGestureId = gestureId;
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "forward-scaffold";
+        lockWheelInput("first-stage-scaffold-in");
         document.dispatchEvent(
           new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
             detail: { visible: true, force: true },
@@ -416,6 +579,7 @@ export const setScrollingAnimations = function () {
           "forward-scaffold",
           "forward-wait-digit",
           1000,
+          "first-stage-scaffold-in",
         );
         return;
       }
@@ -443,19 +607,21 @@ export const setScrollingAnimations = function () {
         }
         firstStageLastActionGestureId = gestureId;
         firstStageSequenceState = "forward-digit";
+        lockWheelInput("first-stage-digit-in");
         logScrollDebug("first-stage-digit-start", { gestureId });
         document.dispatchEvent(new Event(FIRST_STAGE_DIGIT_SHOW_EVENT));
         scheduleFirstStageSequenceState(
           "forward-digit",
           "forward-wait-text",
           DIGIT_TRANSITION_DURATION + 100,
+          "first-stage-digit-in",
         );
         return;
       }
 
       if (firstStageSequenceState === "forward-wait-text") {
-        event.preventDefault();
         if (!currentGestureIsStart || currentGestureAlreadyUsed) {
+          event.preventDefault();
           logScrollDebug("first-stage-step-hold", {
             gestureId,
             firstStageLastActionGestureId,
@@ -469,11 +635,16 @@ export const setScrollingAnimations = function () {
         firstStageLastActionGestureId = gestureId;
         firstStageSequenceState = "active";
         logScrollDebug("first-stage-text-start", { gestureId });
-        dispatchTextStepChange(0, { direction: 1 });
+        dispatchTextStepChange(0, {
+          direction: 1,
+          synchronizeDigit: true,
+          activatePreparedTyping: true,
+        });
+        return true;
       }
 
       if (firstStageSequenceState === "active" && currentGestureAlreadyUsed) {
-        event.preventDefault();
+        return true;
       }
 
       return;
@@ -483,6 +654,31 @@ export const setScrollingAnimations = function () {
     // us from a later phase back to phase 1. Do not let trailing wheel events
     // from that same gesture immediately consume phase 1 as well.
     if (scrollRoot.dataset.reverseGesture === "active") {
+      return;
+    }
+
+    if (firstStageSequenceState === "forward-wait-scaffold") {
+      event.preventDefault();
+      if (!currentGestureIsStart || currentGestureAlreadyUsed) {
+        logScrollDebug("first-stage-step-hold", {
+          gestureId,
+          firstStageLastActionGestureId,
+          firstStageSequenceState,
+          reason: currentGestureAlreadyUsed
+            ? "gesture-already-used"
+            : "gesture-tail",
+        });
+        return;
+      }
+
+      firstStageLastActionGestureId = gestureId;
+      firstStageSequenceState = "reverse-complete";
+      logScrollDebug("first-stage-screen-reverse-start", { gestureId });
+      document.dispatchEvent(
+        new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
+          detail: { state: "0-0" },
+        }),
+      );
       return;
     }
 
@@ -501,6 +697,7 @@ export const setScrollingAnimations = function () {
       }
       firstStageLastActionGestureId = gestureId;
       firstStageSequenceState = "reverse-text";
+      lockWheelInput("first-stage-text-out");
       dispatchTextStepChange(-1, {
         boundary: "search",
         direction: -1,
@@ -509,6 +706,7 @@ export const setScrollingAnimations = function () {
       firstStageReverseTextTimer = setTimeout(() => {
         if (firstStageSequenceState === "reverse-text") {
           firstStageSequenceState = "reverse-wait-digit";
+          completeWheelInputTransition("first-stage-text-out");
           logScrollDebug("first-stage-step-ready", {
             firstStageSequenceState,
             firstStageLastActionGestureId,
@@ -528,7 +726,10 @@ export const setScrollingAnimations = function () {
       return;
     }
 
-    if (firstStageSequenceState === "reverse-wait-digit") {
+    if (
+      firstStageSequenceState === "reverse-wait-digit" ||
+      firstStageSequenceState === "forward-wait-text"
+    ) {
       event.preventDefault();
       if (!currentGestureIsStart || currentGestureAlreadyUsed) {
         logScrollDebug("first-stage-step-hold", {
@@ -543,17 +744,22 @@ export const setScrollingAnimations = function () {
       }
       firstStageLastActionGestureId = gestureId;
       firstStageSequenceState = "reverse-digit";
+      lockWheelInput("first-stage-digit-out");
       logScrollDebug("first-stage-digit-reverse-start", { gestureId });
       document.dispatchEvent(new Event(FIRST_STAGE_DIGIT_HIDE_EVENT));
       scheduleFirstStageSequenceState(
         "reverse-digit",
         "reverse-wait-scaffold",
         DIGIT_TRANSITION_DURATION + 100,
+        "first-stage-digit-out",
       );
       return;
     }
 
-    if (firstStageSequenceState === "reverse-wait-scaffold") {
+    if (
+      firstStageSequenceState === "reverse-wait-scaffold" ||
+      firstStageSequenceState === "forward-wait-digit"
+    ) {
       event.preventDefault();
       if (!currentGestureIsStart || currentGestureAlreadyUsed) {
         logScrollDebug("first-stage-step-hold", {
@@ -568,7 +774,12 @@ export const setScrollingAnimations = function () {
       }
       firstStageLastActionGestureId = gestureId;
       firstStageSequenceState = "reverse-scaffold";
+      lockWheelInput("first-stage-scaffold-out");
       logScrollDebug("first-stage-scaffold-reverse-start", { gestureId });
+      // The digit owns the preceding reverse step. Before the scaffold starts
+      // leaving, commit its final hidden classes so a missed/cancelled CSS
+      // animationend cannot leave the rendered digit behind.
+      settleFirstStageDigitHidden();
       document.dispatchEvent(
         new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
           detail: { visible: false },
@@ -578,14 +789,10 @@ export const setScrollingAnimations = function () {
         "reverse-scaffold",
         "reverse-complete",
         650,
+        "first-stage-scaffold-out",
       );
     }
   };
-
-  wheelEventTarget.addEventListener("wheel", handleFirstStageSequenceWheel, {
-    capture: true,
-    passive: false,
-  });
   const addStyleWithPrefixes = function (element, styleName, value) {
     element.style.setProperty(`-webkit-${styleName}`, value);
     element.style.setProperty(`-moz-${styleName}`, value);
@@ -731,6 +938,7 @@ export const setScrollingAnimations = function () {
       if (isFirstDigitEntering && firstStageSequenceState === "forward-digit") {
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "forward-wait-text";
+        completeWheelInputTransition("first-stage-digit-in");
         logScrollDebug("first-stage-step-ready", {
           firstStageSequenceState,
           firstStageLastActionGestureId,
@@ -742,6 +950,7 @@ export const setScrollingAnimations = function () {
       ) {
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "reverse-wait-scaffold";
+        completeWheelInputTransition("first-stage-digit-out");
         logScrollDebug("first-stage-step-ready", {
           firstStageSequenceState,
           firstStageLastActionGestureId,
@@ -751,10 +960,14 @@ export const setScrollingAnimations = function () {
     };
 
     numberCont.addEventListener("animationend", settleNumberTransition);
-    const startDigitTransition = (nextDigit) => {
+    const startDigitTransition = (nextDigit, { force = false } = {}) => {
       const transition = numberCont.className.match(REGEX);
 
-      if (!counterIsActive || nextDigit !== currentDigit || !transition) {
+      if (
+        (!counterIsActive && !force) ||
+        nextDigit !== currentDigit ||
+        !transition
+      ) {
         return;
       }
 
@@ -777,12 +990,18 @@ export const setScrollingAnimations = function () {
       }
 
       const nextDigit = event.detail.stepIndex + 1;
+      if (event.detail.synchronizeDigit === true) {
+        currentDigit = nextDigit;
+      }
       requestAnimationFrame(() => {
-        startDigitTransition(nextDigit);
+        startDigitTransition(nextDigit, {
+          force: event.detail.synchronizeDigit === true,
+        });
       });
     });
     document.addEventListener(FIRST_STAGE_DIGIT_SHOW_EVENT, () => {
-      startDigitTransition(1);
+      currentDigit = 1;
+      startDigitTransition(1, { force: true });
     });
     document.addEventListener(FIRST_STAGE_DIGIT_HIDE_EVENT, () => {
       animateZeroVisibility(false);
@@ -791,6 +1010,14 @@ export const setScrollingAnimations = function () {
 
     const updateCurrentDigit = () => {
       stageFrameId = null;
+
+      // Scaffold and digit visibility change the sticky layout in both
+      // directions. Ignore the synthetic scroll position produced by browser
+      // anchoring while the explicit first-stage sequence owns the screen.
+      if (firstStageOwnsPinnedScrollPosition()) {
+        return;
+      }
+
       const nextDigit = getDigitForCurrentScroll();
 
       if (nextDigit === currentDigit) {
@@ -799,12 +1026,21 @@ export const setScrollingAnimations = function () {
 
       const previousDigit = currentDigit;
       currentDigit = nextDigit;
+      const phaseLockWasAcquired = lockWheelInput("phase-transition");
+      if (phaseLockWasAcquired) {
+        clearTimeout(phaseTransitionInputTimer);
+        phaseTransitionInputTimer = setTimeout(() => {
+          completeWheelInputTransition("phase-transition");
+        }, PHASE_TRANSITION_DURATION);
+      }
       if (previousDigit > 1 && currentDigit === 1) {
         clearTimeout(firstStageReverseTextTimer);
         firstStageSequenceState = "active";
       }
       if (counterIsActive) {
-        dispatchTextStepChange(currentDigit - 1);
+        dispatchTextStepChange(currentDigit - 1, {
+          synchronizeDigit: previousDigit > 1 && currentDigit === 1,
+        });
       }
     };
     const requestStageUpdate = () => {
@@ -865,11 +1101,7 @@ export const setScrollingAnimations = function () {
       let phoneStageIsUnlocked = false;
       let reversePhoneState = null;
       let introReverseSequenceIsActive = false;
-      let introReverseStartScrollTop = null;
-      let introReverseScrollDistance = 1;
       let logoStageGestureId = null;
-      let introReverseExitIsArmed = false;
-      let introReverseExitTimer = null;
       let introReverseScreenTransitionIsActive = false;
       const PHONE_STAGE_FIRST_STATES = ["1-0", "1-2", "2-1", "3-2", "4-1"];
       const phoneLogo = phone.querySelector(".phone__item_logo");
@@ -888,17 +1120,6 @@ export const setScrollingAnimations = function () {
           "phone__item_logo-entering",
           "phone__item_logo-exiting",
         );
-      };
-      const scheduleIntroReverseExitArm = () => {
-        introReverseExitIsArmed = false;
-        clearTimeout(introReverseExitTimer);
-        introReverseExitTimer = setTimeout(() => {
-          introReverseExitIsArmed = true;
-        }, INTRO_REVERSE_EXIT_DELAY);
-      };
-      const clearIntroGestureArms = () => {
-        clearTimeout(introReverseExitTimer);
-        introReverseExitIsArmed = false;
       };
       const isIntroPhoneState = (state) =>
         state === "999-999" || state === "0-0";
@@ -941,15 +1162,21 @@ export const setScrollingAnimations = function () {
         }
       };
       const cancelIntroReverseSequence = () => {
-        const sequenceWasActive = introReverseSequenceIsActive;
-        clearTimeout(firstStageScreenTimer);
+        const sequenceWasActive =
+          introReverseSequenceIsActive || introReverseScreenTransitionIsActive;
+
+        if (!sequenceWasActive) {
+          return;
+        }
+
+        clearTimeout(firstStageReverseScreenTimer);
         introReverseScreenTransitionIsActive = false;
         clearFirstScreenTransitionClasses();
         introReverseSequenceIsActive = false;
-        introReverseStartScrollTop = null;
         scrollRoot.dataset.introReverseSequence = "idle";
 
         if (sequenceWasActive) {
+          completeWheelInputTransition("intro-screen-to-logo");
           logoStageGestureId = null;
           clearLogoAnimations();
           clearTimeout(firstStageSequenceTimer);
@@ -958,14 +1185,19 @@ export const setScrollingAnimations = function () {
         }
       };
       const finishIntroReverseSequence = () => {
+        completeWheelInputTransition("intro-screen-to-logo");
+        // A fast reverse scroll can move the scroll root across the intro
+        // boundary while a first-stage fallback timer is still pending. The
+        // reset below cancels that timer, so finish its input lock as well.
+        // It will still wait for the current physical gesture to end before
+        // accepting another action.
+        completeFirstStageWheelInputTransition();
         document.dispatchEvent(
           new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
             detail: { visible: false, immediate: true, force: true },
           }),
         );
         introReverseSequenceIsActive = false;
-        introReverseStartScrollTop = null;
-        clearIntroGestureArms();
         introReverseScreenTransitionIsActive = false;
         clearFirstScreenTransitionClasses();
         clearTimeout(firstStageSequenceTimer);
@@ -975,23 +1207,26 @@ export const setScrollingAnimations = function () {
         commitPhoneState("999-999");
       };
       const resetIntroSequenceAtStart = () => {
+        resetWheelInputLock();
         logScrollDebug("intro-sequence-reset", {
           gestureId: currentWheelGestureId,
           logoStageGestureId,
           firstStageSequenceState,
         });
-        clearTimeout(firstStageScreenTimer);
+        clearTimeout(firstStageForwardScreenTimer);
+        clearTimeout(firstStageReverseScreenTimer);
         clearTimeout(firstStageSequenceTimer);
         clearTimeout(firstStageScaffoldGestureTimer);
-        clearTimeout(introReverseExitTimer);
+        clearTimeout(phaseTransitionInputTimer);
+        clearTimeout(reverseNavigationInputTimer);
         introReverseScreenTransitionIsActive = false;
         introReverseSequenceIsActive = false;
-        introReverseStartScrollTop = null;
         logoStageGestureId = null;
-        introReverseExitIsArmed = false;
         reversePhoneState = null;
+        stopIntroReverseNativeScroll();
         firstStageScaffoldGestureReady = false;
         firstStageLastActionGestureId = null;
+        firstStagePinnedScrollTop = null;
         firstStageSequenceState = "idle";
         pendingPhoneState = "999-999";
         expectedTextStep = -1;
@@ -1011,28 +1246,23 @@ export const setScrollingAnimations = function () {
         INTRO_SEQUENCE_RESET_EVENT,
         resetIntroSequenceAtStart,
       );
-      const updateIntroReverseProgress = () => {
-        if (
-          !introReverseSequenceIsActive ||
-          introReverseStartScrollTop === null
-        ) {
+      const startIntroReverseSequence = () => {
+        if (introReverseSequenceIsActive) {
           return;
         }
 
-        const reverseDistance = Math.max(
-          introReverseStartScrollTop - scrollRoot.scrollTop,
-          0,
-        );
-        const scaffoldProgress = Math.min(
-          reverseDistance / introReverseScrollDistance,
-          1,
-        );
-        if (scaffoldProgress >= 1) {
-          finishIntroReverseSequence();
-        }
-      };
-      const startIntroReverseSequence = () => {
-        if (introReverseSequenceIsActive) {
+        // The intro is the step after the first-stage reverse sequence. A
+        // scroll/observer update must not skip text, digit, or scaffold exit
+        // animations while one of those steps still owns the input.
+        if (
+          firstStageSequenceState !== "reverse-complete" &&
+          firstStageSequenceState !== "idle"
+        ) {
+          logScrollDebug("intro-reverse-held", {
+            gestureId: currentWheelGestureId,
+            firstStageSequenceState,
+            activeInputOwner: wheelInputLock?.owner ?? null,
+          });
           return;
         }
 
@@ -1040,15 +1270,12 @@ export const setScrollingAnimations = function () {
           gestureId: currentWheelGestureId,
           firstStageSequenceState,
         });
+        lockWheelInput("intro-screen-to-logo");
 
         introReverseSequenceIsActive = true;
-        introReverseStartScrollTop = scrollRoot.scrollTop;
-        introReverseScrollDistance = Math.max(
-          introReverseStartScrollTop - getMainStickyStartScrollTop(),
-          1,
-        );
+        scrollRoot.scrollTop = getMainStickyStartScrollTop();
         clearTimeout(firstStageSequenceTimer);
-        clearTimeout(firstStageScreenTimer);
+        clearTimeout(firstStageReverseScreenTimer);
         firstStageSequenceState = "reverse-screen-transition";
         introReverseScreenTransitionIsActive = true;
         scrollRoot.dataset.introReverseSequence = "active";
@@ -1059,7 +1286,7 @@ export const setScrollingAnimations = function () {
         );
         clearFirstScreenTransitionClasses();
         phoneShell?.classList.add("phone_first-screen-reverse-exiting");
-        firstStageScreenTimer = setTimeout(() => {
+        firstStageReverseScreenTimer = setTimeout(() => {
           if (!introReverseScreenTransitionIsActive) {
             return;
           }
@@ -1069,14 +1296,14 @@ export const setScrollingAnimations = function () {
             "phone_first-screen-reverse-exiting",
             "phone_first-screen-white",
           );
-          firstStageScreenTimer = setTimeout(() => {
+          firstStageReverseScreenTimer = setTimeout(() => {
             if (!introReverseScreenTransitionIsActive) {
               return;
             }
 
             phoneShell?.classList.add("phone_first-screen-logo-entering");
             commitPhoneState("0-0");
-            firstStageScreenTimer = setTimeout(() => {
+            firstStageReverseScreenTimer = setTimeout(() => {
               phoneShell?.classList.remove("phone_first-screen-logo-entering");
               if (!introReverseScreenTransitionIsActive) {
                 return;
@@ -1084,9 +1311,9 @@ export const setScrollingAnimations = function () {
 
               introReverseScreenTransitionIsActive = false;
               firstStageSequenceState = "reverse-complete";
+              completeWheelInputTransition("intro-screen-to-logo");
               phoneShell?.classList.remove("phone_first-screen-white");
               logoStageGestureId = currentWheelGestureId;
-              scheduleIntroReverseExitArm();
             }, FIRST_SCREEN_LOGO_EXIT_DURATION);
           }, FIRST_SCREEN_WHITE_PAUSE_DURATION);
         }, FIRST_SCREEN_REVEAL_DURATION);
@@ -1171,14 +1398,13 @@ export const setScrollingAnimations = function () {
         cancelIntroReverseSequence();
 
         if (reverseIntroWasActive) {
-          clearIntroGestureArms();
           commitPhoneState("1-0");
         }
       });
       document.addEventListener(INTRO_LOGO_VISIBILITY_EVENT, (event) => {
         if (
           introReverseSequenceIsActive ||
-          firstStageSequenceState === "forward-screen"
+          firstStageOwnsPinnedScrollPosition()
         ) {
           return;
         }
@@ -1196,7 +1422,6 @@ export const setScrollingAnimations = function () {
           logoStageGestureId = currentWheelGestureId;
         } else {
           logoStageGestureId = null;
-          clearIntroGestureArms();
         }
         logScrollDebug("logo-visibility", {
           visible: event.detail.visible,
@@ -1399,7 +1624,6 @@ export const setScrollingAnimations = function () {
           searchBoundary: Math.round(searchBoundary),
         });
         logoStageGestureId = null;
-        clearIntroGestureArms();
 
         // Re-entering stage 1 owns its complete initial visual state. Do not
         // rely on IntersectionObserver firing again after a quick reversal.
@@ -1410,21 +1634,25 @@ export const setScrollingAnimations = function () {
         });
         firstStageLastActionGestureId = gestureId;
         firstStageSequenceState = "forward-screen";
+        lockWheelInput("intro-logo-to-screen");
         document.dispatchEvent(
           new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
             detail: { visible: false, immediate: true, force: true },
           }),
         );
-        scrollRoot.scrollTop = searchBoundary + INTRO_SEARCH_SCROLL_GAP + 2;
-        clearTimeout(firstStageScreenTimer);
+        firstStagePinnedScrollTop =
+          searchBoundary + INTRO_SEARCH_SCROLL_GAP + 2;
+        scrollRoot.scrollTop = firstStagePinnedScrollTop;
+        clearTimeout(firstStageForwardScreenTimer);
         clearFirstScreenTransitionClasses();
         phoneShell?.classList.add("phone_first-screen-logo-exiting");
-        firstStageScreenTimer = setTimeout(() => {
+        firstStageForwardScreenTimer = setTimeout(() => {
           if (firstStageSequenceState !== "forward-screen") {
             logScrollDebug("screen-transition-abort", {
               gestureId,
               firstStageSequenceState,
             });
+            completeWheelInputTransition("intro-logo-to-screen");
             return;
           }
 
@@ -1439,11 +1667,12 @@ export const setScrollingAnimations = function () {
             firstStageSequenceState,
           });
           phoneShell?.classList.remove("phone_first-screen-logo-exiting");
-          firstStageScreenTimer = setTimeout(() => {
+          firstStageForwardScreenTimer = setTimeout(() => {
             phoneShell?.classList.remove("phone_first-screen-revealing");
             if (firstStageSequenceState === "forward-screen") {
               firstStageSequenceState = "forward-wait-scaffold";
               waitForNextFirstStageGesture();
+              completeWheelInputTransition("intro-logo-to-screen");
               logScrollDebug("screen-transition-complete", {
                 gestureId,
                 firstStageSequenceState,
@@ -1467,18 +1696,21 @@ export const setScrollingAnimations = function () {
           return;
         }
 
-        if (introReverseExitIsArmed) {
+        const gestureId = getWheelGestureId(event);
+        if (gestureId === logoStageGestureId) {
           event.preventDefault();
-          finishIntroReverseSequence();
-          scrollRoot.scrollTop = Math.max(
-            scrollRoot.scrollTop - Math.abs(getWheelDeltaInPixels(event)),
-            0,
-          );
+          logScrollDebug("intro-reverse-exit-held", {
+            gestureId,
+            logoStageGestureId,
+            reason: "same-gesture",
+          });
           return;
         }
 
-        event.preventDefault();
-        scheduleIntroReverseExitArm();
+        startIntroReverseNativeScroll(gestureId);
+        finishIntroReverseSequence();
+        logScrollDebug("intro-reverse-native-scroll-start", { gestureId });
+        return true;
       };
       const synchronizeForwardPhoneState = () => {
         forwardSyncFrameId = null;
@@ -1503,7 +1735,9 @@ export const setScrollingAnimations = function () {
             return;
           }
 
-          updateIntroReverseProgress();
+          // Wheel routing owns this sequence. Scroll events can still arrive
+          // from inertia or from the programmatic move to the phase boundary;
+          // they must never advance the intro to the cover on their own.
           return;
         }
 
@@ -1574,26 +1808,36 @@ export const setScrollingAnimations = function () {
 
         applyPhoneState(nextState);
       };
-      wheelEventTarget.addEventListener(
-        "wheel",
-        holdFirstForwardGestureAtSearch,
-        {
-          capture: true,
-          passive: false,
-        },
-      );
-      wheelEventTarget.addEventListener("wheel", holdIntroReverseExitAtLogo, {
-        capture: true,
-        passive: false,
-      });
+      introForwardWheelHandler = holdFirstForwardGestureAtSearch;
+      introReverseWheelHandler = holdIntroReverseExitAtLogo;
       scrollRoot.addEventListener(
         "scroll",
         () => {
+          // Showing the scaffold and digit changes the sticky section layout.
+          // Chromium scroll anchoring can interpret either showing or hiding
+          // them as a real scroll and move the root back to the logo without
+          // input. Keep the boundary fixed until every owned step completes.
+          if (
+            firstStageOwnsPinnedScrollPosition() &&
+            Number.isFinite(firstStagePinnedScrollTop) &&
+            Math.abs(scrollRoot.scrollTop - firstStagePinnedScrollTop) > 1
+          ) {
+            logScrollDebug("first-stage-scroll-anchor-restored", {
+              displacedScrollTop: Math.round(scrollRoot.scrollTop),
+              pinnedScrollTop: Math.round(firstStagePinnedScrollTop),
+              firstStageSequenceState,
+            });
+            scrollRoot.scrollTop = firstStagePinnedScrollTop;
+            lastForwardScrollTop = firstStagePinnedScrollTop;
+            return;
+          }
+
           if (scrollRoot.scrollTop <= 1) {
             const currentState = phone.className.match(REGEX)?.[0];
             if (
               currentState !== "999-999" ||
               introReverseSequenceIsActive ||
+              introReverseNativeScrollIsActive ||
               firstStageSequenceState !== "idle"
             ) {
               document.dispatchEvent(new Event(INTRO_SEQUENCE_RESET_EVENT));
@@ -1646,6 +1890,7 @@ export const setScrollingAnimations = function () {
     let reverseVisibleLetterCount = null;
     let lastTextScrollTop = scrollRoot.scrollTop;
     let textScrollDirection = 1;
+    let prepareTextStep = null;
 
     const clampProgress = (value) => Math.min(Math.max(value, 0), 1);
     const refreshTypingRanges = () => {
@@ -1779,6 +2024,10 @@ export const setScrollingAnimations = function () {
         return;
       }
 
+      if (isVisible) {
+        prepareTextStep?.(0);
+      }
+
       introScaffoldIsVisible = isVisible;
       shufflePanel.classList.remove(
         "section-main__shuffle-panel_intro-pending",
@@ -1812,6 +2061,7 @@ export const setScrollingAnimations = function () {
       ) {
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "forward-wait-digit";
+        completeWheelInputTransition("first-stage-scaffold-in");
         logScrollDebug("first-stage-step-ready", {
           firstStageSequenceState,
           firstStageLastActionGestureId,
@@ -1823,6 +2073,7 @@ export const setScrollingAnimations = function () {
       ) {
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "reverse-complete";
+        completeWheelInputTransition("first-stage-scaffold-out");
         logScrollDebug("first-stage-step-ready", {
           firstStageSequenceState,
           firstStageLastActionGestureId,
@@ -2555,6 +2806,36 @@ export const setScrollingAnimations = function () {
       shuffleText.classList.remove("section-main__shuffle-text_phase-exit");
       shuffleText.classList.add("section-main__shuffle-text_visible");
     };
+    prepareTextStep = (stepIndex) => {
+      if (activeStep !== stepIndex) {
+        setStep(stepIndex, true);
+      }
+
+      activeLetters.forEach((letter) => {
+        letter.classList.remove("section-main__shuffle-letter_visible");
+      });
+      shuffleText.classList.remove("section-main__shuffle-text_visible");
+      typingIsLocked = true;
+      typingDirection = 1;
+      typingOriginScrollTop = null;
+      reverseVisibleLetterCount = null;
+      lastVisibleLetterCount = 0;
+      typingStartedStep = -1;
+    };
+    const activatePreparedTyping = (stepIndex) => {
+      if (activeStep !== stepIndex) {
+        setStep(stepIndex, true);
+      }
+
+      typingIsLocked = false;
+      typingDirection = 1;
+      typingOriginScrollTop = scrollRoot.scrollTop;
+      reverseVisibleLetterCount = null;
+      lastVisibleLetterCount = 0;
+      typingStartedStep = -1;
+      shuffleText.classList.remove("section-main__shuffle-text_phase-exit");
+      shuffleText.classList.add("section-main__shuffle-text_visible");
+    };
     const hideText = () => {
       activeStep = -1;
       animationToken++;
@@ -2597,7 +2878,12 @@ export const setScrollingAnimations = function () {
         return;
       }
 
-      setStep(stepIndex);
+      if (event.detail.activatePreparedTyping === true) {
+        activatePreparedTyping(stepIndex);
+        return;
+      }
+
+      setStep(stepIndex, event.detail.force === true);
     };
 
     document.addEventListener(
@@ -2671,6 +2957,9 @@ export const setScrollingAnimations = function () {
         "section-main_footer-assets-hidden",
         "section-main_footer-digit-hidden",
       );
+      completeWheelInputTransition("footer-forward-text-out");
+      completeWheelInputTransition("footer-forward-assets-out");
+      completeWheelInputTransition("footer-reverse-sequence");
     };
     const scheduleFooterForwardStageArm = () => {
       footerForwardStageIsArmed = false;
@@ -2710,6 +2999,7 @@ export const setScrollingAnimations = function () {
       return currentDigit === 5 && renderedState === lastPhoneState;
     };
     const startFooterForwardExitSequence = () => {
+      lockWheelInput("footer-forward-assets-out");
       footerForwardStage = "exiting";
       footerForwardStageIsArmed = false;
       clearTimeout(footerForwardGestureEndTimer);
@@ -2727,6 +3017,7 @@ export const setScrollingAnimations = function () {
           footerForwardStage = "complete";
           footerReverseSequenceTimers = [];
           scrollRoot.dataset.reverseMode = "переход к финальному экрану";
+          completeWheelInputTransition("footer-forward-assets-out");
         }, FOOTER_REVERSE_DIGIT_STAGE_DURATION + FOOTER_REVERSE_ASSETS_STAGE_DURATION),
       );
     };
@@ -2765,6 +3056,7 @@ export const setScrollingAnimations = function () {
 
       event.preventDefault();
       scrollRoot.scrollTop = triggerScrollTop;
+      lockWheelInput("footer-forward-text-out");
       mainSection.classList.add("section-main_footer-sequence-controlled");
       mainSection.classList.remove(
         "section-main_footer-assets-hidden",
@@ -2775,7 +3067,11 @@ export const setScrollingAnimations = function () {
         direction: 1,
       });
       footerForwardStage = "text-hidden";
-      scheduleFooterForwardStageArm();
+      clearTimeout(footerForwardGestureEndTimer);
+      footerForwardGestureEndTimer = setTimeout(() => {
+        footerForwardStageIsArmed = true;
+        completeWheelInputTransition("footer-forward-text-out");
+      }, TEXT_EXIT_DURATION);
       scrollRoot.dataset.reverseMode = "исчезновение текста";
       return true;
     };
@@ -2872,6 +3168,13 @@ export const setScrollingAnimations = function () {
       targetScrollTop,
       synchronizedTextStep = null,
     ) => {
+      if (fromState !== targetState && lockWheelInput("reverse-navigation")) {
+        clearTimeout(reverseNavigationInputTimer);
+        reverseNavigationInputTimer = setTimeout(() => {
+          completeWheelInputTransition("reverse-navigation");
+        }, PHASE_TRANSITION_DURATION);
+      }
+
       if (Number.isFinite(targetScrollTop)) {
         scrollRoot.scrollTop = Math.max(targetScrollTop, 0);
       }
@@ -2991,6 +3294,7 @@ export const setScrollingAnimations = function () {
             scrollRoot.dataset.reverseGesture = "idle";
             scrollRoot.dataset.reverseMode =
               "текст фазы 5 — ожидание нового жеста";
+            completeWheelInputTransition("footer-reverse-sequence");
           },
           FOOTER_REVERSE_PHONE_STAGE_DURATION +
             FOOTER_REVERSE_ASSETS_STAGE_DURATION +
@@ -3030,7 +3334,15 @@ export const setScrollingAnimations = function () {
         return true;
       }
 
+      // Validate the footer position before changing visual state or taking
+      // the global input lock. This function can be reached from the generic
+      // reverse router, including while phase 1 is at its sticky boundary.
+      if (!restoreLastStageFromFooter()) {
+        return false;
+      }
+
       footerReturnTextPending = true;
+      lockWheelInput("footer-reverse-sequence");
       footerForwardStage = "reverse";
       mainSection.classList.add(
         "section-main_footer-sequence-controlled",
@@ -3041,11 +3353,6 @@ export const setScrollingAnimations = function () {
         boundary: "footer",
         direction: -1,
       });
-
-      if (!restoreLastStageFromFooter()) {
-        clearFooterReverseSequence();
-        return false;
-      }
 
       footerReverseApproachIsActive = true;
       counterBlock.classList.add("section-main__counter-block_shown");
@@ -3157,208 +3464,200 @@ export const setScrollingAnimations = function () {
       scrollRoot.dataset.reverseMode = "—";
     });
 
-    wheelEventTarget.addEventListener(
-      "wheel",
-      (event) => {
-        if (event.defaultPrevented) {
+    const handleReverseWheel = (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      if (event.deltaY > 0) {
+        reverseTextHoldStep = null;
+        reverseTextHoldRemaining = 0;
+        if (footerReverseApproachIsActive || footerReverseSequenceIsActive) {
+          clearFooterReverseSequence();
+        }
+
+        if (handleFooterForwardWheel(event)) {
           return;
         }
 
-        if (event.deltaY > 0) {
-          reverseTextHoldStep = null;
-          reverseTextHoldRemaining = 0;
-          if (footerReverseApproachIsActive || footerReverseSequenceIsActive) {
-            clearFooterReverseSequence();
-          }
+        forwardIntentDistance += Math.max(getWheelDeltaInPixels(event), 0);
 
-          if (handleFooterForwardWheel(event)) {
-            return;
-          }
-
-          forwardIntentDistance += Math.max(getWheelDeltaInPixels(event), 0);
-
-          if (
-            reverseGestureIsActive &&
-            forwardIntentDistance < FORWARD_DIRECTION_CONFIRM_DISTANCE
-          ) {
-            event.preventDefault();
-            scheduleReverseGestureEnd();
-            return;
-          }
-
-          clearTimeout(reverseGestureEndTimer);
-          reverseGestureIsActive = false;
-          reverseGestureAllowsNativeScroll = false;
-          forwardIntentDistance = 0;
-          scrollRoot.dataset.reverseGesture = "idle";
-          scrollRoot.dataset.reverseTarget = "—";
-          scrollRoot.dataset.reverseFrom = "—";
-          scrollRoot.dataset.reverseMode = "—";
-          document.dispatchEvent(new Event(PHONE_REVERSE_CANCEL_EVENT));
+        if (
+          reverseGestureIsActive &&
+          forwardIntentDistance < FORWARD_DIRECTION_CONFIRM_DISTANCE
+        ) {
+          event.preventDefault();
+          scheduleReverseGestureEnd();
           return;
         }
 
-        if (event.deltaY === 0) {
-          return;
-        }
-
+        clearTimeout(reverseGestureEndTimer);
+        reverseGestureIsActive = false;
+        reverseGestureAllowsNativeScroll = false;
         forwardIntentDistance = 0;
+        scrollRoot.dataset.reverseGesture = "idle";
+        scrollRoot.dataset.reverseTarget = "—";
+        scrollRoot.dataset.reverseFrom = "—";
+        scrollRoot.dataset.reverseMode = "—";
+        document.dispatchEvent(new Event(PHONE_REVERSE_CANCEL_EVENT));
+        return;
+      }
 
-        if (event.ctrlKey || event.target.closest(".modal-window_shown")) {
+      if (event.deltaY === 0) {
+        return;
+      }
+
+      forwardIntentDistance = 0;
+
+      if (event.ctrlKey || event.target.closest(".modal-window_shown")) {
+        return;
+      }
+
+      if (footerReverseApproachIsActive) {
+        return;
+      }
+
+      if (footerReverseSequenceIsActive) {
+        event.preventDefault();
+        return;
+      }
+
+      if (footerForwardStage === "exiting") {
+        event.preventDefault();
+        return;
+      }
+
+      if (footerForwardStage === "text-hidden") {
+        event.preventDefault();
+        clearTimeout(footerForwardGestureEndTimer);
+        footerForwardStage = "idle";
+        footerForwardStageIsArmed = false;
+        mainSection.classList.remove("section-main_footer-sequence-controlled");
+        dispatchTextStepChange(currentDigit - 1, {
+          boundary: "footer",
+          direction: -1,
+        });
+        scrollRoot.dataset.reverseMode = "текст фазы 5";
+        return;
+      }
+
+      if (
+        footerForwardStage === "reverse-ready" &&
+        !footerReverseTextStageIsArmed
+      ) {
+        event.preventDefault();
+        scheduleFooterReverseTextStageArm();
+        scrollRoot.dataset.reverseMode = "текст фазы 5 зафиксирован";
+        return;
+      }
+
+      if (scrollRoot.dataset.introReverseSequence === "active") {
+        clearTimeout(reverseGestureEndTimer);
+        reverseGestureIsActive = false;
+        reverseGestureAllowsNativeScroll = false;
+        scrollRoot.dataset.reverseGesture = "idle";
+        scrollRoot.dataset.reverseMode = "управляется скроллом";
+        return;
+      }
+
+      const boundaryOpacity = Number.parseFloat(
+        counterBlock.style.getPropertyValue("--boundary-opacity"),
+      );
+      const lastPhoneState = Object.keys(PHONE_STATE_TEXT_STEPS).at(-1);
+      const renderedPhoneState = phone.className.match(PHONE_STATE_REGEX)?.[0];
+      const lastStageIsRendered = renderedPhoneState === lastPhoneState;
+      const isFooterReturn =
+        footerForwardStage === "complete" ||
+        (lastStageIsRendered &&
+          (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
+      const reverseTransitionStep =
+        counterIsActive && !isFooterReturn
+          ? getReverseTextTransitionStep()
+          : null;
+
+      if (reverseTransitionStep !== null) {
+        if (reverseTextHoldStep !== reverseTransitionStep) {
+          reverseTextHoldStep = reverseTransitionStep;
+          reverseTextHoldRemaining = TEXT_PHASE_HOLD_SCROLL_DISTANCE;
+        }
+
+        event.preventDefault();
+        reverseTextHoldRemaining = Math.max(
+          reverseTextHoldRemaining - Math.abs(getWheelDeltaInPixels(event)),
+          0,
+        );
+        scrollRoot.dataset.reverseMode = "удержание текста 200px";
+
+        if (reverseTextHoldRemaining > 0) {
           return;
         }
 
-        if (footerReverseApproachIsActive) {
-          return;
-        }
-
-        if (footerReverseSequenceIsActive) {
-          event.preventDefault();
-          return;
-        }
-
-        if (footerForwardStage === "exiting") {
-          event.preventDefault();
-          return;
-        }
-
-        if (footerForwardStage === "text-hidden") {
-          event.preventDefault();
-          clearTimeout(footerForwardGestureEndTimer);
+        reverseTextHoldStep = null;
+        if (footerForwardStage === "reverse-ready") {
           footerForwardStage = "idle";
-          footerForwardStageIsArmed = false;
+          footerReverseTextStageIsArmed = false;
+          clearTimeout(footerReverseTextGestureEndTimer);
           mainSection.classList.remove(
             "section-main_footer-sequence-controlled",
           );
-          dispatchTextStepChange(currentDigit - 1, {
-            boundary: "footer",
-            direction: -1,
-          });
-          scrollRoot.dataset.reverseMode = "текст фазы 5";
+        }
+      } else {
+        reverseTextHoldStep = null;
+        reverseTextHoldRemaining = 0;
+      }
+
+      if (reverseGestureIsActive) {
+        if (!reverseGestureAllowsNativeScroll) {
+          event.preventDefault();
+        }
+        scheduleReverseGestureEnd();
+        return;
+      }
+
+      const navigationWasHandled = isFooterReturn
+        ? startFooterReverseApproach()
+        : moveToPreviousPhoneState();
+
+      if (navigationWasHandled) {
+        if (isFooterReturn) {
+          reverseGestureCount++;
+          scrollRoot.dataset.reverseGestureCount = String(reverseGestureCount);
           return;
         }
 
-        if (
-          footerForwardStage === "reverse-ready" &&
-          !footerReverseTextStageIsArmed
-        ) {
-          event.preventDefault();
-          scheduleFooterReverseTextStageArm();
-          scrollRoot.dataset.reverseMode = "текст фазы 5 зафиксирован";
-          return;
-        }
+        event.preventDefault();
 
         if (scrollRoot.dataset.introReverseSequence === "active") {
           clearTimeout(reverseGestureEndTimer);
           reverseGestureIsActive = false;
           reverseGestureAllowsNativeScroll = false;
+          footerReturnTextPending = false;
           scrollRoot.dataset.reverseGesture = "idle";
           scrollRoot.dataset.reverseMode = "управляется скроллом";
           return;
         }
 
-        const boundaryOpacity = Number.parseFloat(
-          counterBlock.style.getPropertyValue("--boundary-opacity"),
-        );
-        const lastPhoneState = Object.keys(PHONE_STATE_TEXT_STEPS).at(-1);
-        const renderedPhoneState =
-          phone.className.match(PHONE_STATE_REGEX)?.[0];
-        const lastStageIsRendered = renderedPhoneState === lastPhoneState;
-        const isFooterReturn =
-          footerForwardStage === "complete" ||
-          !counterIsActive ||
-          (lastStageIsRendered &&
-            (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
-        const reverseTransitionStep =
-          counterIsActive && !isFooterReturn
-            ? getReverseTextTransitionStep()
-            : null;
+        reverseGestureIsActive = true;
+        reverseGestureAllowsNativeScroll = false;
+        footerReturnTextPending = false;
+        reverseGestureCount++;
+        scrollRoot.dataset.reverseGesture = "active";
+        scrollRoot.dataset.reverseMode = isFooterReturn
+          ? "плавный возврат"
+          : "один шаг";
+        scrollRoot.dataset.reverseGestureCount = String(reverseGestureCount);
+        scheduleReverseGestureEnd();
+        return;
+      }
 
-        if (reverseTransitionStep !== null) {
-          if (reverseTextHoldStep !== reverseTransitionStep) {
-            reverseTextHoldStep = reverseTransitionStep;
-            reverseTextHoldRemaining = TEXT_PHASE_HOLD_SCROLL_DISTANCE;
-          }
+      if (!counterIsActive) {
+        return;
+      }
 
-          event.preventDefault();
-          reverseTextHoldRemaining = Math.max(
-            reverseTextHoldRemaining - Math.abs(getWheelDeltaInPixels(event)),
-            0,
-          );
-          scrollRoot.dataset.reverseMode = "удержание текста 200px";
-
-          if (reverseTextHoldRemaining > 0) {
-            return;
-          }
-
-          reverseTextHoldStep = null;
-          if (footerForwardStage === "reverse-ready") {
-            footerForwardStage = "idle";
-            footerReverseTextStageIsArmed = false;
-            clearTimeout(footerReverseTextGestureEndTimer);
-            mainSection.classList.remove(
-              "section-main_footer-sequence-controlled",
-            );
-          }
-        } else {
-          reverseTextHoldStep = null;
-          reverseTextHoldRemaining = 0;
-        }
-
-        if (reverseGestureIsActive) {
-          if (!reverseGestureAllowsNativeScroll) {
-            event.preventDefault();
-          }
-          scheduleReverseGestureEnd();
-          return;
-        }
-
-        const navigationWasHandled = isFooterReturn
-          ? startFooterReverseApproach()
-          : moveToPreviousPhoneState();
-
-        if (navigationWasHandled) {
-          if (isFooterReturn) {
-            reverseGestureCount++;
-            scrollRoot.dataset.reverseGestureCount =
-              String(reverseGestureCount);
-            return;
-          }
-
-          event.preventDefault();
-
-          if (scrollRoot.dataset.introReverseSequence === "active") {
-            clearTimeout(reverseGestureEndTimer);
-            reverseGestureIsActive = false;
-            reverseGestureAllowsNativeScroll = false;
-            footerReturnTextPending = false;
-            scrollRoot.dataset.reverseGesture = "idle";
-            scrollRoot.dataset.reverseMode = "управляется скроллом";
-            return;
-          }
-
-          reverseGestureIsActive = true;
-          reverseGestureAllowsNativeScroll = false;
-          footerReturnTextPending = false;
-          reverseGestureCount++;
-          scrollRoot.dataset.reverseGesture = "active";
-          scrollRoot.dataset.reverseMode = isFooterReturn
-            ? "плавный возврат"
-            : "один шаг";
-          scrollRoot.dataset.reverseGestureCount = String(reverseGestureCount);
-          scheduleReverseGestureEnd();
-          return;
-        }
-
-        if (!counterIsActive) {
-          return;
-        }
-
-        scrollRoot.scrollTop +=
-          getWheelDeltaInPixels(event) * (REVERSE_WHEEL_SCROLL_MULTIPLIER - 1);
-      },
-      { capture: true, passive: false },
-    );
+      scrollRoot.scrollTop +=
+        getWheelDeltaInPixels(event) * (REVERSE_WHEEL_SCROLL_MULTIPLIER - 1);
+    };
+    reverseWheelHandler = handleReverseWheel;
   };
   const createMainIntersectionObserver = function () {
     const NUMBER_CLASS_REGEX = /_\d+-\d+$/;
@@ -3422,10 +3721,12 @@ export const setScrollingAnimations = function () {
           // made the rest of phase 1 collapse into the intro on the same pass.
           if (shouldInitializeFirstStageSequence) {
             firstStageSequenceState = "forward-scaffold";
+            lockWheelInput("first-stage-scaffold-in");
             scheduleFirstStageSequenceState(
               "forward-scaffold",
               "forward-wait-digit",
               1000,
+              "first-stage-scaffold-in",
             );
           }
           if (!isWaitingForFirstScaffold) {
@@ -3454,15 +3755,40 @@ export const setScrollingAnimations = function () {
           // setMainCornerShown(true);
           // setMainRightPlusShown(true);
         } else {
+          const rootRect = scrollRoot.getBoundingClientRect();
+          const activeZoneRect = entry.target.getBoundingClientRect();
+          const isReturningToIntro = activeZoneRect.top >= rootRect.bottom;
+
+          // Layout changes during the reverse text/digit/scaffold sequence can
+          // briefly push the activation marker outside the viewport. That is
+          // not a real exit and must not let this generic observer tear down
+          // the remaining visuals or re-show a digit from another phase.
+          if (
+            isReturningToIntro &&
+            firstStageOwnsPinnedScrollPosition()
+          ) {
+            counterIsActive = true;
+            logScrollDebug("first-stage-boundary-exit-held", {
+              firstStageSequenceState,
+              displacedScrollTop: Math.round(scrollRoot.scrollTop),
+              pinnedScrollTop: Number.isFinite(firstStagePinnedScrollTop)
+                ? Math.round(firstStagePinnedScrollTop)
+                : null,
+            });
+            if (
+              Number.isFinite(firstStagePinnedScrollTop) &&
+              Math.abs(scrollRoot.scrollTop - firstStagePinnedScrollTop) > 1
+            ) {
+              scrollRoot.scrollTop = firstStagePinnedScrollTop;
+            }
+            return;
+          }
+
           const wasCounterActive = counterIsActive;
           counterIsActive = false;
           counterBlock.classList.remove(
             "section-main__counter-block_digits-waiting",
           );
-
-          const rootRect = scrollRoot.getBoundingClientRect();
-          const activeZoneRect = entry.target.getBoundingClientRect();
-          const isReturningToIntro = activeZoneRect.top >= rootRect.bottom;
 
           if (isReturningToIntro) {
             document.dispatchEvent(
@@ -3807,4 +4133,74 @@ export const setScrollingAnimations = function () {
   createMainIntersectionObserver();
   createReverseWheelAcceleration();
   createEndIntersectionObserver();
+
+  const wheelRoutes = [
+    ["first-stage", handleFirstStageSequenceWheel],
+    ["intro-forward", introForwardWheelHandler],
+    ["intro-reverse", introReverseWheelHandler],
+    ["phase-navigation", reverseWheelHandler],
+  ];
+  const handleWheelInput = (event) => {
+    trackWheelGesture(event);
+    const gestureId = getWheelGestureId(event);
+
+    if (
+      introReverseNativeScrollIsActive &&
+      event.deltaY < 0 &&
+      scrollRoot.scrollTop > 1
+    ) {
+      logScrollDebug("intro-reverse-native-scroll", {
+        gestureId,
+        sourceGestureId: introReverseNativeScrollGestureId,
+        deltaY: event.deltaY,
+      });
+      return;
+    }
+
+    if (introReverseNativeScrollIsActive) {
+      logScrollDebug("intro-reverse-native-scroll-stop", {
+        gestureId,
+        sourceGestureId: introReverseNativeScrollGestureId,
+        deltaY: event.deltaY,
+        reason: scrollRoot.scrollTop <= 1 ? "start-boundary" : "direction-change",
+      });
+      stopIntroReverseNativeScroll();
+    }
+
+    if (wheelInputLock) {
+      event.preventDefault();
+      logScrollDebug("wheel-input-held", {
+        gestureId,
+        owner: wheelInputLock.owner,
+        animationComplete: wheelInputLock.animationComplete,
+        firstStageSequenceState,
+      });
+      return;
+    }
+
+    for (const [owner, handler] of wheelRoutes) {
+      if (!handler) {
+        continue;
+      }
+
+      const routeWasHandled = handler(event) === true;
+      if (routeWasHandled || event.defaultPrevented) {
+        logScrollDebug("wheel-consumed", {
+          gestureId: getWheelGestureId(event),
+          owner,
+          firstStageSequenceState,
+          nativeScrollAllowed: routeWasHandled && !event.defaultPrevented,
+        });
+        return;
+      }
+    }
+  };
+
+  // The page has one wheel listener. Phase controllers are plain functions
+  // called in a fixed priority order, and routing stops after one consumes the
+  // event. This keeps a single physical gesture from reaching two timelines.
+  wheelEventTarget.addEventListener("wheel", handleWheelInput, {
+    capture: true,
+    passive: false,
+  });
 };
