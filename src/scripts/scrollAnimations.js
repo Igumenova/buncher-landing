@@ -28,6 +28,8 @@ export const setScrollingAnimations = function () {
   const TEXT_PHASE_HOLD_SCROLL_DISTANCE = 200;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
   const TEXT_TYPING_START_EVENT = "buncher:text-typing-start";
+  const TEXT_TYPING_MIDPOINT_EVENT = "buncher:text-typing-midpoint";
+  const TEXT_TYPING_COMPLETE_EVENT = "buncher:text-typing-complete";
   const PHONE_REVERSE_STEP_EVENT = "buncher:phone-reverse-step";
   const PHONE_REVERSE_CANCEL_EVENT = "buncher:phone-reverse-cancel";
   const INTRO_LOGO_VISIBILITY_EVENT = "buncher:intro-logo-visibility";
@@ -67,13 +69,24 @@ export const setScrollingAnimations = function () {
   let wheelGestureIsActive = false;
   let wheelGestureEndTimer = null;
   let wheelGestureStartedAt = 0;
+  let wheelGestureDirection = 0;
   let previousWheelDelta = 0;
   let previousWheelDeltaY = 0;
   let wheelInputLock = null;
   let wheelInputLockTimer = null;
   let scrollDebugSequence = 0;
+  let flushTypingProgress = null;
   const scrollDebugBuffer = [];
   const logScrollDebug = (type, detail = {}) => {
+    const activePhrase = document.querySelector(
+      ".section-main__shuffle-phrase_active",
+    );
+    const visibleTextLetterCount = activePhrase?.querySelectorAll(
+      ".section-main__shuffle-letter_visible",
+    ).length;
+    const totalTextLetterCount = activePhrase?.querySelectorAll(
+      ".section-main__shuffle-letter",
+    ).length;
     const entry = {
       sequence: ++scrollDebugSequence,
       time: Math.round(performance.now()),
@@ -82,6 +95,13 @@ export const setScrollingAnimations = function () {
       phoneState:
         document.getElementById("phone")?.className.match(/\d+-\d+$/)?.[0] ??
         null,
+      digitState:
+        document
+          .getElementById("changing-number")
+          ?.className.match(/_\d+-\d+$/)?.[0] ?? null,
+      textStep: activePhrase?.dataset.step ?? null,
+      visibleTextLetterCount: visibleTextLetterCount ?? 0,
+      totalTextLetterCount: totalTextLetterCount ?? 0,
       ...detail,
     };
 
@@ -111,13 +131,16 @@ export const setScrollingAnimations = function () {
     introReverseNativeScrollGestureId = null;
   };
 
-  const releaseWheelInputIfReady = (nextGestureId = null) => {
+  const releaseWheelInputIfReady = (
+    nextGestureId = null,
+    { allowActiveGesture = false } = {},
+  ) => {
     const nextGestureHasStarted =
       nextGestureId !== null && wheelInputLock?.gestureId !== nextGestureId;
     if (
       !wheelInputLock ||
       !wheelInputLock.animationComplete ||
-      (wheelGestureIsActive && !nextGestureHasStarted)
+      (wheelGestureIsActive && !nextGestureHasStarted && !allowActiveGesture)
     ) {
       return;
     }
@@ -199,11 +222,43 @@ export const setScrollingAnimations = function () {
   const trackWheelGesture = (event) => {
     const now = performance.now();
     const delta = Math.abs(event.deltaY);
-    const changesDirection =
-      event.deltaY !== 0 &&
-      previousWheelDeltaY !== 0 &&
-      Math.sign(event.deltaY) !== Math.sign(previousWheelDeltaY) &&
-      delta >= 2;
+    const eventDirection = Math.sign(event.deltaY);
+    const opposesActiveGesture =
+      eventDirection !== 0 &&
+      wheelGestureIsActive &&
+      wheelGestureDirection !== 0 &&
+      eventDirection !== wheelGestureDirection;
+
+    // Some mouse drivers emit an opposite-sign momentum tail during one fast
+    // wheel movement. It is not a new user gesture: routing it as one used to
+    // start reverse navigation while the forward transition was still active,
+    // which could jump several phases and then snap back to phase one.
+    // Keep the first direction latched until the gesture has actually gone
+    // quiet, and suppress both routing and native scrolling for these tails.
+    if (opposesActiveGesture) {
+      wheelGestureIds.set(event, currentWheelGestureId);
+      wheelGestureStarts.set(event, false);
+      logScrollDebug("wheel-direction-tail-suppressed", {
+        gestureId: currentWheelGestureId,
+        gestureDirection: wheelGestureDirection,
+        deltaY: event.deltaY,
+        deltaMode: event.deltaMode,
+        eventTimeStamp: Math.round(event.timeStamp),
+      });
+
+      clearTimeout(wheelGestureEndTimer);
+      const endingGestureId = currentWheelGestureId;
+      wheelGestureEndTimer = setTimeout(() => {
+        wheelGestureIsActive = false;
+        wheelGestureDirection = 0;
+        previousWheelDelta = 0;
+        previousWheelDeltaY = 0;
+        logScrollDebug("gesture-end", { gestureId: endingGestureId });
+        releaseWheelInputIfReady();
+      }, WHEEL_GESTURE_END_DELAY);
+      return true;
+    }
+
     const restartsFromInertia =
       event.deltaY !== 0 &&
       wheelGestureIsActive &&
@@ -212,12 +267,10 @@ export const setScrollingAnimations = function () {
       delta >= previousWheelDelta * WHEEL_GESTURE_RESTART_RATIO;
     const startsNewGesture =
       event.deltaY !== 0 &&
-      (!wheelGestureIsActive || changesDirection || restartsFromInertia);
+      (!wheelGestureIsActive || restartsFromInertia);
     const newGestureReason = !startsNewGesture
       ? null
-      : changesDirection
-        ? "direction-change"
-        : restartsFromInertia
+      : restartsFromInertia
         ? "inertia-restart"
         : "idle";
 
@@ -225,6 +278,7 @@ export const setScrollingAnimations = function () {
       currentWheelGestureId += 1;
       wheelGestureIsActive = true;
       wheelGestureStartedAt = now;
+      wheelGestureDirection = eventDirection;
       // A touchpad can begin the next swipe while momentum events from the
       // previous swipe are still arriving. Once the owned animation has
       // completed, the first event of that new swipe must release its lock and
@@ -256,12 +310,14 @@ export const setScrollingAnimations = function () {
       const endingGestureId = currentWheelGestureId;
       wheelGestureEndTimer = setTimeout(() => {
         wheelGestureIsActive = false;
+        wheelGestureDirection = 0;
         previousWheelDelta = 0;
         previousWheelDeltaY = 0;
         logScrollDebug("gesture-end", { gestureId: endingGestureId });
         releaseWheelInputIfReady();
       }, WHEEL_GESTURE_END_DELAY);
     }
+    return false;
   };
   const blocks = document.querySelectorAll(".trackable");
   let counterIsActive = false;
@@ -280,6 +336,9 @@ export const setScrollingAnimations = function () {
   let firstStagePinnedScrollTop = null;
   let phaseTransitionInputTimer = null;
   let reverseNavigationInputTimer = null;
+  let completedTextStep = -1;
+  let midpointTextStep = -1;
+  let textTypingCompletionGestureId = null;
   const firstStageOwnsPinnedScrollPosition = () =>
     [
       "forward-screen",
@@ -288,6 +347,9 @@ export const setScrollingAnimations = function () {
       "forward-wait-digit",
       "forward-digit",
       "forward-wait-text",
+      "forward-phone",
+      "reverse-phone",
+      "reverse-wait-text",
       "reverse-text",
       "reverse-wait-digit",
       "reverse-digit",
@@ -359,6 +421,23 @@ export const setScrollingAnimations = function () {
     });
 
     return nextDigit;
+  };
+  const getDigitBoundaryScrollTop = (nextDigit) => {
+    const block = blocks[nextDigit - 1];
+    if (!block || nextDigit <= 1) {
+      return 0;
+    }
+
+    const rootRect = scrollRoot.getBoundingClientRect();
+    const blockRect = block.getBoundingClientRect();
+    return (
+      scrollRoot.scrollTop +
+      blockRect.top -
+      rootRect.top +
+      blockRect.height * STAGE_CHANGE_POINT +
+      TEXT_PHASE_HOLD_SCROLL_DISTANCE -
+      scrollRoot.clientHeight / 2
+    );
   };
   const animateZeroVisibility = (isVisible) => {
     const counterBlock = document.getElementById("counter");
@@ -512,6 +591,33 @@ export const setScrollingAnimations = function () {
       }
 
       if (
+        firstStageSequenceState === "reverse-phone" ||
+        firstStageSequenceState === "reverse-wait-text"
+      ) {
+        event.preventDefault();
+        if (!currentGestureIsStart || currentGestureAlreadyUsed) {
+          return;
+        }
+
+        firstStageLastActionGestureId = gestureId;
+        clearTimeout(firstStageSequenceTimer);
+        firstStageSequenceState = "forward-phone";
+        lockWheelInput("first-stage-phone-in");
+        document.dispatchEvent(
+          new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
+            detail: { state: "1-1" },
+          }),
+        );
+        scheduleFirstStageSequenceState(
+          "forward-phone",
+          "active",
+          PHASE_TRANSITION_DURATION + 100,
+          "first-stage-phone-in",
+        );
+        return;
+      }
+
+      if (
         firstStageSequenceState === "reverse-text" ||
         firstStageSequenceState === "reverse-wait-digit"
       ) {
@@ -586,7 +692,8 @@ export const setScrollingAnimations = function () {
 
       if (
         firstStageSequenceState === "forward-scaffold" ||
-        firstStageSequenceState === "forward-digit"
+        firstStageSequenceState === "forward-digit" ||
+        firstStageSequenceState === "forward-phone"
       ) {
         event.preventDefault();
         return;
@@ -643,6 +750,35 @@ export const setScrollingAnimations = function () {
         return true;
       }
 
+      if (
+        firstStageSequenceState === "active" &&
+        currentDigit === 1 &&
+        renderedPhoneState === "1-0" &&
+        completedTextStep >= 0
+      ) {
+        event.preventDefault();
+        if (!currentGestureIsStart || currentGestureAlreadyUsed) {
+          return;
+        }
+
+        firstStageLastActionGestureId = gestureId;
+        firstStageSequenceState = "forward-phone";
+        lockWheelInput("first-stage-phone-in");
+        logScrollDebug("first-stage-phone-forward-start", { gestureId });
+        document.dispatchEvent(
+          new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
+            detail: { state: "1-1" },
+          }),
+        );
+        scheduleFirstStageSequenceState(
+          "forward-phone",
+          "active",
+          PHASE_TRANSITION_DURATION + 100,
+          "first-stage-phone-in",
+        );
+        return;
+      }
+
       if (firstStageSequenceState === "active" && currentGestureAlreadyUsed) {
         return true;
       }
@@ -696,6 +832,53 @@ export const setScrollingAnimations = function () {
         return;
       }
       firstStageLastActionGestureId = gestureId;
+
+      if (renderedPhoneState === "1-1") {
+        firstStageSequenceState = "reverse-phone";
+        lockWheelInput("first-stage-phone-out");
+        logScrollDebug("first-stage-phone-reverse-start", { gestureId });
+        document.dispatchEvent(
+          new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
+            detail: { state: "1-0" },
+          }),
+        );
+        scheduleFirstStageSequenceState(
+          "reverse-phone",
+          "reverse-wait-text",
+          PHASE_TRANSITION_DURATION + 100,
+          "first-stage-phone-out",
+        );
+        return;
+      }
+
+      firstStageSequenceState = "reverse-text";
+      lockWheelInput("first-stage-text-out");
+      dispatchTextStepChange(-1, {
+        boundary: "search",
+        direction: -1,
+      });
+      clearTimeout(firstStageReverseTextTimer);
+      firstStageReverseTextTimer = setTimeout(() => {
+        if (firstStageSequenceState === "reverse-text") {
+          firstStageSequenceState = "reverse-wait-digit";
+          completeWheelInputTransition("first-stage-text-out");
+          logScrollDebug("first-stage-step-ready", {
+            firstStageSequenceState,
+            firstStageLastActionGestureId,
+            source: "reverse-text-timer",
+          });
+        }
+      }, TEXT_EXIT_DURATION);
+      return;
+    }
+
+    if (firstStageSequenceState === "reverse-wait-text") {
+      event.preventDefault();
+      if (!currentGestureIsStart || currentGestureAlreadyUsed) {
+        return;
+      }
+
+      firstStageLastActionGestureId = gestureId;
       firstStageSequenceState = "reverse-text";
       lockWheelInput("first-stage-text-out");
       dispatchTextStepChange(-1, {
@@ -718,6 +901,7 @@ export const setScrollingAnimations = function () {
     }
 
     if (
+      firstStageSequenceState === "reverse-phone" ||
       firstStageSequenceState === "reverse-text" ||
       firstStageSequenceState === "reverse-digit" ||
       firstStageSequenceState === "reverse-scaffold"
@@ -1018,14 +1202,47 @@ export const setScrollingAnimations = function () {
         return;
       }
 
-      const nextDigit = getDigitForCurrentScroll();
+      // The number observer is registered before the typing observer. Flush
+      // text progress here so a coarse mouse-wheel notch cannot jump across
+      // the completion threshold before the phase gate sees it.
+      flushTypingProgress?.();
+
+      const scrollDigit = getDigitForCurrentScroll();
+      const nextDigit =
+        scrollDigit > currentDigit
+          ? currentDigit + 1
+          : scrollDigit < currentDigit
+            ? currentDigit - 1
+            : currentDigit;
 
       if (nextDigit === currentDigit) {
         return;
       }
 
+      if (nextDigit > currentDigit) {
+        const currentTextStep = currentDigit - 1;
+        const textIsComplete = completedTextStep >= currentTextStep;
+
+        // Text follows the physical scroll continuously. Once it is complete,
+        // the same fast wheel pass may continue into the mockup transition;
+        // the transition lock below absorbs the remaining momentum so it can
+        // still commit at most one neighbouring phase.
+        if (!textIsComplete) {
+          return;
+        }
+      }
+
       const previousDigit = currentDigit;
       currentDigit = nextDigit;
+      if (scrollDigit > nextDigit) {
+        const boundaryScrollTop = getDigitBoundaryScrollTop(nextDigit);
+        scrollRoot.scrollTop = boundaryScrollTop + 1;
+        logScrollDebug("phase-overshoot-clamped", {
+          previousDigit,
+          requestedDigit: scrollDigit,
+          committedDigit: nextDigit,
+        });
+      }
       const phaseLockWasAcquired = lockWheelInput("phase-transition");
       if (phaseLockWasAcquired) {
         clearTimeout(phaseTransitionInputTimer);
@@ -1103,7 +1320,6 @@ export const setScrollingAnimations = function () {
       let introReverseSequenceIsActive = false;
       let logoStageGestureId = null;
       let introReverseScreenTransitionIsActive = false;
-      const PHONE_STAGE_FIRST_STATES = ["1-0", "1-2", "2-1", "3-2", "4-1"];
       const phoneLogo = phone.querySelector(".phone__item_logo");
       const phoneShell = phone.closest(".phone");
       const clearFirstScreenTransitionClasses = () => {
@@ -1228,6 +1444,9 @@ export const setScrollingAnimations = function () {
         firstStageLastActionGestureId = null;
         firstStagePinnedScrollTop = null;
         firstStageSequenceState = "idle";
+        completedTextStep = -1;
+        midpointTextStep = -1;
+        textTypingCompletionGestureId = null;
         pendingPhoneState = "999-999";
         expectedTextStep = -1;
         scrollRoot.dataset.introReverseSequence = "idle";
@@ -1460,46 +1679,20 @@ export const setScrollingAnimations = function () {
           startIntroReverseSequence();
         }
       });
-      document.addEventListener(TEXT_TYPING_START_EVENT, (event) => {
+      document.addEventListener(TEXT_TYPING_MIDPOINT_EVENT, (event) => {
         if (event.detail.stepIndex !== expectedTextStep) {
-          return;
-        }
-
-        const visibleLetter = document.querySelector(
-          `.section-main__shuffle-phrase[data-step="${expectedTextStep}"] ` +
-            ".section-main__shuffle-letter_visible",
-        );
-        const shuffleText = document.querySelector(
-          ".section-main__shuffle-text",
-        );
-
-        if (
-          !visibleLetter ||
-          !shuffleText ||
-          getComputedStyle(visibleLetter).opacity === "0" ||
-          getComputedStyle(shuffleText).visibility === "hidden"
-        ) {
           return;
         }
 
         unlockedTextStep = expectedTextStep;
         phoneStageIsUnlocked = true;
 
-        if (reversePhoneState) {
-          if (getRequiredTextStep(reversePhoneState) === expectedTextStep) {
-            commitPhoneState(reversePhoneState);
-          }
-          return;
+        // The first phase changes its internal mockup state halfway through
+        // typing. It is intentionally independent from the later phase change,
+        // which still waits for complete text and a fresh gesture.
+        if (expectedTextStep === 0) {
+          commitPhoneState("1-1");
         }
-
-        const pendingStateMatchesStep =
-          getRequiredTextStep(pendingPhoneState) === expectedTextStep;
-
-        commitPhoneState(
-          pendingStateMatchesStep
-            ? pendingPhoneState
-            : (PHONE_STAGE_FIRST_STATES[expectedTextStep] ?? pendingPhoneState),
-        );
       });
 
       let first = true;
@@ -1943,15 +2136,20 @@ export const setScrollingAnimations = function () {
       }
 
       if (typingDirection > 0 && typingOriginScrollTop === null) {
-        typingOriginScrollTop = Math.max(range.start, scrollRoot.scrollTop);
+        // Always measure from the phase's real start. Starting from the
+        // current position made a phase entered by a large wheel delta unable
+        // to ever reach 100% before its boundary.
+        typingOriginScrollTop = range.start;
       }
 
       const phaseProgress =
         typingDirection > 0
-          ? clampProgress(
-              (scrollRoot.scrollTop - typingOriginScrollTop) /
-                Math.max(range.end - typingOriginScrollTop, 1),
-            )
+          ? scrollRoot.scrollTop >= range.end
+            ? 1
+            : clampProgress(
+                (scrollRoot.scrollTop - typingOriginScrollTop) /
+                  Math.max(range.end - typingOriginScrollTop, 1),
+              )
           : clampProgress(
               (scrollRoot.scrollTop - range.start) /
                 Math.max(range.end - range.start, 1),
@@ -1960,18 +2158,10 @@ export const setScrollingAnimations = function () {
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
       const typingProgress = linearTypingProgress;
-      let visibleLetterCount =
+      const visibleLetterCount =
         typingDirection < 0
           ? (reverseVisibleLetterCount ?? activeLetters.length)
           : Math.floor(activeLetters.length * typingProgress);
-
-      if (
-        typingDirection > 0 &&
-        typingStartedStep !== activeStep &&
-        visibleLetterCount > 0
-      ) {
-        visibleLetterCount = 1;
-      }
 
       if (visibleLetterCount !== lastVisibleLetterCount) {
         activeLetters.forEach((letter, index) => {
@@ -1996,11 +2186,61 @@ export const setScrollingAnimations = function () {
           }),
         );
       }
+
+      if (
+        typingDirection > 0 &&
+        typingProgress >= 0.5 &&
+        midpointTextStep < activeStep
+      ) {
+        midpointTextStep = activeStep;
+        document.dispatchEvent(
+          new CustomEvent(TEXT_TYPING_MIDPOINT_EVENT, {
+            detail: {
+              stepIndex: activeStep,
+              gestureId: currentWheelGestureId,
+            },
+          }),
+        );
+        logScrollDebug("text-typing-midpoint", {
+          stepIndex: activeStep,
+          gestureId: currentWheelGestureId,
+          visibleLetterCount,
+          totalLetterCount: activeLetters.length,
+        });
+      }
+
+      if (
+        typingDirection > 0 &&
+        visibleLetterCount === activeLetters.length &&
+        completedTextStep < activeStep
+      ) {
+        completedTextStep = activeStep;
+        textTypingCompletionGestureId = currentWheelGestureId;
+        document.dispatchEvent(
+          new CustomEvent(TEXT_TYPING_COMPLETE_EVENT, {
+            detail: {
+              stepIndex: activeStep,
+              gestureId: currentWheelGestureId,
+            },
+          }),
+        );
+        logScrollDebug("text-typing-complete", {
+          stepIndex: activeStep,
+          gestureId: currentWheelGestureId,
+        });
+      }
     };
     const requestTypingProgressUpdate = () => {
       if (!typingFrameId) {
         typingFrameId = requestAnimationFrame(updateTypingProgress);
       }
+    };
+    flushTypingProgress = () => {
+      if (typingFrameId) {
+        cancelAnimationFrame(typingFrameId);
+        typingFrameId = null;
+      }
+      updateTypingProgress();
     };
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
@@ -2807,6 +3047,10 @@ export const setScrollingAnimations = function () {
       shuffleText.classList.add("section-main__shuffle-text_visible");
     };
     prepareTextStep = (stepIndex) => {
+      completedTextStep = Math.min(completedTextStep, stepIndex - 1);
+      midpointTextStep = Math.min(midpointTextStep, stepIndex - 1);
+      textTypingCompletionGestureId = null;
+
       if (activeStep !== stepIndex) {
         setStep(stepIndex, true);
       }
@@ -3089,7 +3333,7 @@ export const setScrollingAnimations = function () {
             scrollRoot.scrollTop +
             anchorRect.top -
             rootRect.top -
-            scrollRoot.clientHeight +
+            scrollRoot.clientHeight / 2 +
             anchorRect.height / 2,
         };
       });
@@ -3449,7 +3693,6 @@ export const setScrollingAnimations = function () {
       );
       return true;
     };
-
     document.addEventListener(INTRO_SEQUENCE_RESET_EVENT, () => {
       clearTimeout(reverseGestureEndTimer);
       reverseGestureIsActive = false;
@@ -4141,7 +4384,11 @@ export const setScrollingAnimations = function () {
     ["phase-navigation", reverseWheelHandler],
   ];
   const handleWheelInput = (event) => {
-    trackWheelGesture(event);
+    const directionTailWasSuppressed = trackWheelGesture(event);
+    if (directionTailWasSuppressed) {
+      event.preventDefault();
+      return;
+    }
     const gestureId = getWheelGestureId(event);
 
     if (
@@ -4165,6 +4412,22 @@ export const setScrollingAnimations = function () {
         reason: scrollRoot.scrollTop <= 1 ? "start-boundary" : "direction-change",
       });
       stopIntroReverseNativeScroll();
+    }
+
+    // Forward scrolling is continuous: after the mockup animation has
+    // finished, the next delta from the same physical gesture must continue
+    // into the new phase's text instead of being swallowed until gesture-end.
+    // Reverse and first-stage transitions remain deliberately step-by-step.
+    if (
+      wheelInputLock?.owner === "phase-transition" &&
+      wheelInputLock.animationComplete &&
+      event.deltaY > 0
+    ) {
+      logScrollDebug("wheel-input-forward-continued", {
+        gestureId,
+        owner: wheelInputLock.owner,
+      });
+      releaseWheelInputIfReady(gestureId, { allowActiveGesture: true });
     }
 
     if (wheelInputLock) {
