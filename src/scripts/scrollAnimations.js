@@ -80,7 +80,8 @@ export const setScrollingAnimations = function () {
   let wheelInputLockTimer = null;
   let scrollDebugSequence = 0;
   let flushTypingProgress = null;
-  let advanceFirstStageTypingByWheel = null;
+  let advanceTypingByWheel = null;
+  let handleTypingWheelInput = null;
   let resetFirstStageTypingPosition = null;
   const scrollDebugBuffer = [];
   const logScrollDebug = (type, detail = {}) => {
@@ -803,7 +804,7 @@ export const setScrollingAnimations = function () {
           synchronizeDigit: true,
           activatePreparedTyping: true,
         });
-        advanceFirstStageTypingByWheel?.(event);
+        advanceTypingByWheel?.(event);
         return true;
       }
 
@@ -908,7 +909,7 @@ export const setScrollingAnimations = function () {
           synchronizeDigit: true,
           activatePreparedTyping: true,
         });
-        advanceFirstStageTypingByWheel?.(event);
+        advanceTypingByWheel?.(event);
         return true;
       }
 
@@ -918,7 +919,7 @@ export const setScrollingAnimations = function () {
         completedTextStep < 0
       ) {
         event.preventDefault();
-        advanceFirstStageTypingByWheel?.(event);
+        advanceTypingByWheel?.(event);
         return true;
       }
 
@@ -2347,10 +2348,9 @@ export const setScrollingAnimations = function () {
               (scrollRoot.scrollTop - range.start) /
                 Math.max(range.end - range.start, 1),
             );
-      const linearTypingProgress = clampProgress(
+      const typingProgress = clampProgress(
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
-      const typingProgress = linearTypingProgress;
       const visibleLetterCount =
         typingDirection < 0
           ? (reverseVisibleLetterCount ?? activeLetters.length)
@@ -2435,8 +2435,8 @@ export const setScrollingAnimations = function () {
       }
       updateTypingProgress();
     };
-    advanceFirstStageTypingByWheel = (event) => {
-      if (activeStep !== 0 || !activeLetters.length) {
+    advanceTypingByWheel = (event) => {
+      if (activeStep < 0 || !activeLetters.length) {
         return;
       }
 
@@ -2445,21 +2445,52 @@ export const setScrollingAnimations = function () {
         return;
       }
 
-      const typingDistance = Math.max(
+      const physicalTypingDistance = Math.max(
         (range.end - typingOriginScrollTop) *
           TYPING_COMPLETE_PHASE_PROGRESS,
         1,
       );
+      const longTypingDistance = Math.max(
+        ...typingRanges.map(
+          (typingRange) =>
+            (typingRange.end - typingRange.start) *
+            TYPING_COMPLETE_PHASE_PROGRESS,
+        ),
+        physicalTypingDistance,
+      );
       const rawDelta = Math.max(getWheelDeltaInPixels(event), 0);
-      const maxDeltaPerEvent = Math.max(typingDistance * 0.08, 48);
-      const controlledDelta = Math.min(rawDelta, maxDeltaPerEvent);
-      const completionScrollTop = typingOriginScrollTop + typingDistance + 1;
+      const controlledInputDelta = Math.min(
+        rawDelta,
+        longTypingDistance * 0.28,
+      );
+      const controlledPhysicalDelta =
+        controlledInputDelta *
+        (physicalTypingDistance / longTypingDistance);
+      const completionScrollTop =
+        typingOriginScrollTop + physicalTypingDistance + 1;
 
       scrollRoot.scrollTop = Math.min(
-        scrollRoot.scrollTop + controlledDelta,
+        scrollRoot.scrollTop + controlledPhysicalDelta,
         completionScrollTop,
       );
       flushTypingProgress?.();
+    };
+    handleTypingWheelInput = (event) => {
+      if (
+        event.deltaY <= 0 ||
+        event.ctrlKey ||
+        event.target.closest(".modal-window_shown") ||
+        activeStep < 0 ||
+        typingIsLocked ||
+        typingDirection < 0 ||
+        completedTextStep >= activeStep
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      advanceTypingByWheel(event);
+      return true;
     };
 
     shuffleLayer.classList.add("section-main__shuffle-layer");
@@ -4764,6 +4795,7 @@ export const setScrollingAnimations = function () {
     ["first-stage", handleFirstStageSequenceWheel],
     ["intro-forward", introForwardWheelHandler],
     ["intro-reverse", introReverseWheelHandler],
+    ["typing", handleTypingWheelInput],
     ["phase-navigation", reverseWheelHandler],
   ];
   const handleWheelInput = (event) => {
