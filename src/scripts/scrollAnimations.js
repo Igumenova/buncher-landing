@@ -1373,6 +1373,8 @@ export const setScrollingAnimations = function () {
       let reversePhoneState = null;
       let introReverseSequenceIsActive = false;
       let logoStageGestureId = null;
+      let logoStageForwardStep = 0;
+      let logoStageReverseStep = 0;
       let introReverseScreenTransitionIsActive = false;
       const phoneLogo = phone.querySelector(".phone__item_logo");
       const phoneShell = phone.closest(".phone");
@@ -1448,6 +1450,8 @@ export const setScrollingAnimations = function () {
         if (sequenceWasActive) {
           completeWheelInputTransition("intro-screen-to-logo");
           logoStageGestureId = null;
+          logoStageForwardStep = 0;
+          logoStageReverseStep = 0;
           clearLogoAnimations();
           clearTimeout(firstStageSequenceTimer);
           firstStageSequenceState = "forward-wait-scaffold";
@@ -1473,6 +1477,8 @@ export const setScrollingAnimations = function () {
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "idle";
         logoStageGestureId = null;
+        logoStageForwardStep = 0;
+        logoStageReverseStep = 0;
         scrollRoot.dataset.introReverseSequence = "idle";
         commitPhoneState("999-999");
       };
@@ -1492,6 +1498,8 @@ export const setScrollingAnimations = function () {
         introReverseScreenTransitionIsActive = false;
         introReverseSequenceIsActive = false;
         logoStageGestureId = null;
+        logoStageForwardStep = 0;
+        logoStageReverseStep = 0;
         reversePhoneState = null;
         stopIntroReverseNativeScroll();
         firstStageScaffoldGestureReady = false;
@@ -1587,6 +1595,8 @@ export const setScrollingAnimations = function () {
               completeWheelInputTransition("intro-screen-to-logo");
               phoneShell?.classList.remove("phone_first-screen-white");
               logoStageGestureId = currentWheelGestureId;
+              logoStageForwardStep = 0;
+              logoStageReverseStep = 0;
             }, FIRST_SCREEN_LOGO_EXIT_DURATION);
           }, FIRST_SCREEN_WHITE_PAUSE_DURATION);
         }, FIRST_SCREEN_REVEAL_DURATION);
@@ -1693,8 +1703,12 @@ export const setScrollingAnimations = function () {
 
         if (event.detail.visible) {
           logoStageGestureId = currentWheelGestureId;
+          logoStageForwardStep = 0;
+          logoStageReverseStep = 0;
         } else {
           logoStageGestureId = null;
+          logoStageForwardStep = 0;
+          logoStageReverseStep = 0;
         }
         logScrollDebug("logo-visibility", {
           visible: event.detail.visible,
@@ -1832,6 +1846,8 @@ export const setScrollingAnimations = function () {
           event.preventDefault();
           commitPhoneState("0-0");
           logoStageGestureId = gestureId;
+          logoStageForwardStep = 0;
+          logoStageReverseStep = 0;
           logScrollDebug("logo-stage-set", {
             gestureId,
             logoStageGestureId,
@@ -1846,6 +1862,18 @@ export const setScrollingAnimations = function () {
             gestureId,
             logoStageGestureId,
             reason: "same-gesture",
+          });
+          return;
+        }
+
+        if (logoStageForwardStep === 0) {
+          event.preventDefault();
+          logoStageForwardStep = 1;
+          logoStageGestureId = gestureId;
+          logScrollDebug("logo-stage-step", {
+            gestureId,
+            logoStageForwardStep,
+            reason: "first-logo-gesture",
           });
           return;
         }
@@ -1871,6 +1899,8 @@ export const setScrollingAnimations = function () {
           searchBoundary: Math.round(searchBoundary),
         });
         logoStageGestureId = null;
+        logoStageForwardStep = 0;
+        logoStageReverseStep = 0;
 
         // Re-entering stage 1 owns its complete initial visual state. Do not
         // rely on IntersectionObserver firing again after a quick reversal.
@@ -1954,6 +1984,19 @@ export const setScrollingAnimations = function () {
           return;
         }
 
+        if (logoStageReverseStep === 0) {
+          event.preventDefault();
+          logoStageReverseStep = 1;
+          logoStageGestureId = gestureId;
+          logScrollDebug("logo-stage-reverse-step", {
+            gestureId,
+            logoStageReverseStep,
+            reason: "first-logo-reverse-gesture",
+          });
+          return;
+        }
+
+        logoStageReverseStep = 0;
         startIntroReverseNativeScroll(gestureId);
         finishIntroReverseSequence();
         logScrollDebug("intro-reverse-native-scroll-start", { gestureId });
