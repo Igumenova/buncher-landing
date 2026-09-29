@@ -1172,11 +1172,13 @@
       }
 
       &_intro-entering {
-        animation: introScaffoldIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: introScaffoldIn $first-stage-visual-transition-duration
+          ease-in-out both;
       }
 
       &_intro-exiting {
-        animation: introScaffoldOut 0.5s cubic-bezier(0.64, 0, 0.78, 0) both;
+        animation: introScaffoldOut $first-stage-visual-transition-duration
+          ease-in-out both;
       }
     }
 
@@ -1339,7 +1341,7 @@
 }
 
 .section-main_footer-sequence-controlled {
-  --footer-assets-transition-duration: 0.5s;
+  --footer-assets-transition-duration: 0.4s;
   --footer-assets-transition-easing: ease-in-out;
 
   .phone__content,
@@ -1408,13 +1410,12 @@
 }
 
 @keyframes introScaffoldIn {
-  0% {
+  from {
     clip-path: inset(0 0 100% 0);
     opacity: 0;
   }
 
-  78%,
-  100% {
+  to {
     clip-path: inset(0);
     opacity: 1;
   }

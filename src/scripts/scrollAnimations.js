@@ -25,6 +25,7 @@ export const setScrollingAnimations = function () {
   const FIRST_SCREEN_WHITE_PAUSE_DURATION = 60;
   const FIRST_SCREEN_REVEAL_DURATION = 260;
   const FIRST_STAGE_DIGIT_STAGGER_DELAY = 140;
+  const FIRST_STAGE_VISUAL_TRANSITION_DURATION = 400;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
   const TEXT_PHASE_HOLD_SCROLL_DISTANCE = 200;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
@@ -518,7 +519,7 @@ export const setScrollingAnimations = function () {
           ? "section-main__counter-block_zero-visible"
           : "section-main__counter-block_zero-hidden",
       );
-    }, DIGIT_TRANSITION_DURATION);
+    }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
   };
   const hideActiveNumberDigit = () => {
     const numberCont = document.getElementById("changing-number");
@@ -602,7 +603,7 @@ export const setScrollingAnimations = function () {
     );
     firstStageSequenceTimer = setTimeout(
       finishFirstStageReverseVisualSequence,
-      PHASE_TRANSITION_DURATION + 100,
+      FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100,
     );
   };
   const startFirstStageDigitOutSequence = (gestureId) => {
@@ -646,7 +647,7 @@ export const setScrollingAnimations = function () {
           source: "fallback-timer",
         });
       }
-    }, DIGIT_TRANSITION_DURATION + 100);
+    }, FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100);
   };
   const startFirstStageScaffoldInSequence = (gestureId, inputLockOwner) => {
     firstStageLastActionGestureId = gestureId;
@@ -824,7 +825,7 @@ export const setScrollingAnimations = function () {
         scheduleFirstStageSequenceState(
           "forward-digit",
           "forward-wait-text",
-          DIGIT_TRANSITION_DURATION + 100,
+          FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100,
           "first-stage-digit-in",
         );
         return;
@@ -881,7 +882,7 @@ export const setScrollingAnimations = function () {
         scheduleFirstStageSequenceState(
           "forward-digit",
           "forward-wait-text",
-          DIGIT_TRANSITION_DURATION + 100,
+          FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100,
           "first-stage-digit-in",
         );
         return;
@@ -1103,7 +1104,7 @@ export const setScrollingAnimations = function () {
       scheduleFirstStageSequenceState(
         "reverse-scaffold",
         "reverse-complete",
-        PHASE_TRANSITION_DURATION + 100,
+        FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100,
         "first-stage-scaffold-out",
       );
     }
@@ -3424,7 +3425,7 @@ export const setScrollingAnimations = function () {
     const shuffleText = document.querySelector(".section-main__shuffle-text");
     const REVERSE_GESTURE_END_DELAY = 140;
     const FORWARD_DIRECTION_CONFIRM_DISTANCE = 24;
-    const FOOTER_ASSETS_TRANSITION_DURATION = 500;
+    const FOOTER_ASSETS_TRANSITION_DURATION = 400;
     const mainSection = document.getElementById("section-main");
     let reverseGestureIsActive = false;
     let reverseGestureAllowsNativeScroll = false;

@@ -308,7 +308,8 @@
 
 .section-main__counter-block_zero-entering {
   .counter-block__number-window {
-    animation: firstDigitFadeIn $digit-transition-duration ease-in-out forwards;
+    animation: firstDigitFadeIn $first-stage-visual-transition-duration
+      ease-in-out forwards;
   }
 
   .counter-block__number-zero-stack {
@@ -321,7 +322,8 @@
 
 .section-main__counter-block_zero-exiting {
   .counter-block__number-window {
-    animation: firstDigitFadeOut $digit-transition-duration ease-in-out forwards;
+    animation: firstDigitFadeOut $first-stage-visual-transition-duration
+      ease-in-out forwards;
   }
 
   .counter-block__number-zero-stack {
