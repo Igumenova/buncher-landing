@@ -695,6 +695,22 @@ export const setScrollingAnimations = function () {
       }
     }, TEXT_EXIT_DURATION);
   };
+  const firstStageTextIsFullyRendered = () => {
+    const activePhrase = document.querySelector(
+      '.section-main__shuffle-phrase_active[data-step="0"]',
+    );
+    const letters = activePhrase?.querySelectorAll(
+      ".section-main__shuffle-letter",
+    );
+
+    return (
+      activePhrase !== null &&
+      letters.length > 0 &&
+      Array.from(letters).every((letter) =>
+        letter.classList.contains("section-main__shuffle-letter_visible"),
+      )
+    );
+  };
   const handleFirstStageSequenceWheel = (event) => {
     if (
       event.ctrlKey ||
@@ -727,6 +743,19 @@ export const setScrollingAnimations = function () {
     }
 
     if (event.deltaY > 0) {
+      if (
+        firstStageSequenceState === "active" &&
+        currentDigit === 1 &&
+        completedTextStep < 0 &&
+        firstStageTextIsFullyRendered()
+      ) {
+        // Returning from phase 2 can restore every letter before the typing
+        // controller updates its completion marker. Treat the rendered text
+        // as complete so forward input can leave phase 1 again.
+        completedTextStep = 0;
+        midpointTextStep = Math.max(midpointTextStep, 0);
+      }
+
       if (firstStageSequenceState === "forward-screen") {
         event.preventDefault();
         return;
@@ -1440,6 +1469,9 @@ export const setScrollingAnimations = function () {
     const createObserver = (anchors) => {
       const phone = document.getElementById("phone");
       const numberCont = document.getElementById("changing-number");
+      const phoneStateOrder = new Map(
+        anchors.map((anchor, index) => [anchor.dataset.id, index]),
+      );
       const options = {
         root: scrollRoot,
         threshold: 0.5,
@@ -1696,6 +1728,29 @@ export const setScrollingAnimations = function () {
 
         pendingPhoneState = state;
 
+        const currentState = phone.className.match(REGEX)?.[0];
+        const currentStateIndex = phoneStateOrder.get(currentState);
+        const nextStateIndex = phoneStateOrder.get(state);
+
+        // IntersectionObserver callbacks are asynchronous. After a fast
+        // forward pass an older anchor can arrive after the newer screen has
+        // already been committed. Reverse navigation sets reversePhoneState
+        // before changing the screen, so only unowned backward callbacks are
+        // stale and must be ignored.
+        if (
+          !reversePhoneState &&
+          scrollRoot.dataset.reverseGesture !== "active" &&
+          Number.isInteger(currentStateIndex) &&
+          Number.isInteger(nextStateIndex) &&
+          nextStateIndex < currentStateIndex
+        ) {
+          logScrollDebug("stale-phone-state-regression-ignored", {
+            currentState,
+            requestedState: state,
+          });
+          return;
+        }
+
         // The intro controller owns both empty and logo states during stage 0.
         if (isIntroPhoneState(state) && expectedTextStep < 0) {
           return;
@@ -1710,6 +1765,18 @@ export const setScrollingAnimations = function () {
         }
 
         if (state === "1-0") {
+          // IntersectionObserver may deliver the search anchor after the
+          // typing midpoint already committed 1-1. Never regress the mockup
+          // during a forward pass.
+          if (
+            currentState === "1-1" &&
+            expectedTextStep === 0 &&
+            phoneStageIsUnlocked &&
+            !reversePhoneState
+          ) {
+            return;
+          }
+
           const searchAnchor = anchors.find(
             (anchor) => anchor.dataset.id === state,
           );
@@ -2102,8 +2169,30 @@ export const setScrollingAnimations = function () {
       const synchronizeForwardPhoneState = () => {
         forwardSyncFrameId = null;
         const nextScrollTop = scrollRoot.scrollTop;
-        const isMovingForward = nextScrollTop > lastForwardScrollTop;
+        const previousScrollTop = lastForwardScrollTop;
+        const isMovingForward = nextScrollTop > previousScrollTop;
         lastForwardScrollTop = nextScrollTop;
+
+        const renderedState = phone.className.match(REGEX)?.[0];
+        const unexpectedJumpToIntro =
+          !isMovingForward &&
+          previousScrollTop - nextScrollTop > scrollRoot.clientHeight &&
+          firstStageSequenceState === "active" &&
+          !isIntroPhoneState(renderedState) &&
+          !reversePhoneState &&
+          scrollRoot.dataset.reverseGesture !== "active" &&
+          !wheelInputLock;
+
+        if (unexpectedJumpToIntro) {
+          scrollRoot.scrollTop = previousScrollTop;
+          lastForwardScrollTop = previousScrollTop;
+          logScrollDebug("unexpected-forward-scroll-jump-restored", {
+            displacedScrollTop: Math.round(nextScrollTop),
+            restoredScrollTop: Math.round(previousScrollTop),
+            firstStageSequenceState,
+          });
+          return;
+        }
 
         // The explicit intro -> screen transition already placed the scroll
         // root at the phase-1 activation point. The generic synchronizer used
@@ -3432,6 +3521,7 @@ export const setScrollingAnimations = function () {
     let reverseGestureCount = 0;
     let forwardIntentDistance = 0;
     let footerReverseSequenceIsActive = false;
+    let footerReverseWasRestored = false;
     let footerReverseSequenceTimers = [];
     let footerForwardStage = "idle";
     let footerSequencePinnedScrollTop = null;
@@ -3459,6 +3549,7 @@ export const setScrollingAnimations = function () {
       footerReverseSequenceTimers.forEach(clearTimeout);
       footerReverseSequenceTimers = [];
       footerReverseSequenceIsActive = false;
+      footerReverseWasRestored = false;
       footerReturnTextPending = false;
       footerForwardStage = "idle";
       footerSequencePinnedScrollTop = null;
@@ -3625,6 +3716,17 @@ export const setScrollingAnimations = function () {
         scrollRoot.dataset.reverseGesture = "idle";
         scrollRoot.dataset.reverseMode = "—";
         return false;
+      }
+
+      if (footerForwardStage === "reverse-text-ready") {
+        // Assets have already returned, but the text has not. A direction
+        // change back toward the footer should hide those assets directly;
+        // restarting the text-exit step leaves the footer state half-restored.
+        event.preventDefault();
+        footerForwardStage = "text-hidden";
+        footerTextExitGestureId = null;
+        startFooterForwardAssetsExit();
+        return true;
       }
 
       if (footerForwardStage.endsWith("-exiting")) {
@@ -3942,6 +4044,7 @@ export const setScrollingAnimations = function () {
       }
 
       footerReturnTextPending = true;
+      footerReverseWasRestored = false;
       footerReverseApproachGestureId = currentWheelGestureId;
       mainSection.classList.add(
         "section-main_footer-sequence-controlled",
@@ -4077,6 +4180,7 @@ export const setScrollingAnimations = function () {
       if (event.deltaY > 0) {
         reverseTextHoldStep = null;
         reverseTextHoldRemaining = 0;
+        footerReverseWasRestored = false;
         if (footerReverseSequenceIsActive) {
           clearFooterReverseSequence();
         }
@@ -4171,6 +4275,7 @@ export const setScrollingAnimations = function () {
       const footerSequenceWasRestored =
         footerForwardStage === "reverse-ready";
       if (footerSequenceWasRestored) {
+        footerReverseWasRestored = true;
         footerForwardStage = "idle";
         footerSequencePinnedScrollTop = null;
         mainSection.classList.remove(
@@ -4198,10 +4303,13 @@ export const setScrollingAnimations = function () {
       const renderedPhoneState = phone.className.match(PHONE_STATE_REGEX)?.[0];
       const lastStageIsRendered = renderedPhoneState === lastPhoneState;
       const isFooterReturn =
-        footerForwardStage === "complete" ||
-        (!footerSequenceWasRestored &&
-          lastStageIsRendered &&
-          (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999));
+        !footerReverseWasRestored &&
+        (footerForwardStage === "complete" ||
+          footerForwardStage === "text-hidden" ||
+          footerForwardStage === "assets-hidden" ||
+          (!footerSequenceWasRestored &&
+            lastStageIsRendered &&
+            (!Number.isFinite(boundaryOpacity) || boundaryOpacity < 0.999)));
       const reverseTransitionStep =
         counterIsActive && !isFooterReturn
           ? getReverseTextTransitionStep()
@@ -4253,6 +4361,7 @@ export const setScrollingAnimations = function () {
         }
 
         event.preventDefault();
+        footerReverseWasRestored = false;
 
         if (scrollRoot.dataset.introReverseSequence === "active") {
           clearTimeout(reverseGestureEndTimer);
@@ -4384,7 +4493,26 @@ export const setScrollingAnimations = function () {
         } else {
           const rootRect = scrollRoot.getBoundingClientRect();
           const activeZoneRect = entry.target.getBoundingClientRect();
+          const activeZoneIsCurrentlyVisible =
+            activeZoneRect.bottom > rootRect.top &&
+            activeZoneRect.top < rootRect.bottom;
           const isReturningToIntro = activeZoneRect.top >= rootRect.bottom;
+
+          // The callback describes the geometry captured when the observer
+          // queued it, not necessarily the current layout. A phase/text
+          // transition can move this marker out and back before delivery. If
+          // it is visible now, tearing the counter down would shrink the main
+          // section, jump scrollTop by several phases and then re-enter with a
+          // stale digit.
+          if (activeZoneIsCurrentlyVisible) {
+            counterIsActive = true;
+            logScrollDebug("stale-counter-exit-ignored", {
+              entryTop: Math.round(entry.boundingClientRect.top),
+              currentTop: Math.round(activeZoneRect.top),
+              currentBottom: Math.round(activeZoneRect.bottom),
+            });
+            return;
+          }
 
           // Layout changes during the reverse text/digit/scaffold sequence can
           // briefly push the activation marker outside the viewport. That is
