@@ -65,16 +65,13 @@
     width: max-content;
     background-color: $white;
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     opacity: 1;
-    transform: translateY(0);
-    animation: slideIn 0.3s;
+    animation: languageOptionsFadeIn 0.3s ease-out;
 
     &_closed {
-      animation: slideOut 0.3s;
+      animation: languageOptionsFadeOut 0.3s ease-out;
       opacity: 0;
-      transform: translateY(-10px);
     }
   }
 
@@ -107,42 +104,21 @@
     }
   }
 
-  @keyframes slideIn {
-    0% {
+  @keyframes languageOptionsFadeIn {
+    from {
       opacity: 0;
-      transform: translateY(-10px);
     }
-    15% {
-      transform: translateY(5px);
-    }
-    50% {
-      transform: translateY(-2.5px);
-    }
-    75% {
+    to {
       opacity: 1;
-      transform: translateY(1.25px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
     }
   }
 
-  @keyframes slideOut {
-    0% {
+  @keyframes languageOptionsFadeOut {
+    from {
       opacity: 1;
-      transform: translateY(0);
     }
-    25% {
-      opacity: 1;
-      transform: translateY(2.5px);
-    }
-    75% {
-      transform: translateY(0px);
-    }
-    100% {
+    to {
       opacity: 0;
-      transform: translateY(-10px);
     }
   }
 
