@@ -21,9 +21,8 @@ export const setScrollingAnimations = function () {
   const WHEEL_GESTURE_RESTART_RATIO = 2.5;
   const WHEEL_INPUT_LOCK_MAX_DURATION = 3000;
   const FIRST_STAGE_GESTURE_END_DELAY = 180;
-  const FIRST_SCREEN_LOGO_EXIT_DURATION = 180;
-  const FIRST_SCREEN_WHITE_PAUSE_DURATION = 60;
-  const FIRST_SCREEN_REVEAL_DURATION = 260;
+  const FIRST_SCREEN_FADE_DURATION = 120;
+  const FIRST_SCREEN_SWAP_PAUSE_DURATION = 35;
   const FIRST_STAGE_DIGIT_STAGGER_DELAY = 140;
   const FIRST_STAGE_VISUAL_TRANSITION_DURATION = 400;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
@@ -1535,6 +1534,7 @@ export const setScrollingAnimations = function () {
           clearLogoAnimations();
           clearTimeout(firstStageSequenceTimer);
           firstStageSequenceState = "forward-wait-scaffold";
+          commitPhoneState("1-0");
           waitForNextFirstStageGesture();
         }
       };
@@ -1654,18 +1654,15 @@ export const setScrollingAnimations = function () {
             return;
           }
 
+          phoneShell?.classList.remove("phone_first-screen-reverse-exiting");
           commitPhoneState("999-999");
-          phoneShell?.classList.replace(
-            "phone_first-screen-reverse-exiting",
-            "phone_first-screen-white",
-          );
           firstStageReverseScreenTimer = setTimeout(() => {
             if (!introReverseScreenTransitionIsActive) {
               return;
             }
 
-            phoneShell?.classList.add("phone_first-screen-logo-entering");
             commitPhoneState("0-0");
+            phoneShell?.classList.add("phone_first-screen-logo-entering");
             firstStageReverseScreenTimer = setTimeout(() => {
               phoneShell?.classList.remove("phone_first-screen-logo-entering");
               if (!introReverseScreenTransitionIsActive) {
@@ -1675,13 +1672,12 @@ export const setScrollingAnimations = function () {
               introReverseScreenTransitionIsActive = false;
               firstStageSequenceState = "reverse-complete";
               completeWheelInputTransition("intro-screen-to-logo");
-              phoneShell?.classList.remove("phone_first-screen-white");
               logoStageGestureId = currentWheelGestureId;
               logoStageForwardStep = 0;
               logoStageReverseStep = 0;
-            }, FIRST_SCREEN_LOGO_EXIT_DURATION);
-          }, FIRST_SCREEN_WHITE_PAUSE_DURATION);
-        }, FIRST_SCREEN_REVEAL_DURATION);
+            }, FIRST_SCREEN_FADE_DURATION);
+          }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
+        }, FIRST_SCREEN_FADE_DURATION);
 
         if (expectedTextStep >= 0) {
           dispatchTextStepChange(-1, {
@@ -2019,31 +2015,34 @@ export const setScrollingAnimations = function () {
         scrollRoot.scrollTop = firstStagePinnedScrollTop;
         clearTimeout(firstStageForwardScreenTimer);
         clearFirstScreenTransitionClasses();
+        // Fade the splash out completely before fading the ready screen in.
+        // The layers never overlap and neither one changes scale or position.
         phoneShell?.classList.add("phone_first-screen-logo-exiting");
         firstStageForwardScreenTimer = setTimeout(() => {
           if (firstStageSequenceState !== "forward-screen") {
-            logScrollDebug("screen-transition-abort", {
-              gestureId,
-              firstStageSequenceState,
-            });
-            completeWheelInputTransition("intro-logo-to-screen");
             return;
           }
 
-          phoneShell?.classList.add("phone_first-screen-revealing");
-          // This transition deliberately holds the scroll position at the
-          // stage boundary. Commit the screen directly instead of asking the
-          // anchor observer to validate a position that is intentionally held.
-          pendingPhoneState = "1-0";
-          commitPhoneState("1-0");
-          logScrollDebug("screen-transition-reveal", {
-            gestureId,
-            firstStageSequenceState,
-          });
           phoneShell?.classList.remove("phone_first-screen-logo-exiting");
+          commitPhoneState("999-999");
           firstStageForwardScreenTimer = setTimeout(() => {
-            phoneShell?.classList.remove("phone_first-screen-revealing");
-            if (firstStageSequenceState === "forward-screen") {
+            if (firstStageSequenceState !== "forward-screen") {
+              return;
+            }
+
+            pendingPhoneState = "1-0";
+            commitPhoneState("1-0");
+            phoneShell?.classList.add("phone_first-screen-revealing");
+            logScrollDebug("screen-transition-reveal", {
+              gestureId,
+              firstStageSequenceState,
+            });
+            firstStageForwardScreenTimer = setTimeout(() => {
+              phoneShell?.classList.remove("phone_first-screen-revealing");
+              if (firstStageSequenceState !== "forward-screen") {
+                return;
+              }
+
               startFirstStageScaffoldInSequence(
                 gestureId,
                 "intro-logo-to-screen",
@@ -2052,9 +2051,9 @@ export const setScrollingAnimations = function () {
                 gestureId,
                 firstStageSequenceState,
               });
-            }
-          }, FIRST_SCREEN_REVEAL_DURATION);
-        }, FIRST_SCREEN_LOGO_EXIT_DURATION + FIRST_SCREEN_WHITE_PAUSE_DURATION);
+            }, FIRST_SCREEN_FADE_DURATION);
+          }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
+        }, FIRST_SCREEN_FADE_DURATION);
       };
       const holdIntroReverseExitAtLogo = (event) => {
         if (
