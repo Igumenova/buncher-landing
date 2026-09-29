@@ -2555,22 +2555,35 @@ export const setScrollingAnimations = function () {
           TYPING_COMPLETE_PHASE_PROGRESS,
         1,
       );
-      const longTypingDistance = Math.max(
+      const referenceTypingDistance = Math.max(
         ...typingRanges.map(
           (typingRange) =>
             (typingRange.end - typingRange.start) *
             TYPING_COMPLETE_PHASE_PROGRESS,
         ),
-        physicalTypingDistance,
+        1,
+      );
+      const longestStepCharacterCount = Math.max(
+        ...textSteps.map((step) => [...step.text].length),
+        activeLetters.length,
+        1,
+      );
+      // Keep scroll-per-character constant across phases. The longest phrase
+      // retains the previous input distance; shorter phrases finish sooner in
+      // direct proportion to their rendered character count.
+      const inputTypingDistance = Math.max(
+        referenceTypingDistance *
+          (activeLetters.length / longestStepCharacterCount),
+        1,
       );
       const rawDelta = Math.max(getWheelDeltaInPixels(event), 0);
       const controlledInputDelta = Math.min(
         rawDelta,
-        longTypingDistance * 0.28,
+        referenceTypingDistance * 0.28,
       );
       const controlledPhysicalDelta =
         controlledInputDelta *
-        (physicalTypingDistance / longTypingDistance);
+        (physicalTypingDistance / inputTypingDistance);
       const completionScrollTop =
         typingOriginScrollTop + physicalTypingDistance + 1;
 
