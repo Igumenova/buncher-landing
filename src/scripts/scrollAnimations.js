@@ -509,6 +509,21 @@ export const setScrollingAnimations = function () {
     );
 
     zeroTransitionTimer = setTimeout(() => {
+      if (!isVisible) {
+        const numberCont = document.getElementById("changing-number");
+        const transition = numberCont.className.match(/_(\d+)-(\d+)$/);
+
+        // Commit the hidden digit before removing firstDigitFadeOut from the
+        // number window. Otherwise the special 1-0 rule can briefly restore
+        // digit 1 until the scaffold exit finishes and settles it later.
+        if (transition?.[2] === "0") {
+          numberCont.className = numberCont.className.replace(
+            /_\d+-\d+$/,
+            "_0-0",
+          );
+        }
+      }
+
       counterBlock.classList.remove(
         "section-main__counter-block_zero-entering",
         "section-main__counter-block_zero-exiting",
@@ -518,6 +533,7 @@ export const setScrollingAnimations = function () {
           ? "section-main__counter-block_zero-visible"
           : "section-main__counter-block_zero-hidden",
       );
+      zeroTransitionTimer = null;
     }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
   };
   const hideActiveNumberDigit = () => {
