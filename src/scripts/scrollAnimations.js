@@ -1052,23 +1052,16 @@ export const setScrollingAnimations = function () {
       firstStageLastActionGestureId = gestureId;
 
       if (renderedPhoneState === "1-1") {
-        firstStageSequenceState = "reverse-phone";
-        lockWheelInput("first-stage-text-out");
         logScrollDebug("first-stage-phone-reverse-start", { gestureId });
         document.dispatchEvent(
           new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
             detail: { state: "1-0" },
           }),
         );
-        clearTimeout(firstStageSequenceTimer);
-        firstStageSequenceTimer = setTimeout(() => {
-          if (firstStageSequenceState === "reverse-phone") {
-            startFirstStageTextOutSequence(gestureId, {
-              inputLockOwner: "first-stage-text-out",
-              lockInput: false,
-            });
-          }
-        }, PHASE_TRANSITION_DURATION);
+        // The final screen of phase 1 and its text leave as one visual step.
+        // Waiting for the phone transition first made reverse navigation feel
+        // like two unrelated actions.
+        startFirstStageTextOutSequence(gestureId);
         return;
       }
 
