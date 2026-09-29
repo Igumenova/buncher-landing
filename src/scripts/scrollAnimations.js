@@ -174,6 +174,7 @@ export const setScrollingAnimations = function () {
       owner,
       gestureId: currentWheelGestureId,
       animationComplete: false,
+      continuationEventCount: 0,
     };
     logScrollDebug("wheel-input-locked", {
       owner,
@@ -315,10 +316,9 @@ export const setScrollingAnimations = function () {
       oppositeWheelDirection = 0;
       oppositeWheelDistance = 0;
       oppositeWheelEventCount = 0;
-      // A touchpad can begin the next swipe while momentum events from the
-      // previous swipe are still arriving. Once the owned animation has
-      // completed, the first event of that new swipe must release its lock and
-      // be routed as the next action instead of being discarded.
+      // Decaying momentum stays in the current gesture and remains blocked.
+      // A renewed, clearly stronger impulse is treated as intentional input,
+      // so continuous scrolling can proceed without requiring a full pause.
       releaseWheelInputIfReady(currentWheelGestureId);
     }
 
@@ -4753,6 +4753,7 @@ export const setScrollingAnimations = function () {
     ["phase-navigation", reverseWheelHandler],
   ];
   const handleWheelInput = (event) => {
+    const previousDeltaBeforeTracking = previousWheelDelta;
     const directionTailWasSuppressed = trackWheelGesture(event);
     if (directionTailWasSuppressed) {
       event.preventDefault();
@@ -4783,20 +4784,30 @@ export const setScrollingAnimations = function () {
       stopIntroReverseNativeScroll();
     }
 
-    // Forward scrolling is continuous: after the mockup animation has
-    // finished, the next delta from the same physical gesture must continue
-    // into the new phase's text instead of being swallowed until gesture-end.
-    // Reverse and first-stage transitions remain deliberately step-by-step.
     if (
       wheelInputLock?.owner === "phase-transition" &&
       wheelInputLock.animationComplete &&
       event.deltaY > 0
     ) {
-      logScrollDebug("wheel-input-forward-continued", {
-        gestureId,
-        owner: wheelInputLock.owner,
-      });
-      releaseWheelInputIfReady(gestureId, { allowActiveGesture: true });
+      const currentDelta = Math.abs(event.deltaY);
+      const inputIsNotDecaying =
+        currentDelta >= WHEEL_GESTURE_RESTART_DELTA &&
+        (previousDeltaBeforeTracking === 0 ||
+          currentDelta >= previousDeltaBeforeTracking * 0.85);
+
+      wheelInputLock.continuationEventCount = inputIsNotDecaying
+        ? wheelInputLock.continuationEventCount + 1
+        : 0;
+
+      if (wheelInputLock.continuationEventCount >= 2) {
+        logScrollDebug("wheel-input-forward-renewed", {
+          gestureId,
+          owner: wheelInputLock.owner,
+          currentDelta,
+          previousDelta: previousDeltaBeforeTracking,
+        });
+        releaseWheelInputIfReady(gestureId, { allowActiveGesture: true });
+      }
     }
 
     if (wheelInputLock) {
