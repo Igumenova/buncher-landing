@@ -105,8 +105,6 @@
     &:hover .section-cover__store-mark-wrap {
       // конечное визуальное состояние = 1.08
       transform: scale(0.915254);
-
-      animation: storeMarkScale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .section-cover__store-clock-ring {
       position: absolute;
@@ -116,7 +114,7 @@
       height: 100%;
       pointer-events: none;
       opacity: 0;
-      transition: opacity $small-transition-time ease-out;
+      transition: opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:hover .section-cover__store-clock-ring {
@@ -158,8 +156,8 @@
     transform: scale(0.847458);
     transform-origin: center;
 
-    // Плавный возврат после снятия hover
-    transition: transform 0.14s ease-out;
+    // Одинаково плавное движение при наведении и возврате.
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 
     &_google-play {
       --mark-top: 17.7778%;
@@ -371,18 +369,5 @@
 @media (prefers-reduced-motion: reduce) {
   .section-cover__store-link:hover .section-cover__store-clock-orbit {
     animation: none;
-  }
-}
-@keyframes storeMarkScale {
-  0% {
-    transform: scale(0.847458);
-  }
-
-  45% {
-    transform: scale(0.99);
-  }
-
-  100% {
-    transform: scale(0.915254);
   }
 }
