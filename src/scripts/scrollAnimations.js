@@ -3822,6 +3822,20 @@ export const setScrollingAnimations = function () {
 
       return logicalIndex;
     };
+    const getPreviousPhaseLastIndex = (timeline, currentIndex) => {
+      const currentTextStep =
+        PHONE_STATE_TEXT_STEPS[timeline[currentIndex]?.state] ?? -1;
+
+      for (let index = currentIndex - 1; index >= 0; index--) {
+        const textStep = PHONE_STATE_TEXT_STEPS[timeline[index].state] ?? -1;
+
+        if (textStep < currentTextStep) {
+          return index;
+        }
+      }
+
+      return -1;
+    };
     const firstPhaseTextIsActuallyVisible = () => {
       const activePhrase = shuffleText?.querySelector(
         ".section-main__shuffle-phrase_active",
@@ -4108,14 +4122,22 @@ export const setScrollingAnimations = function () {
       }
 
       const currentItem = timeline[currentIndex];
-      const previousItem = timeline[currentIndex - 1];
+      // Reverse navigation is phase-based: skip all intermediate mockup
+      // screens and land on the final screen of the previous phase.
+      const previousPhaseLastIndex = getPreviousPhaseLastIndex(
+        timeline,
+        currentIndex,
+      );
+      const previousItem = timeline[previousPhaseLastIndex];
+      const nextItemAfterPreviousPhase = timeline[previousPhaseLastIndex + 1];
       const currentState = currentItem.state;
       const previousState = previousItem?.state ?? "999-999";
       const currentTextStep = PHONE_STATE_TEXT_STEPS[currentState] ?? -1;
       const previousTextStep = PHONE_STATE_TEXT_STEPS[previousState] ?? -1;
       const isReturningToSearch =
         previousState === "1-0" && currentState !== "1-0";
-      let previousStateScrollTop = currentItem.activationScrollTop - 2;
+      let previousStateScrollTop =
+        nextItemAfterPreviousPhase?.activationScrollTop - 2;
 
       if (previousTextStep < currentTextStep) {
         const phaseBoundaryScrollTop =
