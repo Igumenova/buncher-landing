@@ -3611,6 +3611,23 @@ export const setScrollingAnimations = function () {
       );
     };
     const handleFooterForwardWheel = (event) => {
+      if (
+        footerForwardStage === "reverse-approach" ||
+        footerForwardStage === "reverse-assets-ready"
+      ) {
+        // The user can change direction before starting the gesture that
+        // restores the footer assets. In that case the footer is still in its
+        // fully hidden (forward-complete) visual state, so release the reverse
+        // boundary and let this same wheel event continue towards the footer.
+        footerForwardStage = "complete";
+        footerSequencePinnedScrollTop = null;
+        footerReverseApproachGestureId = null;
+        footerReturnTextPending = false;
+        scrollRoot.dataset.reverseGesture = "idle";
+        scrollRoot.dataset.reverseMode = "—";
+        return false;
+      }
+
       if (footerForwardStage.endsWith("-exiting")) {
         event.preventDefault();
         return true;
@@ -3646,8 +3663,7 @@ export const setScrollingAnimations = function () {
       }
 
       if (
-        footerForwardStage === "complete" ||
-        footerForwardStage === "reverse-assets-ready"
+        footerForwardStage === "complete"
       ) {
         return false;
       }
