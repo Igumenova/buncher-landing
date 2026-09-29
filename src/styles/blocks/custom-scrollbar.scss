@@ -39,6 +39,10 @@
 }
 
 #custom-scrollbar {
+  // Phase transitions deliberately change the sticky-stage contents while
+  // keeping a scripted scroll position. Browser scroll anchoring can move the
+  // viewport back into the cover and leave intro and phase 1 visible together.
+  overflow-anchor: none;
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
