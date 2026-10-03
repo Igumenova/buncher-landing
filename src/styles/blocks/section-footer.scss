@@ -96,6 +96,13 @@
     background-size: 100% 100%;
   }
 
+  &__form-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(8px * var(--footer-form-scale));
+  }
+
   &__email-input {
     flex: 1 1 auto;
     min-width: 0;
@@ -170,6 +177,12 @@
       color: #384d60;
       transform: scale(1.04);
     }
+
+    &:disabled {
+      cursor: wait;
+      opacity: 0.6;
+      transform: none;
+    }
   }
 
   &__form-caption {
@@ -181,6 +194,24 @@
     line-height: 1.35;
     letter-spacing: 0;
     text-align: center;
+  }
+
+  &__form-status {
+    min-height: 1.35em;
+    margin: 0;
+    color: #384d60;
+    font-family: Montserrat, sans-serif;
+    font-size: calc(14px * var(--footer-form-scale));
+    line-height: 1.35;
+    text-align: center;
+
+    &[data-status="error"] {
+      color: #ec5f33;
+    }
+
+    &[data-status="success"] {
+      color: #2f7d55;
+    }
   }
 
   &__footer {

@@ -659,23 +659,31 @@
         <div class="section-footer__surface">
           <form class="section-footer__subscribe-form" id="subscribe-form">
             <label class="noStyle" for="subscribe-email">Email</label>
-            <div class="section-footer__input-shell">
-              <input
-                class="section-footer__email-input"
-                id="subscribe-email"
-                name="email"
-                type="email"
-                placeholder="your@email.com"
-                autocomplete="email"
-                required
-              />
-              <button
-                class="section-footer__submit"
-                type="submit"
-                aria-label="Submit email"
-              >
-                <span aria-hidden="true">›</span>
-              </button>
+            <div class="section-footer__form-field">
+              <div class="section-footer__input-shell">
+                <input
+                  class="section-footer__email-input"
+                  id="subscribe-email"
+                  name="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  autocomplete="email"
+                  required
+                />
+                <button
+                  class="section-footer__submit"
+                  type="submit"
+                  aria-label="Submit email"
+                >
+                  <span aria-hidden="true">›</span>
+                </button>
+              </div>
+              <p
+                class="section-footer__form-status"
+                data-subscribe-status
+                role="status"
+                aria-live="polite"
+              ></p>
             </div>
             <p class="section-footer__form-caption">
               Подписаться на обновления, чтобы не пропустить уведомление о
