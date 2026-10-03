@@ -23,6 +23,7 @@ export const setScrollingAnimations = function () {
   const FIRST_STAGE_GESTURE_END_DELAY = 180;
   const FIRST_SCREEN_FADE_DURATION = 120;
   const FIRST_SCREEN_SWAP_PAUSE_DURATION = 35;
+  const INTRO_LOGO_REVEAL_DELAY = 200;
   const FIRST_STAGE_DIGIT_STAGGER_DELAY = 140;
   const FIRST_STAGE_VISUAL_TRANSITION_DURATION = 400;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
@@ -144,10 +145,17 @@ export const setScrollingAnimations = function () {
   ) => {
     const nextGestureHasStarted =
       nextGestureId !== null && wheelInputLock?.gestureId !== nextGestureId;
+    // A touchpad momentum spike can be classified as a restarted gesture while
+    // the screen-to-logo animation is finishing. Keep this boundary locked
+    // until the input has actually gone quiet, then accept one fresh scroll.
+    const introReverseMustReachIdle =
+      wheelInputLock?.owner === "intro-screen-to-logo";
     if (
       !wheelInputLock ||
       !wheelInputLock.animationComplete ||
-      (wheelGestureIsActive && !nextGestureHasStarted && !allowActiveGesture)
+      (wheelGestureIsActive &&
+        (introReverseMustReachIdle || !nextGestureHasStarted) &&
+        !allowActiveGesture)
     ) {
       return;
     }
@@ -1493,10 +1501,24 @@ export const setScrollingAnimations = function () {
       let introReverseSequenceIsActive = false;
       let logoStageGestureId = null;
       let logoStageForwardStep = 0;
-      let logoStageReverseStep = 0;
       let introReverseScreenTransitionIsActive = false;
+      let introLogoRevealTimer = null;
       const phoneLogo = phone.querySelector(".phone__item_logo");
       const phoneShell = phone.closest(".phone");
+      const clearDelayedIntroLogoReveal = () => {
+        clearTimeout(introLogoRevealTimer);
+        introLogoRevealTimer = null;
+        phoneShell?.classList.remove("phone_intro-logo-delayed");
+      };
+      const revealIntroLogoWithDelay = () => {
+        clearDelayedIntroLogoReveal();
+        phoneShell?.classList.add("phone_intro-logo-delayed");
+        commitPhoneState("0-0");
+        introLogoRevealTimer = setTimeout(() => {
+          introLogoRevealTimer = null;
+          phoneShell?.classList.remove("phone_intro-logo-delayed");
+        }, INTRO_LOGO_REVEAL_DELAY);
+      };
       const clearFirstScreenTransitionClasses = () => {
         phoneShell?.classList.remove(
           "phone_first-screen-logo-exiting",
@@ -1542,6 +1564,10 @@ export const setScrollingAnimations = function () {
         return scrollRoot.scrollTop + mainRect.top - rootRect.top;
       };
       const commitPhoneState = (state) => {
+        if (state !== "0-0") {
+          clearDelayedIntroLogoReveal();
+        }
+
         phone.className = phone.className.replace(REGEX, state);
 
         if (isIntroPhoneState(state)) {
@@ -1570,7 +1596,6 @@ export const setScrollingAnimations = function () {
           completeWheelInputTransition("intro-screen-to-logo");
           logoStageGestureId = null;
           logoStageForwardStep = 0;
-          logoStageReverseStep = 0;
           firstStageVisualSequenceLockOwner = null;
           clearLogoAnimations();
           clearTimeout(firstStageSequenceTimer);
@@ -1599,7 +1624,6 @@ export const setScrollingAnimations = function () {
         firstStageSequenceState = "idle";
         logoStageGestureId = null;
         logoStageForwardStep = 0;
-        logoStageReverseStep = 0;
         firstStageVisualSequenceLockOwner = null;
         scrollRoot.dataset.introReverseSequence = "idle";
         commitPhoneState("999-999");
@@ -1621,7 +1645,6 @@ export const setScrollingAnimations = function () {
         introReverseSequenceIsActive = false;
         logoStageGestureId = null;
         logoStageForwardStep = 0;
-        logoStageReverseStep = 0;
         firstStageVisualSequenceLockOwner = null;
         reversePhoneState = null;
         stopIntroReverseNativeScroll();
@@ -1675,6 +1698,7 @@ export const setScrollingAnimations = function () {
           firstStageSequenceState,
         });
         lockWheelInput("intro-screen-to-logo");
+        clearDelayedIntroLogoReveal();
 
         introReverseSequenceIsActive = true;
         scrollRoot.scrollTop = getMainStickyStartScrollTop();
@@ -1715,7 +1739,6 @@ export const setScrollingAnimations = function () {
               completeWheelInputTransition("intro-screen-to-logo");
               logoStageGestureId = currentWheelGestureId;
               logoStageForwardStep = 0;
-              logoStageReverseStep = 0;
             }, FIRST_SCREEN_FADE_DURATION);
           }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
         }, FIRST_SCREEN_FADE_DURATION);
@@ -1858,11 +1881,9 @@ export const setScrollingAnimations = function () {
         if (event.detail.visible) {
           logoStageGestureId = currentWheelGestureId;
           logoStageForwardStep = 0;
-          logoStageReverseStep = 0;
         } else {
           logoStageGestureId = null;
           logoStageForwardStep = 0;
-          logoStageReverseStep = 0;
         }
         logScrollDebug("logo-visibility", {
           visible: event.detail.visible,
@@ -1870,7 +1891,11 @@ export const setScrollingAnimations = function () {
           logoStageGestureId,
           firstStageSequenceState,
         });
-        commitPhoneState(event.detail.visible ? "0-0" : "999-999");
+        if (event.detail.visible) {
+          revealIntroLogoWithDelay();
+        } else {
+          commitPhoneState("999-999");
+        }
       });
 
       document.addEventListener(TEXT_STEP_CHANGE_EVENT, (event) => {
@@ -2013,10 +2038,9 @@ export const setScrollingAnimations = function () {
           }
 
           event.preventDefault();
-          commitPhoneState("0-0");
+          revealIntroLogoWithDelay();
           logoStageGestureId = gestureId;
           logoStageForwardStep = 0;
-          logoStageReverseStep = 0;
           logScrollDebug("logo-stage-set", {
             gestureId,
             logoStageGestureId,
@@ -2069,7 +2093,6 @@ export const setScrollingAnimations = function () {
         });
         logoStageGestureId = null;
         logoStageForwardStep = 0;
-        logoStageReverseStep = 0;
 
         // Re-entering stage 1 owns its complete initial visual state. Do not
         // rely on IntersectionObserver firing again after a quick reversal.
@@ -2157,19 +2180,6 @@ export const setScrollingAnimations = function () {
           return;
         }
 
-        if (logoStageReverseStep === 0) {
-          event.preventDefault();
-          logoStageReverseStep = 1;
-          logoStageGestureId = gestureId;
-          logScrollDebug("logo-stage-reverse-step", {
-            gestureId,
-            logoStageReverseStep,
-            reason: "first-logo-reverse-gesture",
-          });
-          return;
-        }
-
-        logoStageReverseStep = 0;
         startIntroReverseNativeScroll(gestureId);
         finishIntroReverseSequence();
         logScrollDebug("intro-reverse-native-scroll-start", { gestureId });

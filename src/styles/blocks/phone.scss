@@ -8,6 +8,12 @@
 
   background-color: $white;
 
+  &.phone_intro-logo-delayed {
+    .phone__item_logo {
+      animation: firstScreenFadeIn 0s linear 0.2s both;
+    }
+  }
+
   &_first-screen-logo-exiting {
     .phone__item_logo {
       animation: firstScreenFadeOut 0.12s ease-out forwards !important;
@@ -664,4 +670,3 @@
     opacity: 1;
   }
 }
-
