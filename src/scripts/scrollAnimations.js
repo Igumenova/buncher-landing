@@ -3973,6 +3973,15 @@ export const setScrollingAnimations = function () {
 
       scrollRoot.dataset.reverseFrom = fromState;
       scrollRoot.dataset.reverseTarget = targetState;
+      logScrollDebug("reverse-navigation-commit", {
+        fromState,
+        targetState,
+        targetScrollTop: Number.isFinite(targetScrollTop)
+          ? Math.round(targetScrollTop)
+          : null,
+        synchronizedTextStep,
+        currentDigit,
+      });
       document.dispatchEvent(
         new CustomEvent(PHONE_REVERSE_STEP_EVENT, {
           detail: { state: targetState },
@@ -4163,18 +4172,40 @@ export const setScrollingAnimations = function () {
       const currentItem = timeline[currentIndex];
       // Reverse navigation is phase-based: skip all intermediate mockup
       // screens and land on the final screen of the previous phase.
-      const previousPhaseLastIndex = getPreviousPhaseLastIndex(
+      const renderedTimelineTextStep =
+        PHONE_STATE_TEXT_STEPS[currentItem.state] ?? -1;
+      const currentTextStep = Math.max(
+        renderedTimelineTextStep,
+        currentDigit - 1,
+      );
+      let previousPhaseLastIndex = getPreviousPhaseLastIndex(
         timeline,
         currentIndex,
       );
+
+      // A quick 2 -> 1 -> 2 direction change can leave the phone on a phase-1
+      // internal screen while the digit/text are already in phase 2. Select
+      // the last complete phase-1 anchor from the visual state, rather than
+      // trusting that stale internal phone state.
+      if (currentTextStep === 1) {
+        let lastFirstStageIndex = -1;
+        for (let index = timeline.length - 1; index >= 0; index--) {
+          if (PHONE_STATE_TEXT_STEPS[timeline[index].state] === 0) {
+            lastFirstStageIndex = index;
+            break;
+          }
+        }
+
+        if (lastFirstStageIndex >= 0) {
+          previousPhaseLastIndex = lastFirstStageIndex;
+        }
+      }
+
       const previousItem = timeline[previousPhaseLastIndex];
       const nextItemAfterPreviousPhase = timeline[previousPhaseLastIndex + 1];
       const currentState = currentItem.state;
       const previousState = previousItem?.state ?? "999-999";
-      const currentTextStep = PHONE_STATE_TEXT_STEPS[currentState] ?? -1;
       const previousTextStep = PHONE_STATE_TEXT_STEPS[previousState] ?? -1;
-      const isReturningToSearch =
-        previousState === "1-0" && currentState !== "1-0";
       let previousStateScrollTop =
         nextItemAfterPreviousPhase?.activationScrollTop - 2;
 
@@ -4198,15 +4229,6 @@ export const setScrollingAnimations = function () {
         previousStateScrollTop = previousItem
           ? previousItem.activationScrollTop + scrollRoot.clientHeight / 2
           : scrollRoot.scrollTop - scrollRoot.clientHeight;
-      }
-
-      if (isReturningToSearch) {
-        animateZeroVisibility(false);
-        hideActiveNumberDigit();
-        dispatchTextStepChange(-1, {
-          boundary: "search",
-          direction: -1,
-        });
       }
 
       commitReverseNavigation(
@@ -4597,6 +4619,29 @@ export const setScrollingAnimations = function () {
             ) {
               scrollRoot.scrollTop = firstStagePinnedScrollTop;
             }
+            return;
+          }
+
+          const reverseTargetTextStep =
+            PHONE_STATE_TEXT_STEPS[scrollRoot.dataset.reverseTarget];
+          const isReturningFromSecondToFirstStage =
+            isReturningToIntro &&
+            firstStageSequenceState === "active" &&
+            currentDigit === 1 &&
+            reverseTargetTextStep === 0;
+
+          // The phase-based reverse jump can place the stage-1 target just
+          // above the activation marker. It is still an active stage, not an
+          // intro exit: tearing it down here hides the scaffold and animates
+          // the digit through 0 before the synchronized 1 is rendered.
+          if (isReturningFromSecondToFirstStage) {
+            counterIsActive = true;
+            logScrollDebug("reverse-first-stage-exit-ignored", {
+              reverseTarget: scrollRoot.dataset.reverseTarget,
+              reverseTargetTextStep,
+              currentDigit,
+              displacedScrollTop: Math.round(scrollRoot.scrollTop),
+            });
             return;
           }
 
