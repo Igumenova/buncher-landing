@@ -24,8 +24,7 @@ export const setScrollingAnimations = function () {
   const FIRST_SCREEN_FADE_DURATION = 120;
   const FIRST_SCREEN_SWAP_PAUSE_DURATION = 35;
   const INTRO_LOGO_REVEAL_DELAY = 200;
-  const FIRST_STAGE_DIGIT_STAGGER_DELAY = 140;
-  const FIRST_STAGE_VISUAL_TRANSITION_DURATION = 400;
+  const FIRST_STAGE_VISUAL_TRANSITION_DURATION = 350;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
   const TEXT_PHASE_HOLD_SCROLL_DISTANCE = 200;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
@@ -39,6 +38,7 @@ export const setScrollingAnimations = function () {
   const INTRO_SEQUENCE_RESET_EVENT = "buncher:intro-sequence-reset";
   const FIRST_STAGE_DIGIT_SHOW_EVENT = "buncher:first-stage-digit-show";
   const FIRST_STAGE_DIGIT_HIDE_EVENT = "buncher:first-stage-digit-hide";
+  const FIRST_STAGE_SCREEN_HIDE_EVENT = "buncher:first-stage-screen-hide";
   const STAGE_CHANGE_POINT = 0.72;
   const PHONE_STATE_TEXT_STEPS = {
     "1-0": 0,
@@ -595,6 +595,11 @@ export const setScrollingAnimations = function () {
     }
 
     clearTimeout(firstStageSequenceTimer);
+    document.dispatchEvent(
+      new CustomEvent(FIRST_STAGE_SCREEN_HIDE_EVENT, {
+        detail: { phase: "finish" },
+      }),
+    );
     settleFirstStageDigitHidden();
     firstStageSequenceState = "reverse-complete";
     completeWheelInputTransition(firstStageVisualSequenceLockOwner);
@@ -608,43 +613,31 @@ export const setScrollingAnimations = function () {
       }),
     );
   };
-  const startFirstStageScaffoldOutSequence = () => {
-    if (firstStageSequenceState !== "reverse-digit") {
-      return;
-    }
-
-    clearTimeout(firstStageSequenceTimer);
+  const startFirstStageDigitOutSequence = (gestureId) => {
+    firstStageLastActionGestureId = gestureId;
     firstStageSequenceState = "reverse-scaffold";
-    logScrollDebug("first-stage-scaffold-reverse-start", {
-      gestureId: firstStageLastActionGestureId,
+    firstStageVisualSequenceLockOwner = "first-stage-visuals-out";
+    lockWheelInput(firstStageVisualSequenceLockOwner);
+    logScrollDebug("first-stage-visuals-reverse-start", {
+      gestureId,
       source: "visual-sequence",
     });
+    document.dispatchEvent(
+      new CustomEvent(FIRST_STAGE_SCREEN_HIDE_EVENT, {
+        detail: { phase: "start" },
+      }),
+    );
     document.dispatchEvent(
       new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
         detail: { visible: false },
       }),
     );
+    document.dispatchEvent(new Event(FIRST_STAGE_DIGIT_HIDE_EVENT));
+    clearTimeout(firstStageSequenceTimer);
     firstStageSequenceTimer = setTimeout(
       finishFirstStageReverseVisualSequence,
       FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100,
     );
-  };
-  const startFirstStageDigitOutSequence = (gestureId) => {
-    firstStageLastActionGestureId = gestureId;
-    firstStageSequenceState = "reverse-digit";
-    firstStageVisualSequenceLockOwner = "first-stage-visuals-out";
-    lockWheelInput(firstStageVisualSequenceLockOwner);
-    logScrollDebug("first-stage-digit-reverse-start", {
-      gestureId,
-      source: "visual-sequence",
-    });
-    document.dispatchEvent(new Event(FIRST_STAGE_DIGIT_HIDE_EVENT));
-    clearTimeout(firstStageSequenceTimer);
-    firstStageSequenceTimer = setTimeout(() => {
-      if (firstStageSequenceState === "reverse-digit") {
-        startFirstStageScaffoldOutSequence();
-      }
-    }, FIRST_STAGE_DIGIT_STAGGER_DELAY);
   };
   const startFirstStageDigitInSequence = () => {
     if (firstStageSequenceState !== "forward-scaffold") {
@@ -685,12 +678,7 @@ export const setScrollingAnimations = function () {
         detail: { visible: true, force: true },
       }),
     );
-    clearTimeout(firstStageSequenceTimer);
-    firstStageSequenceTimer = setTimeout(() => {
-      if (firstStageSequenceState === "forward-scaffold") {
-        startFirstStageDigitInSequence();
-      }
-    }, FIRST_STAGE_DIGIT_STAGGER_DELAY);
+    startFirstStageDigitInSequence();
   };
   const startFirstStageTextOutSequence = (
     gestureId,
@@ -1314,9 +1302,9 @@ export const setScrollingAnimations = function () {
         });
       } else if (
         isFirstDigitExiting &&
-        firstStageSequenceState === "reverse-digit"
+        firstStageSequenceState === "reverse-scaffold"
       ) {
-        startFirstStageScaffoldOutSequence();
+        finishFirstStageReverseVisualSequence();
       }
     };
 
@@ -1578,6 +1566,16 @@ export const setScrollingAnimations = function () {
           clearLogoAnimations();
         }
       };
+      document.addEventListener(FIRST_STAGE_SCREEN_HIDE_EVENT, (event) => {
+        if (event.detail.phase === "start") {
+          clearFirstScreenTransitionClasses();
+          phoneShell?.classList.add("phone_first-screen-reverse-exiting");
+          return;
+        }
+
+        phoneShell?.classList.remove("phone_first-screen-reverse-exiting");
+        commitPhoneState("999-999");
+      });
       const cancelIntroReverseSequence = () => {
         const sequenceWasActive =
           introReverseSequenceIsActive || introReverseScreenTransitionIsActive;
@@ -1713,14 +1711,7 @@ export const setScrollingAnimations = function () {
           }),
         );
         clearFirstScreenTransitionClasses();
-        phoneShell?.classList.add("phone_first-screen-reverse-exiting");
-        firstStageReverseScreenTimer = setTimeout(() => {
-          if (!introReverseScreenTransitionIsActive) {
-            return;
-          }
-
-          phoneShell?.classList.remove("phone_first-screen-reverse-exiting");
-          commitPhoneState("999-999");
+        const revealIntroLogo = () => {
           firstStageReverseScreenTimer = setTimeout(() => {
             if (!introReverseScreenTransitionIsActive) {
               return;
@@ -1741,7 +1732,24 @@ export const setScrollingAnimations = function () {
               logoStageForwardStep = 0;
             }, FIRST_SCREEN_FADE_DURATION);
           }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
-        }, FIRST_SCREEN_FADE_DURATION);
+        };
+        const screenIsAlreadyHidden =
+          phone.className.match(REGEX)?.[0] === "999-999";
+
+        if (screenIsAlreadyHidden) {
+          revealIntroLogo();
+        } else {
+          phoneShell?.classList.add("phone_first-screen-reverse-exiting");
+          firstStageReverseScreenTimer = setTimeout(() => {
+            if (!introReverseScreenTransitionIsActive) {
+              return;
+            }
+
+            phoneShell?.classList.remove("phone_first-screen-reverse-exiting");
+            commitPhoneState("999-999");
+            revealIntroLogo();
+          }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
+        }
 
         if (expectedTextStep >= 0) {
           dispatchTextStepChange(-1, {
@@ -1842,7 +1850,10 @@ export const setScrollingAnimations = function () {
 
         if (
           isIntroPhoneState(event.detail.state) &&
-          !isIntroPhoneState(phone.className.match(REGEX)?.[0])
+          (!isIntroPhoneState(phone.className.match(REGEX)?.[0]) ||
+            (event.detail.state === "0-0" &&
+              phone.className.match(REGEX)?.[0] === "999-999" &&
+              firstStageSequenceState === "reverse-complete"))
         ) {
           startIntroReverseSequence();
           return;
@@ -2132,25 +2143,21 @@ export const setScrollingAnimations = function () {
             pendingPhoneState = "1-0";
             commitPhoneState("1-0");
             phoneShell?.classList.add("phone_first-screen-revealing");
+            startFirstStageScaffoldInSequence(
+              gestureId,
+              "intro-logo-to-screen",
+            );
             logScrollDebug("screen-transition-reveal", {
               gestureId,
               firstStageSequenceState,
             });
             firstStageForwardScreenTimer = setTimeout(() => {
               phoneShell?.classList.remove("phone_first-screen-revealing");
-              if (firstStageSequenceState !== "forward-screen") {
-                return;
-              }
-
-              startFirstStageScaffoldInSequence(
-                gestureId,
-                "intro-logo-to-screen",
-              );
               logScrollDebug("screen-transition-complete", {
                 gestureId,
                 firstStageSequenceState,
               });
-            }, FIRST_SCREEN_FADE_DURATION);
+            }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
           }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
         }, FIRST_SCREEN_FADE_DURATION);
       };

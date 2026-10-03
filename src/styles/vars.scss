@@ -36,7 +36,7 @@ $main-entry-duration: 1s;
 $main-entry-easing: ease-in-out;
 $phase-transition-duration: 0.5s;
 $digit-transition-duration: $phase-transition-duration;
-$first-stage-visual-transition-duration: 0.4s;
+$first-stage-visual-transition-duration: 0.35s;
 
 @mixin noTextSelection {
   -webkit-touch-callout: none;

@@ -22,13 +22,15 @@
 
   &_first-screen-revealing {
     .phone__sec-search {
-      animation: firstScreenFadeIn 0.12s ease-out both;
+      animation: firstScreenFadeIn $first-stage-visual-transition-duration
+        ease-out both;
     }
   }
 
   &_first-screen-reverse-exiting {
     .phone__sec-search {
-      animation: firstScreenFadeOut 0.12s ease-out forwards;
+      animation: firstScreenFadeOut $first-stage-visual-transition-duration
+        ease-out forwards;
     }
   }
 
