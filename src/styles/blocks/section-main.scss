@@ -1141,6 +1141,50 @@
     }
   }
 
+  // Empty trackable blocks are the scroll timeline. In compact mode their
+  // previous `height: auto` collapsed the main section, so one mobile fling
+  // crossed every state and landed on the footer. Each product stage gets one
+  // dynamic viewport instead.
+  @media screen and (hover: none) and (pointer: coarse) {
+    &__stage {
+      height: 100svh;
+      min-height: 100svh;
+    }
+
+    &__text-container_small {
+      display: block;
+      width: 100%;
+      height: 725svh;
+      min-height: 725svh;
+
+      &::before {
+        display: none;
+      }
+
+      &::after {
+        display: block;
+        height: 225svh;
+      }
+
+      .section-main__text-block,
+      .section-main__text-block:first-of-type {
+        display: block;
+        width: 100%;
+        height: 100svh;
+        min-height: 100svh;
+      }
+    }
+
+    &__shuffle-text {
+      top: 70svh;
+    }
+
+    &__decoration-container,
+    &__mask {
+      height: 100svh;
+    }
+  }
+
   @media screen and (min-width: 601px) and (orientation: landscape) {
     &__shuffle-layer {
       opacity: var(--boundary-opacity, 1);

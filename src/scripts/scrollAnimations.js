@@ -20,6 +20,8 @@ export const setScrollingAnimations = function () {
   const WHEEL_GESTURE_RESTART_DELTA = 16;
   const WHEEL_GESTURE_RESTART_RATIO = 2.5;
   const WHEEL_INPUT_LOCK_MAX_DURATION = 3000;
+  const TOUCH_SWIPE_START_THRESHOLD = 8;
+  const TOUCH_HORIZONTAL_CANCEL_RATIO = 1.15;
   const FIRST_STAGE_GESTURE_END_DELAY = 180;
   const FIRST_SCREEN_FADE_DURATION = 120;
   const FIRST_SCREEN_SWAP_PAUSE_DURATION = 35;
@@ -39,6 +41,9 @@ export const setScrollingAnimations = function () {
   const FIRST_STAGE_DIGIT_SHOW_EVENT = "buncher:first-stage-digit-show";
   const FIRST_STAGE_DIGIT_HIDE_EVENT = "buncher:first-stage-digit-hide";
   const FIRST_STAGE_SCREEN_HIDE_EVENT = "buncher:first-stage-screen-hide";
+  const touchInputIsActive = window.matchMedia(
+    "(hover: none) and (pointer: coarse)",
+  ).matches;
   const STAGE_CHANGE_POINT = 0.72;
   const PHONE_STATE_TEXT_STEPS = {
     "1-0": 0,
@@ -79,6 +84,7 @@ export const setScrollingAnimations = function () {
   let oppositeWheelEventCount = 0;
   let wheelInputLock = null;
   let wheelInputLockTimer = null;
+  let activeTouch = null;
   let scrollDebugSequence = 0;
   let flushTypingProgress = null;
   let advanceTypingByWheel = null;
@@ -235,6 +241,25 @@ export const setScrollingAnimations = function () {
     wheelInputLock = null;
   };
 
+  const finishInputGesture = () => {
+    if (!wheelGestureIsActive) {
+      return;
+    }
+
+    const endingGestureId = currentWheelGestureId;
+    clearTimeout(wheelGestureEndTimer);
+    wheelGestureEndTimer = null;
+    wheelGestureIsActive = false;
+    wheelGestureDirection = 0;
+    previousWheelDelta = 0;
+    previousWheelDeltaY = 0;
+    oppositeWheelDirection = 0;
+    oppositeWheelDistance = 0;
+    oppositeWheelEventCount = 0;
+    logScrollDebug("gesture-end", { gestureId: endingGestureId });
+    releaseWheelInputIfReady();
+  };
+
   const trackWheelGesture = (event) => {
     const now = performance.now();
     const delta = Math.abs(event.deltaY);
@@ -283,19 +308,21 @@ export const setScrollingAnimations = function () {
         eventTimeStamp: Math.round(event.timeStamp),
       });
 
-      clearTimeout(wheelGestureEndTimer);
-      const endingGestureId = currentWheelGestureId;
-      wheelGestureEndTimer = setTimeout(() => {
-        wheelGestureIsActive = false;
-        wheelGestureDirection = 0;
-        previousWheelDelta = 0;
-        previousWheelDeltaY = 0;
-        oppositeWheelDirection = 0;
-        oppositeWheelDistance = 0;
-        oppositeWheelEventCount = 0;
-        logScrollDebug("gesture-end", { gestureId: endingGestureId });
-        releaseWheelInputIfReady();
-      }, WHEEL_GESTURE_END_DELAY);
+      if (!activeTouch) {
+        clearTimeout(wheelGestureEndTimer);
+        const endingGestureId = currentWheelGestureId;
+        wheelGestureEndTimer = setTimeout(() => {
+          wheelGestureIsActive = false;
+          wheelGestureDirection = 0;
+          previousWheelDelta = 0;
+          previousWheelDeltaY = 0;
+          oppositeWheelDirection = 0;
+          oppositeWheelDistance = 0;
+          oppositeWheelEventCount = 0;
+          logScrollDebug("gesture-end", { gestureId: endingGestureId });
+          releaseWheelInputIfReady();
+        }, WHEEL_GESTURE_END_DELAY);
+      }
       return true;
     }
 
@@ -350,19 +377,21 @@ export const setScrollingAnimations = function () {
     if (event.deltaY !== 0) {
       previousWheelDelta = delta;
       previousWheelDeltaY = event.deltaY;
-      clearTimeout(wheelGestureEndTimer);
-      const endingGestureId = currentWheelGestureId;
-      wheelGestureEndTimer = setTimeout(() => {
-        wheelGestureIsActive = false;
-        wheelGestureDirection = 0;
-        previousWheelDelta = 0;
-        previousWheelDeltaY = 0;
-        oppositeWheelDirection = 0;
-        oppositeWheelDistance = 0;
-        oppositeWheelEventCount = 0;
-        logScrollDebug("gesture-end", { gestureId: endingGestureId });
-        releaseWheelInputIfReady();
-      }, WHEEL_GESTURE_END_DELAY);
+      if (!activeTouch) {
+        clearTimeout(wheelGestureEndTimer);
+        const endingGestureId = currentWheelGestureId;
+        wheelGestureEndTimer = setTimeout(() => {
+          wheelGestureIsActive = false;
+          wheelGestureDirection = 0;
+          previousWheelDelta = 0;
+          previousWheelDeltaY = 0;
+          oppositeWheelDirection = 0;
+          oppositeWheelDistance = 0;
+          oppositeWheelEventCount = 0;
+          logScrollDebug("gesture-end", { gestureId: endingGestureId });
+          releaseWheelInputIfReady();
+        }, WHEEL_GESTURE_END_DELAY);
+      }
     }
     return false;
   };
@@ -2417,15 +2446,34 @@ export const setScrollingAnimations = function () {
         .slice(1)
         .map((block) => getScrollPoint(block, STAGE_CHANGE_POINT));
       const stageStarts = [firstStageStart, ...stageMarkers];
-      const finalStageEnd =
-        stageStarts[stageStarts.length - 1] +
-        blockElements[blockElements.length - 1].offsetHeight;
+      const compactTimelineIsActive =
+        touchInputIsActive &&
+        document
+          .getElementById("section-main__text-container")
+          ?.classList.contains("section-main__text-container_small");
+      const mainRect = mainSection.getBoundingClientRect();
+      const compactStickyEnd =
+        scrollRoot.scrollTop +
+        mainRect.top -
+        rootRect.top +
+        mainSection.offsetHeight -
+        scrollRoot.clientHeight;
+      const finalStageEnd = compactTimelineIsActive
+        ? compactStickyEnd
+        : stageStarts[stageStarts.length - 1] +
+          blockElements[blockElements.length - 1].offsetHeight;
 
       typingRanges = stageStarts
         .slice(0, textSteps.length)
         .map((start, index) => ({
           start,
-          end: stageMarkers[index] ?? finalStageEnd,
+          end:
+            stageMarkers[index] === undefined
+              ? finalStageEnd
+              : stageMarkers[index] +
+                (compactTimelineIsActive
+                  ? TEXT_PHASE_HOLD_SCROLL_DISTANCE
+                  : 0),
         }));
     };
     const updateTypingProgress = () => {
@@ -3612,6 +3660,22 @@ export const setScrollingAnimations = function () {
       const rootRect = scrollRoot.getBoundingClientRect();
       const mainRect = mainSection.getBoundingClientRect();
       const sectionTop = scrollRoot.scrollTop + mainRect.top - rootRect.top;
+      const compactTimelineIsActive =
+        touchInputIsActive &&
+        document
+          .getElementById("section-main__text-container")
+          ?.classList.contains("section-main__text-container_small");
+
+      if (compactTimelineIsActive) {
+        // On mobile the final product phase owns the last sticky viewport.
+        // Release it into native footer scrolling only at the sticky boundary.
+        return (
+          sectionTop +
+          mainSection.offsetHeight -
+          scrollRoot.clientHeight
+        );
+      }
+
       const stickyDistance = Math.max(
         mainSection.offsetHeight - scrollRoot.clientHeight,
         0,
@@ -4967,7 +5031,11 @@ export const setScrollingAnimations = function () {
       });
     };
     const changeMode = () => {
-      if (window.innerWidth <= 600 || window.innerWidth < window.innerHeight) {
+      if (
+        window.innerWidth <= 600 ||
+        window.innerWidth < window.innerHeight ||
+        touchInputIsActive
+      ) {
         setSmallerScreenStyles();
         changeSmallerSocialsPosition();
       } else {
@@ -5096,4 +5164,121 @@ export const setScrollingAnimations = function () {
     capture: true,
     passive: false,
   });
+
+  const findTrackedTouch = (touchList) => {
+    if (!activeTouch) {
+      return null;
+    }
+
+    return Array.from(touchList).find(
+      (touch) => touch.identifier === activeTouch.identifier,
+    );
+  };
+
+  const handleTouchStart = (event) => {
+    if (activeTouch || event.touches.length !== 1) {
+      return;
+    }
+
+    const [touch] = event.touches;
+    activeTouch = {
+      identifier: touch.identifier,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      lastY: touch.clientY,
+      started: false,
+      cancelled: false,
+    };
+  };
+
+  const handleTouchMove = (event) => {
+    const touch = findTrackedTouch(event.touches);
+    if (!touch || activeTouch.cancelled) {
+      return;
+    }
+
+    if (event.target.closest?.(".modal-window_shown")) {
+      activeTouch.cancelled = true;
+      return;
+    }
+
+    const distanceX = touch.clientX - activeTouch.startX;
+    const distanceY = touch.clientY - activeTouch.startY;
+
+    if (!activeTouch.started) {
+      if (
+        Math.abs(distanceX) >
+        Math.abs(distanceY) * TOUCH_HORIZONTAL_CANCEL_RATIO
+      ) {
+        activeTouch.cancelled = true;
+        return;
+      }
+
+      if (Math.abs(distanceY) < TOUCH_SWIPE_START_THRESHOLD) {
+        return;
+      }
+
+      activeTouch.started = true;
+      // Ensure every physical swipe starts a fresh gesture, even when the
+      // previous finger left the screen less than the wheel idle delay ago.
+      finishInputGesture();
+    }
+
+    const deltaY = activeTouch.lastY - touch.clientY;
+    activeTouch.lastY = touch.clientY;
+    if (deltaY === 0) {
+      return;
+    }
+
+    const touchWheelEvent = {
+      deltaY,
+      deltaMode: WheelEvent.DOM_DELTA_PIXEL,
+      wheelDeltaY: -deltaY,
+      ctrlKey: event.ctrlKey,
+      target: event.target,
+      timeStamp: event.timeStamp,
+      defaultPrevented: false,
+      preventDefault() {
+        this.defaultPrevented = true;
+        event.preventDefault();
+      },
+    };
+
+    handleWheelInput(touchWheelEvent);
+  };
+
+  const handleTouchEnd = (event) => {
+    if (!activeTouch) {
+      return;
+    }
+
+    const trackedTouchEnded = Array.from(event.changedTouches).some(
+      (touch) => touch.identifier === activeTouch.identifier,
+    );
+    if (!trackedTouchEnded) {
+      return;
+    }
+
+    activeTouch = null;
+    finishInputGesture();
+  };
+
+  if (touchInputIsActive) {
+    wheelEventTarget.addEventListener("touchstart", handleTouchStart, {
+      capture: true,
+      passive: true,
+    });
+    wheelEventTarget.addEventListener("touchmove", handleTouchMove, {
+      capture: true,
+      passive: false,
+    });
+    wheelEventTarget.addEventListener("touchend", handleTouchEnd, {
+      capture: true,
+      passive: true,
+    });
+    wheelEventTarget.addEventListener("touchcancel", handleTouchEnd, {
+      capture: true,
+      passive: true,
+    });
+  }
 };

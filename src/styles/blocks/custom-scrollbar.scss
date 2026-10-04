@@ -4,6 +4,10 @@
   overflow-y: scroll;
   overflow-x: hidden;
 
+  @media screen and (hover: none) and (pointer: coarse) {
+    height: 100dvh;
+  }
+
   &_intro-locked {
     overflow-y: hidden;
   }
@@ -30,7 +34,9 @@
     background-color: $light-grey;
   }
 
-  @media screen and (max-width: 600px), screen and (orientation: portrait) {
+  @media screen and (max-width: 600px),
+    screen and (orientation: portrait),
+    screen and (hover: none) and (pointer: coarse) {
     scrollbar-width: none;
     &::-webkit-scrollbar {
       display: none;
