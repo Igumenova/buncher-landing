@@ -37,6 +37,12 @@ $main-entry-easing: ease-in-out;
 $phase-transition-duration: 0.5s;
 $digit-transition-duration: $phase-transition-duration;
 $first-stage-visual-transition-duration: 0.35s;
+$first-stage-forward-mockup-duration: 0.55s;
+$first-stage-forward-scaffold-duration: 0.43s;
+$first-stage-forward-digit-duration: 0.31s;
+$first-stage-reverse-digit-duration: 0.55s;
+$first-stage-reverse-scaffold-duration: 0.43s;
+$first-stage-reverse-mockup-duration: 0.31s;
 
 @mixin noTextSelection {
   -webkit-touch-callout: none;

@@ -1216,12 +1216,12 @@
       }
 
       &_intro-entering {
-        animation: introScaffoldIn $first-stage-visual-transition-duration
+        animation: introScaffoldIn $first-stage-forward-scaffold-duration
           ease-in-out both;
       }
 
       &_intro-exiting {
-        animation: introScaffoldOut $first-stage-visual-transition-duration
+        animation: introScaffoldOut $first-stage-reverse-scaffold-duration
           ease-in-out both;
       }
     }

@@ -22,14 +22,14 @@
 
   &_first-screen-revealing {
     .phone__sec-search {
-      animation: firstScreenFadeIn $first-stage-visual-transition-duration
+      animation: firstScreenFadeIn $first-stage-forward-mockup-duration
         ease-out both;
     }
   }
 
   &_first-screen-reverse-exiting {
     .phone__sec-search {
-      animation: firstScreenFadeOut $first-stage-visual-transition-duration
+      animation: firstScreenFadeOut $first-stage-reverse-mockup-duration
         ease-out forwards;
     }
   }

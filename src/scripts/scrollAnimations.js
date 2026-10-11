@@ -28,6 +28,8 @@ export const setScrollingAnimations = function () {
   const FIRST_SCREEN_SWAP_PAUSE_DURATION = 35;
   const INTRO_LOGO_REVEAL_DELAY = 200;
   const FIRST_STAGE_VISUAL_TRANSITION_DURATION = 350;
+  const FIRST_STAGE_TIMELINE_DURATION = 550;
+  const FIRST_STAGE_STAGGER_DELAY = 120;
   const REVERSE_WHEEL_SCROLL_MULTIPLIER = 2;
   const TEXT_PHASE_HOLD_SCROLL_DISTANCE = 200;
   const TEXT_STEP_CHANGE_EVENT = "buncher:text-step-change";
@@ -526,7 +528,10 @@ export const setScrollingAnimations = function () {
       scrollRoot.clientHeight / 2
     );
   };
-  const animateZeroVisibility = (isVisible) => {
+  const animateZeroVisibility = (
+    isVisible,
+    duration = FIRST_STAGE_VISUAL_TRANSITION_DURATION,
+  ) => {
     const counterBlock = document.getElementById("counter");
 
     if (zeroIsVisible === isVisible) {
@@ -572,7 +577,7 @@ export const setScrollingAnimations = function () {
           : "section-main__counter-block_zero-hidden",
       );
       zeroTransitionTimer = null;
-    }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
+    }, duration);
   };
   const hideActiveNumberDigit = () => {
     const numberCont = document.getElementById("changing-number");
@@ -652,22 +657,35 @@ export const setScrollingAnimations = function () {
       gestureId,
       source: "visual-sequence",
     });
-    document.dispatchEvent(
-      new CustomEvent(FIRST_STAGE_SCREEN_HIDE_EVENT, {
-        detail: { phase: "start" },
-      }),
-    );
-    document.dispatchEvent(
-      new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
-        detail: { visible: false },
-      }),
-    );
     document.dispatchEvent(new Event(FIRST_STAGE_DIGIT_HIDE_EVENT));
     clearTimeout(firstStageSequenceTimer);
-    firstStageSequenceTimer = setTimeout(
-      finishFirstStageReverseVisualSequence,
-      FIRST_STAGE_VISUAL_TRANSITION_DURATION + 100,
-    );
+    firstStageSequenceTimer = setTimeout(() => {
+      if (firstStageSequenceState !== "reverse-scaffold") {
+        return;
+      }
+
+      document.dispatchEvent(
+        new CustomEvent(INTRO_SCAFFOLD_VISIBILITY_EVENT, {
+          detail: { visible: false },
+        }),
+      );
+      firstStageSequenceTimer = setTimeout(() => {
+        if (firstStageSequenceState !== "reverse-scaffold") {
+          return;
+        }
+
+        document.dispatchEvent(
+          new CustomEvent(FIRST_STAGE_SCREEN_HIDE_EVENT, {
+            detail: { phase: "start" },
+          }),
+        );
+        firstStageSequenceTimer = setTimeout(
+          finishFirstStageReverseVisualSequence,
+          FIRST_STAGE_TIMELINE_DURATION - FIRST_STAGE_STAGGER_DELAY * 2 +
+            100,
+        );
+      }, FIRST_STAGE_STAGGER_DELAY);
+    }, FIRST_STAGE_STAGGER_DELAY);
   };
   const startFirstStageDigitInSequence = () => {
     if (firstStageSequenceState !== "forward-scaffold") {
@@ -708,7 +726,11 @@ export const setScrollingAnimations = function () {
         detail: { visible: true, force: true },
       }),
     );
-    startFirstStageDigitInSequence();
+    clearTimeout(firstStageSequenceTimer);
+    firstStageSequenceTimer = setTimeout(
+      startFirstStageDigitInSequence,
+      FIRST_STAGE_STAGGER_DELAY,
+    );
   };
   const startFirstStageTextOutSequence = (
     gestureId,
@@ -1384,7 +1406,7 @@ export const setScrollingAnimations = function () {
       startDigitTransition(1, { force: true });
     });
     document.addEventListener(FIRST_STAGE_DIGIT_HIDE_EVENT, () => {
-      animateZeroVisibility(false);
+      animateZeroVisibility(false, FIRST_STAGE_TIMELINE_DURATION);
       hideActiveNumberDigit();
     });
 
@@ -2158,10 +2180,17 @@ export const setScrollingAnimations = function () {
               pendingPhoneState = "1-0";
               commitPhoneState("1-0");
               phoneShell?.classList.add("phone_first-screen-revealing");
-              startFirstStageScaffoldInSequence(
-                gestureId,
-                "intro-logo-to-screen",
-              );
+              clearTimeout(firstStageSequenceTimer);
+              firstStageSequenceTimer = setTimeout(() => {
+                if (firstStageSequenceState !== "forward-screen") {
+                  return;
+                }
+
+                startFirstStageScaffoldInSequence(
+                  gestureId,
+                  "intro-logo-to-screen",
+                );
+              }, FIRST_STAGE_STAGGER_DELAY);
               logScrollDebug("screen-transition-reveal", {
                 gestureId,
                 firstStageSequenceState,
@@ -2172,7 +2201,7 @@ export const setScrollingAnimations = function () {
                   gestureId,
                   firstStageSequenceState,
                 });
-              }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
+              }, FIRST_STAGE_TIMELINE_DURATION);
             }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
           }, FIRST_SCREEN_FADE_DURATION);
         }, FIRST_STAGE_START_DELAY);
