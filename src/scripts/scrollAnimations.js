@@ -4001,25 +4001,45 @@ export const setScrollingAnimations = function () {
 
       return -1;
     };
-    const firstPhaseTextIsActuallyVisible = () => {
+    const getPreviousPhaseLastIndexForTextStep = (timeline, textStep) => {
+      for (let index = timeline.length - 1; index >= 0; index--) {
+        const itemTextStep =
+          PHONE_STATE_TEXT_STEPS[timeline[index].state] ?? -1;
+
+        if (itemTextStep < textStep) {
+          return index;
+        }
+      }
+
+      return -1;
+    };
+    const getPreparedTextStep = () => {
       const activePhrase = shuffleText?.querySelector(
         ".section-main__shuffle-phrase_active",
       );
+      const activeTextStep = Number(activePhrase?.dataset.step);
 
-      return (
-        currentDigit === 1 &&
-        activePhrase?.dataset.step === "0" &&
+      return activePhrase &&
+        Number.isInteger(activeTextStep)
+        ? activeTextStep
+        : null;
+    };
+    const getActuallyVisibleTextStep = () => {
+      const preparedTextStep = getPreparedTextStep();
+
+      return preparedTextStep !== null &&
         shuffleText.classList.contains("section-main__shuffle-text_visible")
-      );
+        ? preparedTextStep
+        : null;
+    };
+    const firstPhaseTextIsActuallyVisible = () => {
+      return currentDigit === 1 && getActuallyVisibleTextStep() === 0;
     };
     const getReverseTextTransitionStep = () => {
-      const renderedState = phone.className.match(PHONE_STATE_REGEX)?.[0];
-      const renderedTextStep = PHONE_STATE_TEXT_STEPS[renderedState];
-      const firstPhaseTextIsVisible =
-        renderedTextStep === 0 && firstPhaseTextIsActuallyVisible();
+      const visibleTextStep = getActuallyVisibleTextStep();
 
-      if (firstPhaseTextIsVisible) {
-        return 0;
+      if (visibleTextStep !== null) {
+        return visibleTextStep;
       }
 
       const timeline = getPhoneTimeline();
@@ -4300,14 +4320,14 @@ export const setScrollingAnimations = function () {
       // screens and land on the final screen of the previous phase.
       const renderedTimelineTextStep =
         PHONE_STATE_TEXT_STEPS[currentItem.state] ?? -1;
-      const currentTextStep = Math.max(
-        renderedTimelineTextStep,
-        currentDigit - 1,
-      );
-      let previousPhaseLastIndex = getPreviousPhaseLastIndex(
-        timeline,
-        currentIndex,
-      );
+      const preparedTextStep = getPreparedTextStep();
+      const currentTextStep =
+        preparedTextStep ??
+        Math.max(renderedTimelineTextStep, currentDigit - 1);
+      let previousPhaseLastIndex =
+        preparedTextStep === null
+          ? getPreviousPhaseLastIndex(timeline, currentIndex)
+          : getPreviousPhaseLastIndexForTextStep(timeline, currentTextStep);
 
       // A quick 2 -> 1 -> 2 direction change can leave the phone on a phase-1
       // internal screen while the digit/text are already in phase 2. Select
