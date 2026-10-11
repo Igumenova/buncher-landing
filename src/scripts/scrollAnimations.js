@@ -5161,16 +5161,26 @@ export const setScrollingAnimations = function () {
     }
     const gestureId = getWheelGestureId(event);
 
-    if (
-      introReverseNativeScrollIsActive &&
-      event.deltaY < 0 &&
-      scrollRoot.scrollTop > 1
-    ) {
-      logScrollDebug("intro-reverse-native-scroll", {
+    if (introReverseNativeScrollIsActive && event.deltaY <= 0) {
+      if (scrollRoot.scrollTop > 1) {
+        if (event.deltaY < 0) {
+          logScrollDebug("intro-reverse-native-scroll", {
+            gestureId,
+            sourceGestureId: introReverseNativeScrollGestureId,
+            deltaY: event.deltaY,
+          });
+        }
+        return;
+      }
+
+      logScrollDebug("intro-reverse-native-scroll-stop", {
         gestureId,
         sourceGestureId: introReverseNativeScrollGestureId,
         deltaY: event.deltaY,
+        reason: "start-boundary",
       });
+      stopIntroReverseNativeScroll();
+      event.preventDefault();
       return;
     }
 
@@ -5179,9 +5189,17 @@ export const setScrollingAnimations = function () {
         gestureId,
         sourceGestureId: introReverseNativeScrollGestureId,
         deltaY: event.deltaY,
-        reason: scrollRoot.scrollTop <= 1 ? "start-boundary" : "direction-change",
+        reason: "direction-change",
       });
       stopIntroReverseNativeScroll();
+    }
+
+    // Once the intro has reached the document start, the remaining upward
+    // momentum belongs to that boundary. It must not fall through to the
+    // phase router, where 999-999 would otherwise resolve back to 0-0.
+    if (event.deltaY <= 0 && scrollRoot.scrollTop <= 1) {
+      event.preventDefault();
+      return;
     }
 
     if (
