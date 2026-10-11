@@ -198,6 +198,10 @@
         visibility 0s linear 0s;
     }
 
+    &_letter-reveal {
+      transition: none;
+    }
+
     &_first-entry {
       transform: translate(0, -50%);
       opacity: 0;

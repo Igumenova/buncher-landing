@@ -2416,6 +2416,7 @@ export const setScrollingAnimations = function () {
     const phone = document.getElementById("phone");
     const counterBlock = document.getElementById("counter");
     const TYPING_COMPLETE_PHASE_PROGRESS = 0.82;
+    const FIRST_STAGE_LETTER_REVEAL_INTERVAL = 42;
     const LINE_NUMBER_ROW_HEIGHT = 58;
     const LINES_PER_TEXT_STEP = 5;
     const TEXT_STEP_VERTICAL_OFFSET =
@@ -2429,6 +2430,7 @@ export const setScrollingAnimations = function () {
     let activeLetters = [];
     let typingRanges = [];
     let typingFrameId = null;
+    let firstStageLetterRevealTimer = null;
     let lastVisibleLetterCount = -1;
     let typingStartedStep = -1;
     let typingIsLocked = false;
@@ -2440,6 +2442,10 @@ export const setScrollingAnimations = function () {
     let prepareTextStep = null;
 
     const clampProgress = (value) => Math.min(Math.max(value, 0), 1);
+    const clearFirstStageLetterReveal = () => {
+      clearTimeout(firstStageLetterRevealTimer);
+      firstStageLetterRevealTimer = null;
+    };
     const refreshTypingRanges = () => {
       const rootRect = scrollRoot.getBoundingClientRect();
       const blockElements = Array.from(blocks);
@@ -2530,10 +2536,18 @@ export const setScrollingAnimations = function () {
       const typingProgress = clampProgress(
         phaseProgress / TYPING_COMPLETE_PHASE_PROGRESS,
       );
-      const visibleLetterCount =
+      const targetVisibleLetterCount =
         typingDirection < 0
           ? (reverseVisibleLetterCount ?? activeLetters.length)
           : Math.floor(activeLetters.length * typingProgress);
+      const firstStageTypingIsActive =
+        activeStep === 0 && typingDirection > 0 && !typingIsLocked;
+      const visibleLetterCount = firstStageTypingIsActive
+        ? Math.min(
+            targetVisibleLetterCount,
+            Math.max(lastVisibleLetterCount, 0) + 1,
+          )
+        : targetVisibleLetterCount;
 
       if (visibleLetterCount !== lastVisibleLetterCount) {
         activeLetters.forEach((letter, index) => {
@@ -2543,6 +2557,20 @@ export const setScrollingAnimations = function () {
           );
         });
         lastVisibleLetterCount = visibleLetterCount;
+      }
+
+      if (
+        firstStageTypingIsActive &&
+        visibleLetterCount < targetVisibleLetterCount &&
+        firstStageLetterRevealTimer === null
+      ) {
+        const scheduledStep = activeStep;
+        firstStageLetterRevealTimer = setTimeout(() => {
+          firstStageLetterRevealTimer = null;
+          if (activeStep === scheduledStep) {
+            updateTypingProgress();
+          }
+        }, FIRST_STAGE_LETTER_REVEAL_INTERVAL);
       }
 
       if (
@@ -2561,7 +2589,9 @@ export const setScrollingAnimations = function () {
 
       if (
         typingDirection > 0 &&
-        typingProgress >= 0.5 &&
+        (firstStageTypingIsActive
+          ? visibleLetterCount / activeLetters.length
+          : typingProgress) >= 0.5 &&
         midpointTextStep < activeStep
       ) {
         midpointTextStep = activeStep;
@@ -3379,6 +3409,12 @@ export const setScrollingAnimations = function () {
       }
 
       activeStep = nextStep;
+      clearFirstStageLetterReveal();
+      if (nextStep !== 0) {
+        shuffleText.classList.remove(
+          "section-main__shuffle-text_letter-reveal",
+        );
+      }
       clearTimeout(hideTimer);
       clearTimeout(phraseCleanupTimer);
       animationToken++;
@@ -3497,6 +3533,9 @@ export const setScrollingAnimations = function () {
       activeLetters.forEach((letter) => {
         letter.classList.remove("section-main__shuffle-letter_visible");
       });
+      shuffleText.classList.remove(
+        "section-main__shuffle-text_letter-reveal",
+      );
       shuffleText.classList.remove("section-main__shuffle-text_visible");
       typingIsLocked = true;
       typingDirection = 1;
@@ -3504,6 +3543,7 @@ export const setScrollingAnimations = function () {
       reverseVisibleLetterCount = null;
       lastVisibleLetterCount = 0;
       typingStartedStep = -1;
+      clearFirstStageLetterReveal();
     };
     const activatePreparedTyping = (stepIndex) => {
       completedTextStep = Math.min(completedTextStep, stepIndex - 1);
@@ -3536,7 +3576,9 @@ export const setScrollingAnimations = function () {
       reverseVisibleLetterCount = null;
       lastVisibleLetterCount = 0;
       typingStartedStep = -1;
+      clearFirstStageLetterReveal();
       shuffleText.classList.remove("section-main__shuffle-text_phase-exit");
+      shuffleText.classList.add("section-main__shuffle-text_letter-reveal");
       shuffleText.classList.add("section-main__shuffle-text_visible");
       updateTypingProgress();
     };
@@ -3554,6 +3596,10 @@ export const setScrollingAnimations = function () {
     const hideText = () => {
       activeStep = -1;
       animationToken++;
+      clearFirstStageLetterReveal();
+      shuffleText.classList.remove(
+        "section-main__shuffle-text_letter-reveal",
+      );
       clearTimeout(phraseCleanupTimer);
       activePhrase = null;
       activeLetters = [];
