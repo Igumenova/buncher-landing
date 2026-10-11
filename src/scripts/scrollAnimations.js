@@ -23,6 +23,7 @@ export const setScrollingAnimations = function () {
   const TOUCH_SWIPE_START_THRESHOLD = 8;
   const TOUCH_HORIZONTAL_CANCEL_RATIO = 1.15;
   const FIRST_STAGE_GESTURE_END_DELAY = 180;
+  const FIRST_STAGE_START_DELAY = 300;
   const FIRST_SCREEN_FADE_DURATION = 120;
   const FIRST_SCREEN_SWAP_PAUSE_DURATION = 35;
   const INTRO_LOGO_REVEAL_DELAY = 200;
@@ -1517,7 +1518,6 @@ export const setScrollingAnimations = function () {
       let reversePhoneState = null;
       let introReverseSequenceIsActive = false;
       let logoStageGestureId = null;
-      let logoStageForwardStep = 0;
       let introReverseScreenTransitionIsActive = false;
       let introLogoRevealTimer = null;
       const phoneLogo = phone.querySelector(".phone__item_logo");
@@ -1622,7 +1622,6 @@ export const setScrollingAnimations = function () {
         if (sequenceWasActive) {
           completeWheelInputTransition("intro-screen-to-logo");
           logoStageGestureId = null;
-          logoStageForwardStep = 0;
           firstStageVisualSequenceLockOwner = null;
           clearLogoAnimations();
           clearTimeout(firstStageSequenceTimer);
@@ -1650,7 +1649,6 @@ export const setScrollingAnimations = function () {
         clearTimeout(firstStageSequenceTimer);
         firstStageSequenceState = "idle";
         logoStageGestureId = null;
-        logoStageForwardStep = 0;
         firstStageVisualSequenceLockOwner = null;
         scrollRoot.dataset.introReverseSequence = "idle";
         commitPhoneState("999-999");
@@ -1671,7 +1669,6 @@ export const setScrollingAnimations = function () {
         introReverseScreenTransitionIsActive = false;
         introReverseSequenceIsActive = false;
         logoStageGestureId = null;
-        logoStageForwardStep = 0;
         firstStageVisualSequenceLockOwner = null;
         reversePhoneState = null;
         stopIntroReverseNativeScroll();
@@ -1758,7 +1755,6 @@ export const setScrollingAnimations = function () {
               firstStageSequenceState = "reverse-complete";
               completeWheelInputTransition("intro-screen-to-logo");
               logoStageGestureId = currentWheelGestureId;
-              logoStageForwardStep = 0;
             }, FIRST_SCREEN_FADE_DURATION);
           }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
         };
@@ -1920,10 +1916,8 @@ export const setScrollingAnimations = function () {
 
         if (event.detail.visible) {
           logoStageGestureId = currentWheelGestureId;
-          logoStageForwardStep = 0;
         } else {
           logoStageGestureId = null;
-          logoStageForwardStep = 0;
         }
         logScrollDebug("logo-visibility", {
           visible: event.detail.visible,
@@ -2080,7 +2074,6 @@ export const setScrollingAnimations = function () {
           event.preventDefault();
           revealIntroLogoWithDelay();
           logoStageGestureId = gestureId;
-          logoStageForwardStep = 0;
           logScrollDebug("logo-stage-set", {
             gestureId,
             logoStageGestureId,
@@ -2095,18 +2088,6 @@ export const setScrollingAnimations = function () {
             gestureId,
             logoStageGestureId,
             reason: "same-gesture",
-          });
-          return;
-        }
-
-        if (logoStageForwardStep === 0) {
-          event.preventDefault();
-          logoStageForwardStep = 1;
-          logoStageGestureId = gestureId;
-          logScrollDebug("logo-stage-step", {
-            gestureId,
-            logoStageForwardStep,
-            reason: "first-logo-gesture",
           });
           return;
         }
@@ -2132,7 +2113,6 @@ export const setScrollingAnimations = function () {
           searchBoundary: Math.round(searchBoundary),
         });
         logoStageGestureId = null;
-        logoStageForwardStep = 0;
 
         // Re-entering stage 1 owns its complete initial visual state. Do not
         // rely on IntersectionObserver firing again after a quick reversal.
@@ -2149,46 +2129,53 @@ export const setScrollingAnimations = function () {
             detail: { visible: false, immediate: true, force: true },
           }),
         );
-        firstStagePinnedScrollTop =
-          searchBoundary + INTRO_SEARCH_SCROLL_GAP + 2;
-        scrollRoot.scrollTop = firstStagePinnedScrollTop;
+        firstStagePinnedScrollTop = scrollRoot.scrollTop;
         clearTimeout(firstStageForwardScreenTimer);
         clearFirstScreenTransitionClasses();
         // Fade the splash out completely before fading the ready screen in.
         // The layers never overlap and neither one changes scale or position.
-        phoneShell?.classList.add("phone_first-screen-logo-exiting");
         firstStageForwardScreenTimer = setTimeout(() => {
           if (firstStageSequenceState !== "forward-screen") {
             return;
           }
 
-          phoneShell?.classList.remove("phone_first-screen-logo-exiting");
-          commitPhoneState("999-999");
+          firstStagePinnedScrollTop =
+            searchBoundary + INTRO_SEARCH_SCROLL_GAP + 2;
+          scrollRoot.scrollTop = firstStagePinnedScrollTop;
+          phoneShell?.classList.add("phone_first-screen-logo-exiting");
           firstStageForwardScreenTimer = setTimeout(() => {
             if (firstStageSequenceState !== "forward-screen") {
               return;
             }
 
-            pendingPhoneState = "1-0";
-            commitPhoneState("1-0");
-            phoneShell?.classList.add("phone_first-screen-revealing");
-            startFirstStageScaffoldInSequence(
-              gestureId,
-              "intro-logo-to-screen",
-            );
-            logScrollDebug("screen-transition-reveal", {
-              gestureId,
-              firstStageSequenceState,
-            });
+            phoneShell?.classList.remove("phone_first-screen-logo-exiting");
+            commitPhoneState("999-999");
             firstStageForwardScreenTimer = setTimeout(() => {
-              phoneShell?.classList.remove("phone_first-screen-revealing");
-              logScrollDebug("screen-transition-complete", {
+              if (firstStageSequenceState !== "forward-screen") {
+                return;
+              }
+
+              pendingPhoneState = "1-0";
+              commitPhoneState("1-0");
+              phoneShell?.classList.add("phone_first-screen-revealing");
+              startFirstStageScaffoldInSequence(
+                gestureId,
+                "intro-logo-to-screen",
+              );
+              logScrollDebug("screen-transition-reveal", {
                 gestureId,
                 firstStageSequenceState,
               });
-            }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
-          }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
-        }, FIRST_SCREEN_FADE_DURATION);
+              firstStageForwardScreenTimer = setTimeout(() => {
+                phoneShell?.classList.remove("phone_first-screen-revealing");
+                logScrollDebug("screen-transition-complete", {
+                  gestureId,
+                  firstStageSequenceState,
+                });
+              }, FIRST_STAGE_VISUAL_TRANSITION_DURATION);
+            }, FIRST_SCREEN_SWAP_PAUSE_DURATION);
+          }, FIRST_SCREEN_FADE_DURATION);
+        }, FIRST_STAGE_START_DELAY);
       };
       const holdIntroReverseExitAtLogo = (event) => {
         if (
