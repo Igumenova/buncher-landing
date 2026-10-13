@@ -8,7 +8,7 @@ export const setSubscribeFormBehavior = function () {
     return;
   }
 
-  const leadsEndpoint = "https://buncher.app/leads";
+  const leadsEndpoint = "https://85-208-87-17.sslip.io/landing/leads";
   const invalidClass = "section-footer__subscribe-form_invalid";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = (email) => emailRegex.test(email.trim());
