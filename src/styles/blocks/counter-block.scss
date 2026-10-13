@@ -293,6 +293,30 @@
       min-height: 0;
     }
   }
+
+  @media screen and (max-width: 600px) {
+    &__number-zero-stack {
+      display: none;
+    }
+
+    &__number-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: auto;
+      width: auto;
+      height: var(--mobile-counter-height, 300px);
+    }
+
+    &__number {
+      right: 0;
+      left: auto;
+      width: auto;
+      height: var(--mobile-counter-height, 300px);
+      max-height: var(--mobile-counter-height, 300px);
+      min-height: var(--mobile-counter-height, 300px);
+    }
+  }
 }
 
 .section-main__counter-block_digits-waiting

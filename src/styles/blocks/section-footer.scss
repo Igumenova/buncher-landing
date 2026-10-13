@@ -258,14 +258,6 @@
     display: flex;
     align-items: center;
     gap: 28px;
-
-    &_mobile {
-      position: absolute;
-      z-index: 4;
-      right: 24px;
-      bottom: 24px;
-      flex-direction: row;
-    }
   }
 
   &__social-link {
@@ -352,17 +344,24 @@
     }
 
     &__footer-container {
-      flex-direction: column;
-      justify-content: center;
-      gap: 16px;
+      display: grid;
+      grid-template-areas:
+        "socials"
+        "policies";
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      gap: 14px;
       padding: 16px 24px;
     }
 
     &__policy-container {
+      grid-area: policies;
       gap: 24px;
     }
 
     &__socials-container {
+      grid-area: socials;
       gap: 22px;
     }
   }

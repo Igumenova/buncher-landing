@@ -62,18 +62,27 @@
     white-space: nowrap;
 
     .section-cover__typing-char {
+      display: inline-block;
       opacity: 0;
       color: #d6e7f2;
+      transition: opacity 120ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: opacity;
     }
 
     &_erasing {
       .section-cover__typing-char {
-        transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
       }
     }
 
     .section-cover__typing-char_visible {
       opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__typing-text .section-cover__typing-char {
+      transition: none;
     }
   }
 
