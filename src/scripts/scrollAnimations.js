@@ -206,6 +206,11 @@ export const setScrollingAnimations = function () {
       animationComplete: false,
       continuationEventCount: 0,
     };
+    // The distance guard belongs to native finger scrolling. An owned
+    // animation can deliberately move scrollTop past that gesture's bounds.
+    clearTimeout(touchScrollGuardReleaseTimer);
+    touchScrollGuardReleaseTimer = null;
+    touchScrollGuard = null;
     // Prevent browser-native touch/wheel momentum from moving the document
     // behind an owned transition. Programmatic scrollTop updates used by the
     // animation remain available while overflow is locked.
@@ -1717,6 +1722,8 @@ export const setScrollingAnimations = function () {
         logoStageGestureId = null;
         firstStageVisualSequenceLockOwner = null;
         scrollRoot.dataset.introReverseSequence = "idle";
+        reversePhoneState = null;
+        pendingPhoneState = "999-999";
         commitPhoneState("999-999");
       };
       const resetIntroSequenceAtStart = () => {
@@ -5293,7 +5300,7 @@ export const setScrollingAnimations = function () {
       );
       mainSection.style.setProperty(
         "--mobile-counter-right-shift",
-        `${50 * mobileLayoutScale}px`,
+        `${50 * mobileLayoutScale + 10}px`,
       );
       mainSection.style.setProperty(
         "--mobile-scaffold-gap",
