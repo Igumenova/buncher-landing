@@ -1156,7 +1156,8 @@
   // previous `height: auto` collapsed the main section, so one mobile fling
   // crossed every state and landed on the footer. Each product stage gets one
   // dynamic viewport instead.
-  @media screen and (hover: none) and (pointer: coarse) {
+  @media screen and (hover: none) and (pointer: coarse),
+    screen and (orientation: portrait) {
     &__stage {
       height: 100svh;
       min-height: 100svh;
@@ -1197,7 +1198,8 @@
   }
 
   @media screen and (min-width: 601px) and (orientation: landscape),
-    screen and (max-width: 600px) {
+    screen and (max-width: 600px),
+    screen and (orientation: portrait) {
     &__shuffle-layer {
       opacity: var(--boundary-opacity, 1);
     }
@@ -1394,7 +1396,8 @@
     }
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 600px),
+    screen and (orientation: portrait) {
     --mobile-phone-width: 263.24px;
     --mobile-phone-height: 570px;
     --mobile-phone-top: 22px;

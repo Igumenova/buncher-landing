@@ -294,7 +294,8 @@
     }
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 600px),
+    screen and (orientation: portrait) {
     &__number-zero-stack {
       display: none;
     }

@@ -2558,11 +2558,9 @@ export const setScrollingAnimations = function () {
         .slice(1)
         .map((block) => getScrollPoint(block, STAGE_CHANGE_POINT));
       const stageStarts = [firstStageStart, ...stageMarkers];
-      const compactTimelineIsActive =
-        touchInputIsActive &&
-        document
-          .getElementById("section-main__text-container")
-          ?.classList.contains("section-main__text-container_small");
+      const compactTimelineIsActive = document
+        .getElementById("section-main__text-container")
+        ?.classList.contains("section-main__text-container_small");
       const mainRect = mainSection.getBoundingClientRect();
       const compactStickyEnd =
         scrollRoot.scrollTop +
@@ -3854,11 +3852,9 @@ export const setScrollingAnimations = function () {
       const rootRect = scrollRoot.getBoundingClientRect();
       const mainRect = mainSection.getBoundingClientRect();
       const sectionTop = scrollRoot.scrollTop + mainRect.top - rootRect.top;
-      const compactTimelineIsActive =
-        touchInputIsActive &&
-        document
-          .getElementById("section-main__text-container")
-          ?.classList.contains("section-main__text-container_small");
+      const compactTimelineIsActive = document
+        .getElementById("section-main__text-container")
+        ?.classList.contains("section-main__text-container_small");
 
       if (compactTimelineIsActive) {
         // On mobile the final product phase owns the last sticky viewport.

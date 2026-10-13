@@ -6,7 +6,8 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 
-  @media screen and (hover: none) and (pointer: coarse) {
+  @media screen and (hover: none) and (pointer: coarse),
+    screen and (orientation: portrait) {
     height: 100dvh;
   }
 
