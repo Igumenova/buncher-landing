@@ -28,8 +28,16 @@ export const setScrollingAnimations = function () {
   const TOUCH_SCROLL_GUARD_VIEWPORT_DISTANCE = 1;
   const TOUCH_SCROLL_GUARD_RELEASE_DELAY = 180;
   const MOBILE_REFERENCE_WIDTH = 414;
-  const MOBILE_CONTENT_FIT_HEIGHT = 738;
+  const MOBILE_PHONE_WIDTH = 263.24;
+  const MOBILE_PHONE_HEIGHT = 570;
+  const MOBILE_PHONE_TOP = 22;
+  const MOBILE_SCAFFOLD_GAP = 26;
   const MOBILE_CONTENT_BOTTOM = 786;
+  const MOBILE_SCAFFOLD_HEIGHT =
+    MOBILE_CONTENT_BOTTOM -
+    MOBILE_PHONE_TOP -
+    MOBILE_PHONE_HEIGHT -
+    MOBILE_SCAFFOLD_GAP;
   const FIRST_STAGE_GESTURE_END_DELAY = 180;
   const FIRST_STAGE_START_DELAY = 300;
   const FIRST_SCREEN_FADE_DURATION = 120;
@@ -5254,29 +5262,27 @@ export const setScrollingAnimations = function () {
       const stableViewportHeight =
         viewportProbe.getBoundingClientRect().height || window.innerHeight;
       viewportProbe.remove();
-      const mobileLayoutScale = Math.min(
-        window.innerWidth / MOBILE_REFERENCE_WIDTH,
-        stableViewportHeight / MOBILE_CONTENT_FIT_HEIGHT,
-      );
-      const verticalDeficit = Math.max(
-        MOBILE_CONTENT_BOTTOM * mobileLayoutScale - stableViewportHeight,
+      const mobileWidthScale = window.innerWidth / MOBILE_REFERENCE_WIDTH;
+      const mobileScaffoldHeight =
+        MOBILE_SCAFFOLD_HEIGHT * mobileWidthScale;
+      const availablePhoneHeight = Math.max(
+        stableViewportHeight -
+          MOBILE_PHONE_TOP -
+          MOBILE_SCAFFOLD_GAP -
+          mobileScaffoldHeight,
         0,
       );
-      const phoneTopReduction = Math.min(
-        22 * mobileLayoutScale,
-        verticalDeficit / 2,
+      const mobilePhoneScale = Math.min(
+        mobileWidthScale,
+        availablePhoneHeight / MOBILE_PHONE_HEIGHT,
       );
-      // Width sets the reference proportions: at 414px the mockup has ~75px
-      // on each side. Short screens use spare top/gap space before shrinking.
-      const mobilePhoneWidth = 263.24 * mobileLayoutScale;
-      const mobilePhoneHeight = 570 * mobileLayoutScale;
-      const mobilePhoneTop = 22 * mobileLayoutScale - phoneTopReduction;
-      const mobileScaffoldGap = Math.max(
-        26 * mobileLayoutScale - (verticalDeficit - phoneTopReduction),
-        0,
-      );
-      const mobileCounterWidth = 201.58 * mobileLayoutScale;
-      const mobileCounterHeight = 300 * mobileLayoutScale;
+      // Keep the two requested gaps fixed. When the composition is too tall,
+      // only the phone mockup shrinks; the text scaffold keeps its width-based
+      // scale so its content remains readable and fully visible.
+      const mobilePhoneWidth = MOBILE_PHONE_WIDTH * mobilePhoneScale;
+      const mobilePhoneHeight = MOBILE_PHONE_HEIGHT * mobilePhoneScale;
+      const mobileCounterWidth = 201.58 * mobilePhoneScale;
+      const mobileCounterHeight = 300 * mobilePhoneScale;
 
       mainSection.style.setProperty(
         "--mobile-phone-width",
@@ -5288,7 +5294,7 @@ export const setScrollingAnimations = function () {
       );
       mainSection.style.setProperty(
         "--mobile-phone-top",
-        `${mobilePhoneTop}px`,
+        `${MOBILE_PHONE_TOP}px`,
       );
       mainSection.style.setProperty(
         "--mobile-counter-width",
@@ -5300,19 +5306,19 @@ export const setScrollingAnimations = function () {
       );
       mainSection.style.setProperty(
         "--mobile-counter-right-shift",
-        `${50 * mobileLayoutScale + 10}px`,
+        `${50 * mobilePhoneScale + 10}px`,
       );
       mainSection.style.setProperty(
         "--mobile-scaffold-gap",
-        `${mobileScaffoldGap}px`,
+        `${MOBILE_SCAFFOLD_GAP}px`,
       );
       mainSection.style.setProperty(
         "--mobile-scaffold-left",
-        `${62 * mobileLayoutScale}px`,
+        `${62 * mobileWidthScale}px`,
       );
       mainSection.style.setProperty(
         "--mobile-scaffold-scale",
-        `${(22 / 48) * mobileLayoutScale}`,
+        `${(22 / 48) * mobileWidthScale}`,
       );
 
       requestAnimationFrame(() => {
