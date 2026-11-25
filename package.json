@@ -2,11 +2,10 @@
   "name": "buncher",
   "version": "1.0.0",
   "description": "landing for Buncher app",
-  "main": "index.js",
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack --mode production",
-    "dev": "cross-env NODE_ENV=development webpack --mode development",
-    "start": "cross-env NODE_ENV=development webpack serve --mode development"
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development",
+    "start": "webpack serve --mode development"
   },
   "author": "anicktoo <anickt00@gmail.com>",
   "license": "UNLICENSED",
