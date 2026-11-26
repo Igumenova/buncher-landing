@@ -24,8 +24,9 @@ export function initInputCaret() {
     const start = parseFloat(style.paddingLeft);
     const end = input.getBoundingClientRect().width - parseFloat(style.paddingRight);
     const left = start + measure.getBoundingClientRect().width - input.scrollLeft;
+    const caretWidth = parseFloat(getComputedStyle(caret).width);
     caret.hidden = left < start - 1 || left > end + 1;
-    caret.style.left = `${Math.min(end - 2, Math.max(start, left))}px`;
+    caret.style.left = `${Math.min(end - caretWidth, Math.max(start, left))}px`;
     caret.style.height = `${parseFloat(style.fontSize) * 1.1}px`;
   };
   const schedule = () => {

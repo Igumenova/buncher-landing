@@ -4,6 +4,7 @@ import legalDocuments from '@/content/legal.json';
 import { initVectorField } from './vectorField';
 import { initInputCaret } from './inputCaret';
 import { initViewportSizing } from './viewport';
+import { initRotatingHeading } from './rotatingHeading';
 
 export function initLanding() {
   let locale = navigator.language.toLowerCase().startsWith('ru') ? 'ru' : 'en';
@@ -12,23 +13,14 @@ export function initLanding() {
     if (savedLocale === 'ru' || savedLocale === 'en') locale = savedLocale;
   } catch { /* Storage may be disabled. */ }
   const getCopy = () => copy[locale];
-  const mobile = window.matchMedia('(max-width: 767px)');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const heading = document.querySelector('[data-heading]');
-  const phrase = document.querySelector('[data-rotating-title]');
   const languageToggle = document.querySelector('[data-language-toggle]');
   const languageOptions = document.getElementById('language-options');
   const dialog = document.querySelector('[data-legal-dialog]');
-  let phraseIndex = mobile.matches ? 1 : 0;
-  let transitionTimeout;
   let openDocument = null;
-
-  const renderHeading = () => {
-    window.clearTimeout(transitionTimeout);
-    phrase.classList.remove('is-changing');
-    phrase.textContent = getCopy().headings[phraseIndex];
-    heading.setAttribute('aria-label', `${getCopy().headings.join('. ')}.`);
-  };
+  const rotatingHeading = initRotatingHeading(
+    () => getCopy().headings,
+    () => dialog.open || Boolean(document.activeElement?.closest('.subscribe__form')),
+  );
 
   const renderLegal = () => {
     if (!openDocument) return;
@@ -60,7 +52,7 @@ export function initLanding() {
       button.setAttribute('aria-checked', String(button.dataset.language === locale));
     });
     try { localStorage.setItem('buncher:language', locale); } catch { /* Storage may be disabled. */ }
-    renderHeading();
+    rotatingHeading.reset();
     renderLegal();
     document.dispatchEvent(new CustomEvent('landing:language'));
   };
@@ -106,19 +98,6 @@ export function initLanding() {
       languageToggle.focus();
     }
   });
-
-  mobile.addEventListener('change', () => {
-    phraseIndex = mobile.matches ? 1 : 0;
-    renderHeading();
-  });
-  window.setInterval(() => {
-    if (document.hidden || reducedMotion.matches || dialog.open || document.activeElement?.closest('.subscribe__form')) return;
-    phrase.classList.add('is-changing');
-    transitionTimeout = window.setTimeout(() => {
-      phraseIndex = (phraseIndex + 1) % getCopy().headings.length;
-      renderHeading();
-    }, 250);
-  }, 5000);
 
   document.querySelectorAll('[data-open-legal]').forEach(button => {
     button.addEventListener('click', () => {

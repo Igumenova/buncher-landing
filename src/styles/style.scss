@@ -252,7 +252,18 @@ button {
     transform 250ms ease;
   &.is-changing {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(-6px);
+  }
+}
+.hero__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+.hero__letter {
+  opacity: 0;
+  transition: opacity 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  &.is-visible {
+    opacity: 1;
   }
 }
 .subscribe {
@@ -341,7 +352,7 @@ button {
   caret-color: var(--color-input-active);
   font-size: 18px;
   font-weight: 400;
-  line-height: normal;
+  line-height: var(--field-height);
   &::placeholder {
     opacity: 0;
   }
@@ -360,7 +371,7 @@ button {
   position: absolute;
   z-index: 3;
   top: 50%;
-  width: 2px;
+  width: 3px;
   transform: translateY(-50%);
   background: var(--color-input-active);
   pointer-events: none;
