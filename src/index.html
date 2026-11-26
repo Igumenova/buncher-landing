@@ -1,17 +1,93 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Банчер — рабочее пространство и нишевый матчмейкер. Подпишитесь на обновления приложения." />
     <link rel="icon" href="img/favicons/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="img/favicons/apple-touch-icon.png" />
     <link rel="manifest" href="img/favicons/site.webmanifest" />
-    <title>Buncher</title>
+    <title>Банчер</title>
   </head>
   <body>
-    <main id="app">
-      <h1>Buncher</h1>
-    </main>
+    <div class="page-shell">
+      <div class="page-rail page-rail--top" aria-hidden="true"></div>
+    <div class="landing" id="app">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="Банчер — главная">
+          <span class="brand__symbol" aria-hidden="true"></span>
+          <img class="brand__wordmark" src="img/brand-wordmark-ru.svg" alt="банчер" width="143" height="37" />
+        </a>
+        <div class="language">
+          <button class="language__toggle" type="button" aria-label="Выбрать язык" aria-haspopup="menu" aria-expanded="false" aria-controls="language-options" data-language-toggle>
+            <img src="img/ui/language.svg" width="36" height="36" alt="" />
+          </button>
+          <div class="language__options" id="language-options" role="menu" aria-label="Язык" hidden>
+            <button type="button" lang="en" role="menuitemradio" data-language="en" aria-checked="false" tabindex="-1" aria-label="English">EN</button>
+            <button type="button" lang="ru" role="menuitemradio" data-language="ru" aria-checked="true" tabindex="-1" aria-label="Русский">РУ</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="hero">
+        <h1 class="hero__title" aria-label="Рабочее пространство. Нишевый матчмейкер." data-heading>
+          <span class="hero__phrase" aria-hidden="true" data-rotating-title>Рабочее пространство</span>
+        </h1>
+        <div class="subscribe">
+          <form class="subscribe__form" id="subscribe-form" novalidate>
+            <label class="visually-hidden" for="email" data-copy="emailLabel">Электронная почта</label>
+            <div class="subscribe__field">
+              <svg class="subscribe__shape" viewBox="0 0 330 42" preserveAspectRatio="none" aria-hidden="true" focusable="false" data-field-shape>
+                <defs><clipPath id="email-field-clip" clipPathUnits="userSpaceOnUse"><path data-field-path d="M0 21C0 34.65 7.33947 42 20.9699 42H309.03C322.661 42 330 34.65 330 21C330 7.35 322.661 0 309.03 0H20.9699C7.33947 0 0 7.35 0 21Z" /></clipPath></defs>
+                <path class="subscribe__shape-fill" data-field-path d="M0 21C0 34.65 7.33947 42 20.9699 42H309.03C322.661 42 330 34.65 330 21C330 7.35 322.661 0 309.03 0H20.9699C7.33947 0 0 7.35 0 21Z" />
+                <text class="subscribe__placeholder" x="0" y="50%" dominant-baseline="central" clip-path="url(#email-field-clip)">EMAIL</text>
+              </svg>
+              <input class="subscribe__input" id="email" name="email" type="text" dir="ltr" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="EMAIL" aria-describedby="subscribe-description subscribe-status" required />
+              <svg class="subscribe__outline" viewBox="0 0 330 42" preserveAspectRatio="none" aria-hidden="true" focusable="false" data-field-shape>
+                <path class="subscribe__shape-outline" data-field-outline />
+                <path class="subscribe__button-fill" data-button-fill />
+                <path class="subscribe__button-outline" data-button-outline />
+              </svg>
+              <span class="subscribe__caret" aria-hidden="true" hidden></span>
+              <button class="subscribe__submit" type="submit" aria-label="Подписаться" data-submit>
+                <img class="subscribe__arrow" src="img/ui/submit-arrow.svg" width="7" height="11" alt="" />
+              </button>
+            </div>
+            <p class="subscribe__description" id="subscribe-description">
+              <span class="desktop-copy" data-copy="subscribeDesktop">Подписаться на обновления и стать участником бета-релиза приложения</span>
+              <span class="mobile-copy" data-copy="subscribeMobile">Подписаться на обновления и принять участие в бета-релизе приложения</span>
+            </p>
+            <p class="subscribe__status" id="subscribe-status" role="status" aria-live="polite" aria-atomic="true"></p>
+          </form>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <nav class="legal-links" aria-label="Правовая информация" data-legal-nav>
+          <button class="legal-links__terms" type="button" data-open-legal="terms" data-copy="terms">Условия использования</button>
+          <button class="legal-links__privacy" type="button" data-open-legal="privacy" data-copy="privacy">Политика конфиденциальности</button>
+        </nav>
+        <div class="socials" aria-label="Социальные сети">
+          <span class="socials__item socials__item--threads" role="img" aria-label="Threads" data-pending-link="threads">
+            <img class="socials__icon" src="img/socials/threads-icon.svg" width="27" height="30" alt="" />
+          </span>
+          <span class="socials__item" role="img" aria-label="Facebook" data-pending-link="facebook"><img class="socials__icon" src="img/socials/facebook-icon.svg" width="30" height="30" alt="" /></span>
+          <span class="socials__item" role="img" aria-label="X" data-pending-link="x"><img class="socials__icon" src="img/socials/x-icon.svg" width="30" height="28" alt="" /></span>
+          <a class="socials__item" href="https://www.linkedin.com/showcase/buncher-app-ru" target="_blank" rel="noopener noreferrer" aria-label="Банчер в LinkedIn" data-linkedin><img class="socials__icon" src="img/socials/linkedIn-icon.svg" width="30" height="30" alt="" /></a>
+          <a class="socials__item" href="https://vk.com/buncher_app" target="_blank" rel="noopener noreferrer" aria-label="Банчер во ВКонтакте"><img class="socials__icon" src="img/socials/vk-icon.svg" width="30" height="30" alt="" /></a>
+        </div>
+      </footer>
+    </div>
+      <div class="page-rail page-rail--bottom" aria-hidden="true"></div>
+    </div>
+
+    <dialog class="legal-dialog" aria-labelledby="legal-title" data-legal-dialog>
+      <div class="legal-dialog__header">
+        <h2 id="legal-title"></h2>
+        <button class="legal-dialog__close" type="button" aria-label="Закрыть" data-close-legal>×</button>
+      </div>
+      <div class="legal-dialog__content" data-legal-content></div>
+    </dialog>
   </body>
 </html>

@@ -42,11 +42,10 @@ module.exports = (_env, argv = {}) => {
         minify: isProduction,
       }),
       new CopyWebpackPlugin({
-        patterns: [{
-          from: path.join(sourcePath, 'img'),
-          to: 'img',
-          noErrorOnMissing: true,
-        }],
+        patterns: [
+          { from: path.join(sourcePath, 'img'), to: 'img', noErrorOnMissing: true },
+          { from: path.join(sourcePath, 'fonts/OFL.txt'), to: 'fonts/OFL.txt' },
+        ],
       }),
       new MiniCssExtractPlugin({ filename: filename('css') }),
       new ESLintPlugin({ context: sourcePath, extensions: ['js'] }),
