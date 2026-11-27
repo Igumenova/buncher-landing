@@ -1,0 +1,52 @@
+:root {
+  --font-family: "Montserrat", Arial, sans-serif;
+  --color-text: #0075c9;
+  --color-muted: #90bad8;
+  --color-control: #384d60;
+  --color-input-outline: #bac0c8;
+  --color-input-active: #384d60;
+  --color-input-inactive: #7e8994;
+  --color-error: #a54141;
+  --color-background: #fff;
+  --rail-height: 4px;
+  --rail-bottom-size: 5px;
+  --rail-background: #fff;
+  --rail-shadow-top: 0 -1px 2px rgb(56 77 96 / 18%);
+  --rail-shadow-bottom: 0 1px 1px rgb(56 77 96 / 18%);
+  --page-inline: clamp(48px, 6.25vw, 120px);
+  --page-top: clamp(23px, 2.447917vw, 47px);
+  --page-bottom: 16px;
+  --brand-height: 52px;
+  --brand-gradient-duration: 3s;
+  --title-top: clamp(120px, 11.25vw, 216px);
+  --hero-offset: max(
+    24px,
+    calc(var(--title-top) - var(--page-top) - var(--brand-height))
+  );
+  --hero-gap: min(5.833333vw, 12.5dvh);
+  --heading-size: clamp(48px, 5.104167vw, 98px);
+  --heading-line-height: 1;
+  --form-width: 330px;
+  --field-height: 42px;
+  --submit-inset: 3px;
+  --email-size: 64px;
+  --social-size: 30px;
+  --social-gap: 28px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --rail-bottom-size: 0px;
+    --page-inline: 26px;
+    --page-top: max(23px, env(safe-area-inset-top));
+    --page-bottom: max(20px, env(safe-area-inset-bottom));
+    --brand-height: 40px;
+    --hero-offset: 56px;
+    --hero-gap: 42px;
+    --heading-size: clamp(30px, calc(13.377927vw - 10.167224px), 40px);
+    --heading-line-height: 1.1;
+    --form-width: 100%;
+    --field-height: 38px;
+    --submit-inset: 2px;
+  }
+}
